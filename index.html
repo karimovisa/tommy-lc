@@ -1148,7 +1148,12 @@ async function doLogin(){
 }
 /* ---- DEV: tezkor kirish (faqat localhost; parollar localStorage'da, kodda emas) ---- */
 function isLocalDev(){return ['localhost','127.0.0.1','[::1]',''].includes(location.hostname)}
-function revealDevQuick(){if(isLocalDev()){const d=document.getElementById('dev-quick');if(d)d.style.display='block'}}
+function devEnabled(){try{return isLocalDev()||localStorage.getItem('dev-mode')==='1'}catch(e){return isLocalDev()}}
+function revealDevQuick(){
+  // ?dev=1 -> shu brauzerda yoqiladi (eslab qoladi); ?dev=0 -> o'chiriladi
+  try{const p=new URLSearchParams(location.search);if(p.has('dev')){if(p.get('dev')==='0'){localStorage.removeItem('dev-mode');showToast('Dev rejim o\'chirildi')}else localStorage.setItem('dev-mode','1')}}catch(e){}
+  if(devEnabled()){const d=document.getElementById('dev-quick');if(d)d.style.display='block'}
+}
 function quickLogin(role){
   const meta={admin:{mode:'staff',label:'Admin email',def:(typeof ADMIN_EMAILS!=='undefined'&&ADMIN_EMAILS[0])||''},
               teacher:{mode:'staff',label:'Ustoz email',def:'kisombekuz@gmail.com'},
