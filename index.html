@@ -859,6 +859,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
     </div>
     <div id="view-group" class="view">
       <div class="page-header"><div><div class="page-title" id="grp-page-title">Guruh</div><div class="page-sub" id="grp-page-sub"></div></div><div class="header-actions" id="grp-page-actions"></div></div>
+      <div class="wrap" id="group-materials"></div>
       <div class="wrap" id="group-detail"></div>
     </div>
     <div id="view-checklist" class="view">
@@ -952,6 +953,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
       <div id="vview-rank" class="vview"><h2 class="sd-vtitle">Reyting</h2><div id="v-rank"></div></div>
       <div id="vview-settings" class="vview"><h2 class="sd-vtitle">Sozlamalar</h2><div class="student-dash" id="viewer-profile"></div></div>
       <div id="vview-notifications" class="vview"><h2 class="sd-vtitle">Bildirishnomalar</h2><div class="student-dash" id="viewer-notifs"></div></div>
+      <div id="vview-materials" class="vview"><h2 class="sd-vtitle">Materiallar</h2><div class="student-dash" id="viewer-materials"></div></div>
       <div id="vview-soon" class="vview"><div id="v-soon"></div></div>
     </main>
   </div>
@@ -971,6 +973,8 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 <div class="modal-overlay" id="modal-move"><div class="modal"><div class="modal-title">Boshqa guruhga ko'chirish</div><div id="move-info" style="font-size:13px;color:var(--text-2);margin-bottom:12px"></div><label class="modal-label">Yangi guruh</label><select id="move-group"></select><div style="font-size:12px;color:var(--text-3);margin:6px 0 10px;line-height:1.5">Ko'chirilgach joriy ko'rsatkich 0 dan boshlanadi. Eski guruhdagi natija profil arxivida saqlanadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="confirmMove()">Ko'chirish</button></div></div></div>
 
 <div id="acct-menu" class="hidden"><button class="acct-btn" onclick="toggleAcct(event)" aria-label="Akkaunt">⋮</button><div class="acct-pop" id="acct-pop"><div class="acct-name" id="acct-name"></div><div class="acct-sub" id="acct-sub"></div><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="toggleTheme()" id="theme-btn">Tungi rejim</button><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="togglePwdChange()">Parolni o'zgartirish</button><div id="pwd-change" style="display:none;margin-bottom:8px"><input type="password" id="new-pwd" class="form-input" placeholder="Yangi parol" style="margin-bottom:6px" oninput="document.getElementById('pwd-msg').textContent=''"><div id="pwd-msg" style="font-size:11px;margin-bottom:6px;min-height:14px"></div><button class="btn btn-primary btn-sm btn-block" onclick="savePwd()">Saqlash</button></div><button class="btn btn-sm btn-block" onclick="doLogout()">Chiqish</button></div></div>
+
+<div class="modal-overlay" id="modal-material"><div class="modal"><div class="modal-title">Material qo'shish</div><label class="modal-label">Nomi</label><input type="text" id="mat-title" placeholder="Unit 5 — audio"><label class="modal-label">Havola (YouTube, Drive, PDF...)</label><input type="text" id="mat-url" placeholder="https://..."><div style="text-align:center;font-size:11px;color:var(--text-3);margin:-2px 0 8px">— yoki —</div><label class="modal-label">Fayl yuklash (PDF, audio, rasm)</label><input type="file" id="mat-file"><div style="font-size:11px;color:var(--text-3);margin:-2px 0 10px">Havola yoki fayldan birini kiriting. Fayl: maks. 50MB.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="mat-save-btn" onclick="saveMaterial()">Qo'shish</button></div></div></div>
 
 <div class="modal-overlay" id="modal-notif"><div class="modal"><div class="modal-title">Yangi bildirishnoma</div><label class="modal-label">Sarlavha</label><input type="text" id="notif-title" placeholder="Masalan: Dam olish kuni"><label class="modal-label">Matn</label><textarea id="notif-body" placeholder="Bildirishnoma matni..."></textarea><label class="modal-label">Kimga</label><select id="notif-group"></select><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="notif-send-btn" onclick="sendNotif()">Yuborish</button></div></div></div>
 
@@ -999,9 +1003,9 @@ let sb;
 try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){console.error('Supabase yuklanmadi:',e)}
 
 let currentUser=null, level=null;           // level: 'admin' | 'teacher' | 'student' | 'parent'
-let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[], notifs=[];
+let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[], notifs=[], groupMaterials=[];
 let myProfile=null, currentDate='', regType='student', editGroupId=null;
-let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[], vConfirms=new Set();
+let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[], vConfirms=new Set(), vMaterials=[];
 let studentsById={}, moveSid=null, curGroup=null;
 let nameToGid={}, gidToName={};
 
@@ -1314,8 +1318,9 @@ function openGroup(gid){
   const cnt=students.filter(s=>gidOf(s)===gid).length;
   document.getElementById('grp-page-sub').textContent=(g&&g.teacher_name?g.teacher_name+' \u00b7 ':'')+cnt+" o'quvchi"+(scheduleText(g)?' \u00b7 '+scheduleText(g):'');
   const isAdmin=level==='admin';
-  document.getElementById('grp-page-actions').innerHTML=`<button class="btn-back" onclick="showView('dashboard')" aria-label="Orqaga" title="Orqaga">\u2190</button>`+(isAdmin?`<button class="btn btn-sm" onclick="openAddStudent('${gid}')">+ O'quvchi</button><button class="btn btn-sm" onclick="openEditGroup('${gid}')">Guruhni tahrirlash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteGroup('${gid}')">O'chirish</button>`:'');
+  document.getElementById('grp-page-actions').innerHTML=`<button class="btn-back" onclick="showView('dashboard')" aria-label="Orqaga" title="Orqaga">\u2190</button><button class="btn btn-sm" onclick="openAddMaterial('${gid}')">+ Material</button>`+(isAdmin?`<button class="btn btn-sm" onclick="openAddStudent('${gid}')">+ O'quvchi</button><button class="btn btn-sm" onclick="openEditGroup('${gid}')">Guruhni tahrirlash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteGroup('${gid}')">O'chirish</button>`:'');
   renderGroupDetail(gid);
+  loadGroupMaterials(gid).then(renderGroupMaterials);
   showView('group');
 }
 function renderGroupDetail(gid){
@@ -1743,6 +1748,7 @@ async function startViewer(){
   if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,a:amap[g.assignment_id]})).filter(x=>x.a)}}
   vChecks=checks;vGrades=vg;vStudent=sData;vTeacherName=vTeacher;
   await loadViewerNotifs();updateNotifBadge();
+  await loadViewerMaterials();
   buildViewerNav();
   renderViewerHomework();
   renderViewerGrades(vg);
@@ -1819,6 +1825,54 @@ function renderSoon(title){
 }
 function vGo(target){showVView(target)}
 
+/* ---------- MATERIALLAR ---------- */
+let curMatGroup=null;
+function matIcon(m){if(m.kind==='file')return '📄';const u=(m.url||'').toLowerCase();if(u.includes('youtu'))return '▶️';if(u.includes('drive.google'))return '📁';return '🔗'}
+async function loadGroupMaterials(gid){try{const{data}=await sb.from('materials').select('*').eq('group_id',gid).order('created_at',{ascending:false});groupMaterials=data||[]}catch(e){groupMaterials=[]}}
+function renderGroupMaterials(){
+  const el=document.getElementById('group-materials');if(!el)return;
+  if(!groupMaterials.length){el.innerHTML=`<div class="card-title" style="margin-bottom:8px">Materiallar</div><div class="no-history" style="margin-bottom:16px">Hali material yo'q — yuqoridagi "+ Material" tugmasi orqali qo'shing</div>`;return}
+  el.innerHTML=`<div class="card-title" style="margin-bottom:8px">Materiallar (${groupMaterials.length})</div>`+groupMaterials.map(m=>`<div class="grp-row" style="cursor:default;margin-bottom:8px"><div class="grp-row-main"><div class="grp-row-name">${matIcon(m)} ${esc(m.title)}</div><div class="grp-row-sub">${m.kind==='file'?'Fayl':'Havola'} · ${esc(m.created_by_name||'')}</div></div><a class="btn btn-sm" href="${esc(m.url)}" target="_blank" rel="noopener">Ochish</a><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteMaterial('${m.id}','${esc(m.file_path||'')}')">O'chirish</button></div>`).join('');
+}
+function openAddMaterial(gid){curMatGroup=gid;document.getElementById('mat-title').value='';document.getElementById('mat-url').value='';const f=document.getElementById('mat-file');if(f)f.value='';document.getElementById('modal-material').classList.add('open')}
+async function saveMaterial(){
+  const title=document.getElementById('mat-title').value.trim();
+  const url=document.getElementById('mat-url').value.trim();
+  const fileEl=document.getElementById('mat-file');const file=fileEl&&fileEl.files[0];
+  if(!title){showToast('Nomini kiriting');return}
+  if(!url&&!file){showToast('Havola yoki fayl kiriting');return}
+  const btn=document.getElementById('mat-save-btn');btn.disabled=true;btn.textContent='Yuklanmoqda...';
+  let kind='link',finalUrl=url,filePath=null;
+  try{
+    if(file){
+      const safe=file.name.replace(/[^\w.\-]/g,'_');
+      filePath=curMatGroup+'/'+Date.now()+'_'+safe;
+      const{error:upErr}=await sb.storage.from('materials').upload(filePath,file);
+      if(upErr)throw upErr;
+      finalUrl=sb.storage.from('materials').getPublicUrl(filePath).data.publicUrl;kind='file';
+    }
+    const senderName=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
+    const{error}=await sb.from('materials').insert({group_id:curMatGroup,title,kind,url:finalUrl,file_path:filePath,created_by:currentUser.id,created_by_name:senderName});
+    if(error)throw error;
+    btn.disabled=false;btn.textContent="Qo'shish";
+    closeModals();showToast("Material qo'shildi");
+    await loadGroupMaterials(curMatGroup);renderGroupMaterials();
+  }catch(e){btn.disabled=false;btn.textContent="Qo'shish";showToast('Xato: '+(e.message||e))}
+}
+async function deleteMaterial(id,filePath){
+  if(!confirm("Material o'chirilsinmi?"))return;
+  if(filePath){try{await sb.storage.from('materials').remove([filePath])}catch(e){}}
+  const{error}=await sb.from('materials').delete().eq('id',id);
+  if(error){showToast('Xato: '+error.message);return}
+  await loadGroupMaterials(curGroup);renderGroupMaterials();
+}
+async function loadViewerMaterials(){try{const{data}=await sb.from('materials').select('*').order('created_at',{ascending:false}).limit(100);vMaterials=data||[]}catch(e){vMaterials=[]}}
+function renderViewerMaterials(){
+  const el=document.getElementById('viewer-materials');if(!el)return;
+  if(!vMaterials||!vMaterials.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📁</div><p>Hozircha material yo'q</p></div>`;return}
+  el.innerHTML=vMaterials.map(m=>`<a class="sd-card" href="${esc(m.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;margin-bottom:10px;text-decoration:none;color:inherit"><div style="font-size:24px">${matIcon(m)}</div><div style="flex:1"><div style="font-weight:700">${esc(m.title)}</div><div style="font-size:12px;color:var(--text-3)">${m.kind==='file'?'Fayl':'Havola'} · ${esc(m.created_by_name||'Ustoz')}</div></div><div style="color:var(--brand);font-size:18px">→</div></a>`).join('');
+}
+
 /* ---------- BILDIRISHNOMALAR ---------- */
 function fmtNotifDate(iso){const d=new Date(iso);return d.toLocaleDateString('uz-UZ')+' '+d.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'})}
 // --- Admin/ustoz tomoni ---
@@ -1885,7 +1939,7 @@ function buildViewerNav(){
   nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='homework'&&pending?`<span class="nav-badge">${pending}</span>`:''}</button>`).join('');
 }
 function showVView(name){
-  const soonMap={materials:'Materiallar',payments:"To'lovlar"};
+  const soonMap={payments:"To'lovlar"};
   vView=name;let target=name;const soonTitle=soonMap[name];
   if(soonTitle)target='soon';
   document.querySelectorAll('#viewer-app .vview').forEach(v=>v.classList.remove('active'));
@@ -1894,6 +1948,7 @@ function showVView(name){
   const nb=document.querySelector('#viewer-app .nav-item[data-vview="'+name+'"]');if(nb)nb.classList.add('active');
   if(soonTitle)renderSoon(soonTitle);
   if(name==='notifications'){renderViewerNotifs();markNotifsSeen();}
+  if(name==='materials'){renderViewerMaterials();}
   const sb2=document.getElementById('v-sidebar');if(sb2)sb2.classList.remove('open');
   const sc=document.getElementById('v-scrim');if(sc)sc.classList.remove('open');
   const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.remove('open');
