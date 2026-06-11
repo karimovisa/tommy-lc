@@ -964,7 +964,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <div class="modal-overlay" id="modal-assignment"><div class="modal"><div class="modal-title">Yangi vazifa</div><label class="modal-label">Vazifa nomi</label><input type="text" id="new-assign-title" placeholder="Unit 3 test"><label class="modal-label">Guruh</label><select id="new-assign-group"></select><label class="modal-label">Topshirish muddati</label><input type="date" id="new-assign-due"><label class="modal-label">Izoh (ixtiyoriy)</label><textarea id="new-assign-note" placeholder="Qo'shimcha ma'lumot..."></textarea><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addAssignment()">Yaratish</button></div></div></div>
 
-<div class="modal-overlay" id="modal-group"><div class="modal"><div class="modal-title" id="group-modal-title">Yangi guruh</div><label class="modal-label">Guruh nomi</label><input type="text" id="grp-name" placeholder="301"><label class="modal-label">Ustoz ism familiyasi</label><input type="text" id="grp-teacher-name" placeholder="Asilbek Yusupov"><label class="modal-label">Ustoz emaili (shu email bilan kirsa — o'qituvchi)</label><input type="email" id="grp-teacher-email" placeholder="asilbek@gmail.com"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="save-grp-btn" onclick="saveGroup()">Saqlash</button></div></div></div>
+<div class="modal-overlay" id="modal-group"><div class="modal"><div class="modal-title" id="group-modal-title">Yangi guruh</div><label class="modal-label">Guruh nomi</label><input type="text" id="grp-name" placeholder="301"><label class="modal-label">Ustoz ism familiyasi</label><input type="text" id="grp-teacher-name" placeholder="Asilbek Yusupov"><label class="modal-label">Ustoz emaili (shu email bilan kirsa — o'qituvchi)</label><input type="email" id="grp-teacher-email" placeholder="asilbek@gmail.com"><label class="modal-label">Dars kunlari</label><select id="grp-days"><option value="">— Tanlanmagan —</option><option value="odd">Toq kunlar (Dush·Chor·Jum)</option><option value="even">Juft kunlar (Sesh·Pay·Shan)</option></select><label class="modal-label">Dars vaqti</label><div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="time" id="grp-start" style="margin-bottom:0"><span style="color:var(--text-3)">–</span><input type="time" id="grp-end" style="margin-bottom:0"></div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="save-grp-btn" onclick="saveGroup()">Saqlash</button></div></div></div>
 
 <div class="modal-overlay" id="modal-homework"><div class="modal"><div class="modal-title">Yangi uy ishi</div><label class="modal-label">Guruh</label><select id="hw-new-group"></select><label class="modal-label">Dars sanasi</label><input type="date" id="hw-new-date"><label class="modal-label">Vocabulary</label><select id="hw-new-vocab"></select><label class="modal-label">Grammar / Workbook</label><select id="hw-new-grammar"></select><label class="modal-label">Qo'shimcha (speaking / writing)</label><input type="text" id="hw-new-extra" placeholder="masalan: yarim sahifa essay"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addHomework()">Qo'shish</button></div></div></div>
 
@@ -1312,7 +1312,7 @@ function openGroup(gid){
   const g=allGroups.find(x=>x.id===gid);
   document.getElementById('grp-page-title').textContent=g?g.name:'Guruh';
   const cnt=students.filter(s=>gidOf(s)===gid).length;
-  document.getElementById('grp-page-sub').textContent=(g&&g.teacher_name?g.teacher_name+' \u00b7 ':'')+cnt+" o'quvchi";
+  document.getElementById('grp-page-sub').textContent=(g&&g.teacher_name?g.teacher_name+' \u00b7 ':'')+cnt+" o'quvchi"+(scheduleText(g)?' \u00b7 '+scheduleText(g):'');
   const isAdmin=level==='admin';
   document.getElementById('grp-page-actions').innerHTML=`<button class="btn-back" onclick="showView('dashboard')" aria-label="Orqaga" title="Orqaga">\u2190</button>`+(isAdmin?`<button class="btn btn-sm" onclick="openAddStudent('${gid}')">+ O'quvchi</button><button class="btn btn-sm" onclick="openEditGroup('${gid}')">Guruhni tahrirlash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteGroup('${gid}')">O'chirish</button>`:'');
   renderGroupDetail(gid);
@@ -1361,7 +1361,7 @@ function renderDashboard(){
     html+=`<div class="trend-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="card-title" style="margin:0">Sinf o'zlashtirish dinamikasi</div><div style="font-family:var(--mono);font-size:12px;color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'▲ +':'▼ '}${Math.abs(diff)}%</div></div>${sparkline(tv,'100%',56)}</div>`;
   }
   html+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px"><div class="card-title" style="margin:0">Guruhlar ko'rsatkichi</div>${level==='admin'?'<button class="btn btn-sm" onclick="openAddGroup()">+ Yangi guruh</button>':''}</div>`;
-  html+=grpStats.length?grpStats.map(x=>`<div class="grp-row" onclick="openGroup('${x.g.id}')" style="cursor:pointer"><div class="grp-row-main"><div class="grp-row-name">${esc(x.g.name)}</div><div class="grp-row-sub">${esc(x.g.teacher_name||'ustoz belgilanmagan')} · ${x.count} o'quvchi</div><div class="bar-track" style="margin-top:9px"><div class="bar-fill" style="width:${x.avg}%;background:${col(x.avg)}"></div></div></div><div class="grp-row-pct" style="color:${col(x.avg)}">${x.avg}%</div>${isAdmin?`<div class="row-menu" onclick="event.stopPropagation()"><button class="row-menu-btn" onclick="toggleRowMenu(event,this)" aria-label="Amallar">⋮</button><div class="row-menu-pop"><button onclick="openEditGroup('${x.g.id}')">Tahrirlash</button><button class="danger" onclick="deleteGroup('${x.g.id}')">O'chirish</button></div></div>`:''}</div>`).join(''):`<div class="no-history">Guruh yo'q</div>`;
+  html+=grpStats.length?grpStats.map(x=>`<div class="grp-row" onclick="openGroup('${x.g.id}')" style="cursor:pointer"><div class="grp-row-main"><div class="grp-row-name">${esc(x.g.name)}</div><div class="grp-row-sub">${esc(x.g.teacher_name||'ustoz belgilanmagan')} · ${x.count} o'quvchi${scheduleText(x.g)?'<br>🗓️ '+esc(scheduleText(x.g)):''}</div><div class="bar-track" style="margin-top:9px"><div class="bar-fill" style="width:${x.avg}%;background:${col(x.avg)}"></div></div></div><div class="grp-row-pct" style="color:${col(x.avg)}">${x.avg}%</div>${isAdmin?`<div class="row-menu" onclick="event.stopPropagation()"><button class="row-menu-btn" onclick="toggleRowMenu(event,this)" aria-label="Amallar">⋮</button><div class="row-menu-pop"><button onclick="openEditGroup('${x.g.id}')">Tahrirlash</button><button class="danger" onclick="deleteGroup('${x.g.id}')">O'chirish</button></div></div>`:''}</div>`).join(''):`<div class="no-history">Guruh yo'q</div>`;
   // O'quvchilar reytingi — podium (top 3) + to'liq reyting
   const ranked=studs.filter(x=>x.st.count>0).sort((a,b)=>b.st.overall-a.st.overall);
   if(ranked.length){
@@ -1632,22 +1632,26 @@ function renderGroups(){
     return `<div class="group-card"><div class="avatar-md">${esc((g.name||'?').slice(0,3))}</div><div class="group-info"><div class="group-name">${esc(g.name)}</div><div class="group-meta">Ustoz: ${esc(g.teacher_name||'—')}${g.teacher_email?' ('+esc(g.teacher_email)+')':''} · ${cnt} o'quvchi</div></div><button class="btn btn-sm" onclick="openEditGroup('${g.id}')">Tahrirlash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteGroup('${g.id}')">O'chirish</button></div>`;
   }).join('');
 }
-function openAddGroup(){editGroupId=null;document.getElementById('group-modal-title').textContent='Yangi guruh';document.getElementById('grp-name').value='';document.getElementById('grp-teacher-name').value='';document.getElementById('grp-teacher-email').value='';document.getElementById('modal-group').classList.add('open')}
-function openEditGroup(id){const g=allGroups.find(x=>x.id===id);if(!g)return;editGroupId=id;document.getElementById('group-modal-title').textContent='Guruhni tahrirlash';document.getElementById('grp-name').value=g.name||'';document.getElementById('grp-teacher-name').value=g.teacher_name||'';document.getElementById('grp-teacher-email').value=g.teacher_email||'';document.getElementById('modal-group').classList.add('open')}
+function scheduleText(g){if(!g)return '';const dm={odd:'Toq (Dush·Chor·Jum)',even:'Juft (Sesh·Pay·Shan)'};const days=dm[g.lesson_days]||'';const time=(g.lesson_start||'')+((g.lesson_start&&g.lesson_end)?'–'+g.lesson_end:'');return [days,time].filter(Boolean).join(' · ')}
+function openAddGroup(){editGroupId=null;document.getElementById('group-modal-title').textContent='Yangi guruh';document.getElementById('grp-name').value='';document.getElementById('grp-teacher-name').value='';document.getElementById('grp-teacher-email').value='';document.getElementById('grp-days').value='';document.getElementById('grp-start').value='';document.getElementById('grp-end').value='';document.getElementById('modal-group').classList.add('open')}
+function openEditGroup(id){const g=allGroups.find(x=>x.id===id);if(!g)return;editGroupId=id;document.getElementById('group-modal-title').textContent='Guruhni tahrirlash';document.getElementById('grp-name').value=g.name||'';document.getElementById('grp-teacher-name').value=g.teacher_name||'';document.getElementById('grp-teacher-email').value=g.teacher_email||'';document.getElementById('grp-days').value=g.lesson_days||'';document.getElementById('grp-start').value=g.lesson_start||'';document.getElementById('grp-end').value=g.lesson_end||'';document.getElementById('modal-group').classList.add('open')}
 async function saveGroup(){
   const name=document.getElementById('grp-name').value.trim();
   const tn=document.getElementById('grp-teacher-name').value.trim();
   const te=document.getElementById('grp-teacher-email').value.trim().toLowerCase();
+  const ld=document.getElementById('grp-days').value;
+  const ls=document.getElementById('grp-start').value;
+  const le=document.getElementById('grp-end').value;
   if(!name){showToast('Guruh nomini kiriting');return}
   const btn=document.getElementById('save-grp-btn');
   if(btn){btn.disabled=true;btn.textContent='Saqlanmoqda...';}
   let error;
   if(editGroupId){
     const oldName=gidToName[editGroupId];
-    ({error}=await sb.from('groups').update({name,teacher_name:tn,teacher_email:te}).eq('id',editGroupId));
+    ({error}=await sb.from('groups').update({name,teacher_name:tn,teacher_email:te,lesson_days:ld,lesson_start:ls,lesson_end:le}).eq('id',editGroupId));
     if(!error&&oldName!==name){await sb.from('students').update({group_name:name}).eq('group_id',editGroupId);}
   }else{
-    ({error}=await sb.from('groups').insert({name,teacher_name:tn,teacher_email:te}));
+    ({error}=await sb.from('groups').insert({name,teacher_name:tn,teacher_email:te,lesson_days:ld,lesson_start:ls,lesson_end:le}));
   }
   if(btn){btn.disabled=false;btn.textContent='Saqlash';}
   if(error){showToast('Xato: '+error.message);return}
