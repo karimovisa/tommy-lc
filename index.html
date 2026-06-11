@@ -1154,17 +1154,23 @@ function revealDevQuick(){
   try{const p=new URLSearchParams(location.search);if(p.has('dev')){if(p.get('dev')==='0'){localStorage.removeItem('dev-mode');showToast('Dev rejim o\'chirildi')}else localStorage.setItem('dev-mode','1')}}catch(e){}
   if(devEnabled()){const d=document.getElementById('dev-quick');if(d)d.style.display='block'}
 }
+// VAQTINCHALIK TEST CREDS — ishga tushirishdan OLDIN OLIB TASHLANSIN!
+const DEV_CREDS={
+  admin:{mode:'staff', login:'karimov.islom7@icloud.com', pw:'karimov_0303'},
+  teacher:{mode:'staff', login:'kisombekuz@gmail.com', pw:'karimov0303'},
+  student:{mode:'student', login:'', pw:''}   // o'quvchi yaratilgach to'ldiriladi
+};
 function quickLogin(role){
-  const meta={admin:{mode:'staff',label:'Admin email',def:(typeof ADMIN_EMAILS!=='undefined'&&ADMIN_EMAILS[0])||''},
-              teacher:{mode:'staff',label:'Ustoz email',def:'kisombekuz@gmail.com'},
-              student:{mode:'student',label:'Student ID',def:''}}[role];
-  if(!meta)return;
-  let login=localStorage.getItem('dev-login-'+role);
-  if(!login){login=prompt(meta.label+':',meta.def);if(!login)return;localStorage.setItem('dev-login-'+role,login.trim())}
-  let pw=localStorage.getItem('dev-pw-'+role);
-  if(!pw){pw=prompt(role+' paroli (bir marta saqlanadi):');if(!pw)return;localStorage.setItem('dev-pw-'+role,pw)}
-  setLoginMode(meta.mode);
-  const fid=meta.mode==='staff'?'login-email':'login-id';
+  const c=DEV_CREDS[role];if(!c)return;
+  let login=c.login, pw=c.pw;
+  if(!login||!pw){ // hali to'ldirilmagan (masalan o'quvchi) -> bir marta so'rab, localStorage'ga saqlaymiz
+    login=login||localStorage.getItem('dev-login-'+role)||(prompt(role+' login (ID yoki email):')||'').trim();
+    if(!login)return; localStorage.setItem('dev-login-'+role,login);
+    pw=pw||localStorage.getItem('dev-pw-'+role)||prompt(role+' parol:')||'';
+    if(!pw)return; localStorage.setItem('dev-pw-'+role,pw);
+  }
+  setLoginMode(c.mode);
+  const fid=c.mode==='staff'?'login-email':'login-id';
   const el=document.getElementById(fid);if(el)el.value=login;
   document.getElementById('login-password').value=pw;
   doLogin();
