@@ -820,6 +820,10 @@ table.data tbody tr:hover td{background:var(--surface-2)}
   <div class="auth-box" style="width:390px;max-width:95vw;margin:auto">
     <div class="auth-greet">Yangi parol o'rnating 🔐</div>
     <div class="auth-greet-sub">Birinchi kirish. Xavfsizlik uchun shaxsiy parol yarating.</div>
+    <div style="margin-bottom:18px">
+      <div class="cred-row"><span class="cred-k">Student ID</span><span class="cred-v" id="fp-sid">—</span></div>
+      <div class="cred-row"><span class="cred-k">Vaqtinchalik parol</span><span style="display:flex;align-items:center;gap:2px"><input type="password" id="fp-tempview" readonly value="" style="border:none;background:none;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--brand);text-align:right;width:108px;padding:0;outline:none"><button class="pwd-toggle" type="button" style="position:static;width:26px;height:26px;flex-shrink:0" onclick="togglePwdVisible('fp-tempview',this)" aria-label="Ko'rsatish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></span></div>
+    </div>
     <label class="form-label">Yangi parol</label>
     <div class="input-wrap">
       <svg class="input-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
@@ -1126,6 +1130,7 @@ async function doLogin(){
   btn.disabled=false;btn.textContent='Kirish';
   if(error){err.textContent=(loginMode==='staff')?"Email yoki parol noto'g'ri":"Student ID yoki parol noto'g'ri";return}
   try{const rm=document.getElementById('remember-me');if(rm&&rm.checked&&idVal)localStorage.setItem('tommy-last-id',idVal);else localStorage.removeItem('tommy-last-id')}catch(e){}
+  window.lastTempPw=pass;window.lastLoginId=idVal;
   currentUser=data.user;
   await routeUser();
 }
@@ -1657,7 +1662,9 @@ async function startViewer(){
   }
   // First-login: vaqtinchalik paroldan shaxsiy parolga o'tish majburiy (faqat o'quvchining o'zi)
   if(sData&&sData.password_changed===false&&myProfile.role!=='parent'){
-    showLoading(false);showScreen('force-pw-screen');return;
+    showLoading(false);
+    try{document.getElementById('fp-sid').textContent=sData.student_id||window.lastLoginId||'—';document.getElementById('fp-tempview').value=window.lastTempPw||'';}catch(e){}
+    showScreen('force-pw-screen');return;
   }
   let checks={};
   if(sid){const{data}=await sb.from('daily_checks').select('*').eq('student_id',sid);(data||[]).forEach(r=>{checks[r.date]={hw:r.hw,words:r.words,extra:r.extra,absent:!!r.absent}})}
