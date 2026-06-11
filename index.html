@@ -933,8 +933,8 @@ table.data tbody tr:hover td{background:var(--surface-2)}
         <div class="sd-motiv">
           <div class="sd-motiv-ic">🏆</div>
           <div class="sd-motiv-title">Doimiy o'sish sari!</div>
-          <div class="sd-motiv-sub">Har kuni bir qadam oldinga.</div>
-          <div class="sd-streak-lbl"><span>7 kunlik seriya</span><span id="v-streak">0/7</span></div>
+          <div class="sd-motiv-sub" id="v-motiv-quote">Har kuni bir qadam oldinga.</div>
+          <div class="sd-streak-lbl"><span id="v-streak-label">🔥 Seriya</span><span id="v-streak">0/7</span></div>
           <div class="sd-streak-track"><div class="sd-streak-fill" id="v-streak-fill"></div></div>
         </div>
         <button class="sd-support" onclick="showVView('notifications')">
@@ -1001,7 +1001,7 @@ try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){console.error('
 let currentUser=null, level=null;           // level: 'admin' | 'teacher' | 'student' | 'parent'
 let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[], notifs=[];
 let myProfile=null, currentDate='', regType='student', editGroupId=null;
-let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[];
+let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[], vConfirms=new Set();
 let studentsById={}, moveSid=null, curGroup=null;
 let nameToGid={}, gidToName={};
 
@@ -1729,9 +1729,10 @@ async function startViewer(){
   document.getElementById('v-pid').textContent='ID: '+(sid?('TOM'+String(sid).replace(/[^a-zA-Z0-9]/g,'').slice(-4).toUpperCase()):'—');
   document.getElementById('v-avatar').textContent=initials(dispName);
   setAcct(myProfile.full_name||currentUser.email, (myProfile.role==='parent'?'Ota-ona':"O'quvchi")+(gidToName[myProfile.group_id]?' \u00b7 '+gidToName[myProfile.group_id]:'')+(myProfile.child_name?' \u00b7 '+myProfile.child_name:''));
-  vSid=sid;vDone=new Set();vHw=[];
+  vSid=sid;vDone=new Set();vHw=[];vConfirms=new Set();
   if(myProfile.group_id){const r=await sb.from('homework').select('*').eq('group_id',myProfile.group_id).order('lesson_date',{ascending:false});vHw=r.data||[]}
   if(sid){const r=await sb.from('homework_done').select('*').eq('student_id',sid);(r.data||[]).forEach(x=>{if(x.done)vDone.add(x.homework_id)})}
+  if(sid){try{const r=await sb.from('lesson_confirms').select('lesson_date').eq('student_id',sid);(r.data||[]).forEach(x=>vConfirms.add(x.lesson_date))}catch(e){}}
   vRank=null;
   try{const rr=await sb.rpc('my_group_rank');if(rr&&rr.data&&rr.data.length)vRank=rr.data[0];}catch(e){}
   let vg=[];
@@ -1762,9 +1763,12 @@ function renderStudentHome(){
   const dispName=myProfile.role==='parent'?(myProfile.child_name||''):(myProfile.full_name||'');
   const greet=myProfile.role==='parent'?`${esc(dispName)}ning natijalari`:`Salom, ${esc((dispName||'').split(' ')[0]||'')}! 👋`;
   const grp=gidToName[myProfile.group_id]||'';
-  let streak=0;const sds=Object.keys(checks).sort().reverse();for(const d of sds){if(checks[d].absent)break;streak++;}streak=Math.min(streak,7);
-  const sf=document.getElementById('v-streak-fill');if(sf)sf.style.width=Math.round(streak/7*100)+'%';
-  const stx=document.getElementById('v-streak');if(stx)stx.textContent=streak+'/7';
+  const streak=computeStreak();
+  const wk=streak%7;const fillPct=streak>0?(wk===0?100:Math.round(wk/7*100)):0;
+  const sf=document.getElementById('v-streak-fill');if(sf)sf.style.width=fillPct+'%';
+  const stx=document.getElementById('v-streak');if(stx)stx.textContent=(streak>0&&wk===0?7:wk)+'/7';
+  const slbl=document.getElementById('v-streak-label');if(slbl)slbl.textContent=streak>0?('🔥 '+streak+' kunlik seriya'):'Seriyani boshlang';
+  const mq=document.getElementById('v-motiv-quote');if(mq)mq.textContent=dailyMotiv();
   const heroes=`<div class="sd-hero-grid">`
     +heroCard(ICONS.cal,'var(--text-2)','var(--surface-2)','Bugungi dars','—','Jadval tez orada','soon',true)
     +heroCard(ICONS.clip,'var(--brand)','var(--brand-light)','Uy vazifalari',pending+' <small>ta</small>',pending?'Topshiriq qolgan':'Hammasi bajarildi','homework',false)
@@ -1949,16 +1953,56 @@ async function addHomework(){
   await loadHomework();renderHomework();showToast("Uy ishi qo'shildi");
 }
 async function deleteHomework(id){if(!confirm("Bu vazifani o'chirasizmi?"))return;await sb.from('homework_done').delete().eq('homework_id',id);await sb.from('homework').delete().eq('id',id);await loadHomework();renderHomework();showToast("O'chirildi")}
+/* ---------- SERIYA (STREAK) ---------- */
+const MOTIV=["Zo'r! Yana bir qadam oldinga 🚀","Davom et, sen ajoyibsan! 💪","Bilim — sening kuching! ⭐","Har kuni yaxshilanyapsan! 📈","Mana bu — intizom! 🎯","Bugun ham g'alaba! 🏆","Sekin, lekin to'xtovsiz — eng zo'ri! 🌱"];
+const MOTIV_HERO=["🔥 Qoyil! Darsga kelmaslik senga bahona emas!","🔥 Mana bu — chempion ruhi!","🔥 Hech narsa seni to'xtata olmaydi!","🔥 Kelmasang ham bajarding — tan berdik!"];
+function lessonDatesDesc(){return [...new Set((vHw||[]).map(x=>x.lesson_date))].sort().reverse();}
+function lessonAllDone(date){const items=(vHw||[]).filter(x=>x.lesson_date===date);return items.length>0&&items.every(x=>vDone.has(x.id));}
+function isAbsentDate(date){return !!(vChecks[date]&&vChecks[date].absent);}
+function computeStreak(){
+  const dates=lessonDatesDesc();let streak=0,started=false;
+  for(const d of dates){
+    if(vConfirms.has(d)){streak++;started=true;continue;}   // tasdiqlangan -> +1
+    if(isAbsentDate(d))continue;                              // kelmagan+tasdiqsiz -> o'tkazib (uzilmaydi)
+    if(!started)continue;                                     // hali boshlanmagan (bugungi kutilayotgan dars) -> imkon
+    break;                                                    // kelgan, lekin bajarmagan -> uziladi
+  }
+  return streak;
+}
+function dailyMotiv(){const di=Math.floor(Date.now()/864e5);return MOTIV[di%MOTIV.length];}
+async function confirmLesson(date){
+  if(!vSid){showToast('Natijalar biriktirilmagan');return}
+  if(!lessonAllDone(date)){showToast('Avval hamma vazifani belgilang');return}
+  const absent=isAbsentDate(date);
+  const{error}=await sb.from('lesson_confirms').upsert({student_id:vSid,lesson_date:date,was_absent:absent,confirmed_at:new Date().toISOString()},{onConflict:'student_id,lesson_date'});
+  if(error){showToast('Xato: '+error.message);return}
+  vConfirms.add(date);
+  const streak=computeStreak();
+  const base=absent?MOTIV_HERO[Math.floor(Math.random()*MOTIV_HERO.length)]:MOTIV[Math.floor(Math.random()*MOTIV.length)];
+  showToast(base+'  ·  🔥 '+streak+' kunlik seriya');
+  renderViewerHomework();renderStudentHome();buildViewerNav();
+}
 function renderViewerHomework(){
   const el=document.getElementById('viewer-hw');if(!el)return;
   if(!vHw.length){el.innerHTML='<div class="empty"><div class="empty-icon">📒</div><p>Hozircha uy ishi yo\'q</p></div>';return}
-  const maxDate=vHw.map(x=>x.lesson_date).sort().reverse()[0];
-  const cur=vHw.filter(x=>x.lesson_date===maxDate);
-  const older=vHw.filter(x=>x.lesson_date!==maxDate);
-  const srt=arr=>arr.slice().sort((a,b)=>(vDone.has(a.id)?1:0)-(vDone.has(b.id)?1:0));
-  const item=it=>{const dn=vDone.has(it.id);return `<div class="todo ${dn?'done':''}" onclick="toggleHwDone('${it.id}')"><span class="todo-circle">${dn?'✓':''}</span><span class="todo-text"><span class="tag" style="margin-right:8px">${esc(hwTypeLabel(it.type))}</span>${esc(it.title)}</span></div>`};
-  let html=`<div class="dash-history"><div class="card-title">Uy ishi — ${fmtDate(maxDate)}</div>${srt(cur).map(item).join('')}</div>`;
-  if(older.length)html+=`<details class="hw-arch"><summary>Arxiv (${older.length} ta eski vazifa)</summary>${srt(older).map(item).join('')}</details>`;
+  const isStudent=!(myProfile&&myProfile.role==='parent');
+  const dates=lessonDatesDesc();
+  const block=date=>{
+    const items=(vHw||[]).filter(x=>x.lesson_date===date).sort((a,b)=>(vDone.has(a.id)?1:0)-(vDone.has(b.id)?1:0));
+    const allDone=items.every(x=>vDone.has(x.id));
+    const confirmed=vConfirms.has(date);
+    const absent=isAbsentDate(date);
+    const itemsHtml=items.map(it=>{const dn=vDone.has(it.id);return `<div class="todo ${dn?'done':''}" onclick="toggleHwDone('${it.id}')"><span class="todo-circle">${dn?'✓':''}</span><span class="todo-text"><span class="tag" style="margin-right:8px">${esc(hwTypeLabel(it.type))}</span>${esc(it.title)}</span></div>`}).join('');
+    const note=absent?`<div style="background:rgba(232,49,42,.08);color:var(--bad);font-size:12px;padding:10px 12px;border-radius:9px;margin:8px 0;line-height:1.5">⚠️ Siz bu darsga <b>kelmadingiz</b>. Darsni <b>support</b> orqali tushunib, uy ishini yetkazib bajaring — seriyangiz uzilmaydi.</div>`:'';
+    let foot='';
+    if(confirmed)foot=`<div style="text-align:center;color:var(--good);font-weight:600;font-size:13px;margin-top:10px">✓ Bajarildi va tasdiqlangan</div>`;
+    else if(isStudent&&allDone)foot=`<button class="btn btn-primary btn-block" style="margin-top:10px" onclick="confirmLesson('${date}')">✅ Bajardim — tasdiqlash</button>`;
+    else if(isStudent)foot=`<div style="text-align:center;color:var(--text-3);font-size:12px;margin-top:10px">Hammasini belgilab, tasdiqlang</div>`;
+    return `<div class="dash-history" style="margin-bottom:14px"><div class="card-title">Uy ishi — ${fmtDate(date)}${absent?' <span class="tag" style="color:var(--bad)">Kelmadingiz</span>':''}${confirmed?' <span class="tag" style="color:var(--good)">✓</span>':''}</div>${note}${itemsHtml}${foot}</div>`;
+  };
+  let html=block(dates[0]);
+  const older=dates.slice(1);
+  if(older.length)html+=`<details class="hw-arch"><summary>Arxiv (${older.length} ta oldingi dars)</summary>${older.map(block).join('')}</details>`;
   el.innerHTML=html;
 }
 async function toggleHwDone(hid){
