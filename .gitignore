@@ -1,0 +1,10 @@
+# OS / muharrir
+Thumbs.db
+.DS_Store
+*.log
+
+# Maxfiy — HECH QACHON commit qilinmasin
+.env
+.env.*
+*service_role*
+*secret*
