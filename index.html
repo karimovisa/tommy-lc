@@ -902,6 +902,11 @@ table.data tbody tr:hover td{background:var(--surface-2)}
       <div class="page-header"><div><div class="page-title">Umumiy report</div><div class="page-sub">O'quvchilar ko'rsatkichi</div></div><div class="header-actions"><select class="flt" id="rep-group" onchange="renderReport()"></select></div></div>
       <div class="wrap"><table class="data"><thead><tr><th>O'quvchi</th><th class="center">Guruh</th><th class="center">Umumiy %</th><th class="center">Vocab</th><th class="center" title="Workbook / Grammarbank">Workbook</th><th class="center">Qo'shimcha</th><th class="center">Darslar</th></tr></thead><tbody id="report-tbody"></tbody></table></div>
     </div>
+
+    <div id="view-notifs" class="view">
+      <div class="page-header"><div><div class="page-title">Bildirishnomalar</div><div class="page-sub">O'quvchilarga e'lon yuborish</div></div><div class="header-actions"><button class="btn btn-primary btn-sm" onclick="openAddNotif()">+ Yangi bildirishnoma</button></div></div>
+      <div class="wrap" id="notifs-list"></div>
+    </div>
   </div>
 </div>
 
@@ -911,7 +916,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
     <button class="sd-burger" onclick="toggleVSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
     <div class="sd-logo" onclick="showVView('home')" style="cursor:pointer" title="Bosh sahifa"><div class="logo-sm tommy-logo" role="img" aria-label="TOMMY"></div><div class="sd-logo-txt"><div class="brand-name">TOMMY</div><div class="brand-sub">LEARNING CENTRE</div></div></div>
     <div class="sd-header-right">
-      <button class="sd-iconbtn" onclick="showVView('notifications')" aria-label="Bildirishnomalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="sd-dot">3</span></button>
+      <button class="sd-iconbtn" onclick="showVView('notifications')" aria-label="Bildirishnomalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="sd-dot" id="v-bell-dot" style="display:none">0</span></button>
       <button class="sd-iconbtn" onclick="toggleTheme()" aria-label="Rejim"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
       <div class="sd-profile" onclick="toggleVProfile(event)">
         <div class="sd-avatar" id="v-avatar"></div>
@@ -946,6 +951,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
       <div id="vview-tests" class="vview"><h2 class="sd-vtitle">Test natijalari</h2><div class="student-dash" id="viewer-grades"></div></div>
       <div id="vview-rank" class="vview"><h2 class="sd-vtitle">Reyting</h2><div id="v-rank"></div></div>
       <div id="vview-settings" class="vview"><h2 class="sd-vtitle">Sozlamalar</h2><div class="student-dash" id="viewer-profile"></div></div>
+      <div id="vview-notifications" class="vview"><h2 class="sd-vtitle">Bildirishnomalar</h2><div class="student-dash" id="viewer-notifs"></div></div>
       <div id="vview-soon" class="vview"><div id="v-soon"></div></div>
     </main>
   </div>
@@ -965,6 +971,8 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 <div class="modal-overlay" id="modal-move"><div class="modal"><div class="modal-title">Boshqa guruhga ko'chirish</div><div id="move-info" style="font-size:13px;color:var(--text-2);margin-bottom:12px"></div><label class="modal-label">Yangi guruh</label><select id="move-group"></select><div style="font-size:12px;color:var(--text-3);margin:6px 0 10px;line-height:1.5">Ko'chirilgach joriy ko'rsatkich 0 dan boshlanadi. Eski guruhdagi natija profil arxivida saqlanadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="confirmMove()">Ko'chirish</button></div></div></div>
 
 <div id="acct-menu" class="hidden"><button class="acct-btn" onclick="toggleAcct(event)" aria-label="Akkaunt">⋮</button><div class="acct-pop" id="acct-pop"><div class="acct-name" id="acct-name"></div><div class="acct-sub" id="acct-sub"></div><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="toggleTheme()" id="theme-btn">Tungi rejim</button><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="togglePwdChange()">Parolni o'zgartirish</button><div id="pwd-change" style="display:none;margin-bottom:8px"><input type="password" id="new-pwd" class="form-input" placeholder="Yangi parol" style="margin-bottom:6px" oninput="document.getElementById('pwd-msg').textContent=''"><div id="pwd-msg" style="font-size:11px;margin-bottom:6px;min-height:14px"></div><button class="btn btn-primary btn-sm btn-block" onclick="savePwd()">Saqlash</button></div><button class="btn btn-sm btn-block" onclick="doLogout()">Chiqish</button></div></div>
+
+<div class="modal-overlay" id="modal-notif"><div class="modal"><div class="modal-title">Yangi bildirishnoma</div><label class="modal-label">Sarlavha</label><input type="text" id="notif-title" placeholder="Masalan: Dam olish kuni"><label class="modal-label">Matn</label><textarea id="notif-body" placeholder="Bildirishnoma matni..."></textarea><label class="modal-label">Kimga</label><select id="notif-group"></select><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="notif-send-btn" onclick="sendNotif()">Yuborish</button></div></div></div>
 
 <div class="modal-overlay" id="modal-forgot"><div class="modal"><div class="modal-title">Parolni tiklash</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Student ID raqamingizni kiriting. Parolingizni o'qituvchi yoki administrator tiklab beradi.</div><label class="modal-label">Student ID</label><input type="text" id="forgot-id" placeholder="TOM-0001"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="submitForgot()">Yuborish</button></div></div></div>
 
@@ -991,9 +999,9 @@ let sb;
 try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){console.error('Supabase yuklanmadi:',e)}
 
 let currentUser=null, level=null;           // level: 'admin' | 'teacher' | 'student' | 'parent'
-let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[];
+let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[], notifs=[];
 let myProfile=null, currentDate='', regType='student', editGroupId=null;
-let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='';
+let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[];
 let studentsById={}, moveSid=null, curGroup=null;
 let nameToGid={}, gidToName={};
 
@@ -1229,6 +1237,7 @@ function buildNav(){
   items.push(['approve',"Ro'yxat so'rovlari"]);
   if(!isAdmin)items.push(['assignments','Vazifalar']);
   items.push(['report','Umumiy report']);
+  items.push(['notifs','Bildirishnomalar']);
   const nav=document.getElementById('nav');
   nav.innerHTML=items.map((it,i)=>`<button class="nav-item${i===0?' active':''}" data-view="${it[0]}" onclick="showView('${it[0]}')">${esc(it[1])}<span class="nav-badge" id="badge-${it[0]}" style="display:none">0</span></button>`).join('');
 }
@@ -1382,6 +1391,7 @@ function showView(name){
   if(name==='groups')renderGroups();
   if(name==='assignments')renderAssignments();
   if(name==='report')renderReport();
+  if(name==='notifs')renderNotifsAdmin();
   if(name==='homework')renderHomework();
   if(name==='dashboard')renderDashboard();
   if(name==='group'&&curGroup)renderGroupDetail(curGroup);
@@ -1727,6 +1737,7 @@ async function startViewer(){
   let vg=[];
   if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,a:amap[g.assignment_id]})).filter(x=>x.a)}}
   vChecks=checks;vGrades=vg;vStudent=sData;vTeacherName=vTeacher;
+  await loadViewerNotifs();updateNotifBadge();
   buildViewerNav();
   renderViewerHomework();
   renderViewerGrades(vg);
@@ -1799,6 +1810,64 @@ function renderSoon(title){
   el.innerHTML=`<div class="sd-soon"><div class="sd-soon-ic">🚧</div><div class="sd-soon-title">${esc(title||'Tez orada')}</div><p>Bu bo'lim ustida ishlanmoqda. Tez orada qo'shiladi.</p></div>`;
 }
 function vGo(target){showVView(target)}
+
+/* ---------- BILDIRISHNOMALAR ---------- */
+function fmtNotifDate(iso){const d=new Date(iso);return d.toLocaleDateString('uz-UZ')+' '+d.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'})}
+// --- Admin/ustoz tomoni ---
+async function renderNotifsAdmin(){
+  try{const{data}=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(100);notifs=data||[]}catch(e){notifs=[]}
+  const el=document.getElementById('notifs-list');if(!el)return;
+  if(!notifs.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔔</div><p>Hali bildirishnoma yo'q</p></div>`;return}
+  el.innerHTML=notifs.map(n=>{
+    const target=n.group_id?(gidToName[n.group_id]||'Guruh'):"📢 Barcha o'quvchilar";
+    return `<div class="grp-row" style="cursor:default;align-items:flex-start"><div class="grp-row-main"><div class="grp-row-name">${esc(n.title)}</div><div class="grp-row-sub" style="white-space:pre-wrap;margin-top:3px">${esc(n.body||'')}</div><div style="font-size:11px;color:var(--text-3);margin-top:7px;font-family:var(--mono)"><span class="tag">${esc(target)}</span> · ${esc(n.created_by_name||'')} · ${fmtNotifDate(n.created_at)}</div></div><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteNotif('${n.id}')">O'chirish</button></div>`;
+  }).join('');
+}
+function openAddNotif(){
+  fillGroupSelect(document.getElementById('notif-group'),true,"📢 Barcha o'quvchilar");
+  document.getElementById('notif-title').value='';document.getElementById('notif-body').value='';
+  document.getElementById('modal-notif').classList.add('open');
+}
+async function sendNotif(){
+  const title=document.getElementById('notif-title').value.trim();
+  const body=document.getElementById('notif-body').value.trim();
+  const g=document.getElementById('notif-group').value;
+  if(!title){showToast('Sarlavha kiriting');return}
+  const btn=document.getElementById('notif-send-btn');btn.disabled=true;btn.textContent='Yuborilmoqda...';
+  const senderName=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
+  const{error}=await sb.from('notifications').insert({title,body,group_id:(g==='all'?null:g),created_by:currentUser.id,created_by_name:senderName});
+  btn.disabled=false;btn.textContent='Yuborish';
+  if(error){showToast('Xato: '+error.message);return}
+  closeModals();showToast('Bildirishnoma yuborildi');renderNotifsAdmin();
+}
+async function deleteNotif(id){
+  if(!confirm("Bildirishnoma o'chirilsinmi?"))return;
+  const{error}=await sb.from('notifications').delete().eq('id',id);
+  if(error){showToast('Xato: '+error.message);return}
+  renderNotifsAdmin();
+}
+// --- O'quvchi tomoni ---
+async function loadViewerNotifs(){
+  try{const{data}=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(50);vNotifs=data||[]}catch(e){vNotifs=[]}
+}
+function notifSeenKey(){return 'notif-seen-'+(vSid||(myProfile&&myProfile.id)||'x')}
+function updateNotifBadge(){
+  const seen=+(localStorage.getItem(notifSeenKey())||0);
+  const unread=(vNotifs||[]).filter(n=>new Date(n.created_at).getTime()>seen).length;
+  const dot=document.getElementById('v-bell-dot');
+  if(dot){if(unread>0){dot.textContent=unread>9?'9+':unread;dot.style.display=''}else dot.style.display='none'}
+}
+function markNotifsSeen(){localStorage.setItem(notifSeenKey(),Date.now());updateNotifBadge()}
+function renderViewerNotifs(){
+  const el=document.getElementById('viewer-notifs');if(!el)return;
+  if(!vNotifs||!vNotifs.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔔</div><p>Hozircha bildirishnoma yo'q</p></div>`;return}
+  const seen=+(localStorage.getItem(notifSeenKey())||0);
+  el.innerHTML=vNotifs.map(n=>{
+    const isNew=new Date(n.created_at).getTime()>seen;
+    const tag=n.group_id?'':'<span class="tag">Hammaga</span>';
+    return `<div class="sd-card" style="margin-bottom:12px;${isNew?'border-left:3px solid var(--brand)':''}"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px"><div style="font-weight:700">${isNew?'🔵 ':''}${esc(n.title)}</div>${tag}</div><div style="color:var(--text-2);font-size:14px;line-height:1.5;white-space:pre-wrap">${esc(n.body||'')}</div><div style="font-size:11px;color:var(--text-3);margin-top:9px;font-family:var(--mono)">${esc(n.created_by_name||'Ustoz')} · ${fmtNotifDate(n.created_at)}</div></div>`;
+  }).join('');
+}
 function toggleVSidebar(){const sb2=document.getElementById('v-sidebar'),sc=document.getElementById('v-scrim');if(!sb2)return;const open=sb2.classList.toggle('open');if(sc)sc.classList.toggle('open',open);}
 function toggleVProfile(e){if(e)e.stopPropagation();const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.toggle('open');}
 function buildViewerNav(){
@@ -1808,7 +1877,7 @@ function buildViewerNav(){
   nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='homework'&&pending?`<span class="nav-badge">${pending}</span>`:''}</button>`).join('');
 }
 function showVView(name){
-  const soonMap={materials:'Materiallar',payments:"To'lovlar",notifications:'Bildirishnomalar'};
+  const soonMap={materials:'Materiallar',payments:"To'lovlar"};
   vView=name;let target=name;const soonTitle=soonMap[name];
   if(soonTitle)target='soon';
   document.querySelectorAll('#viewer-app .vview').forEach(v=>v.classList.remove('active'));
@@ -1816,6 +1885,7 @@ function showVView(name){
   const v=document.getElementById('vview-'+target);if(v)v.classList.add('active');
   const nb=document.querySelector('#viewer-app .nav-item[data-vview="'+name+'"]');if(nb)nb.classList.add('active');
   if(soonTitle)renderSoon(soonTitle);
+  if(name==='notifications'){renderViewerNotifs();markNotifsSeen();}
   const sb2=document.getElementById('v-sidebar');if(sb2)sb2.classList.remove('open');
   const sc=document.getElementById('v-scrim');if(sc)sc.classList.remove('open');
   const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.remove('open');
