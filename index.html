@@ -968,6 +968,17 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <div class="modal-overlay" id="modal-forgot"><div class="modal"><div class="modal-title">Parolni tiklash</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Student ID raqamingizni kiriting. Parolingizni o'qituvchi yoki administrator tiklab beradi.</div><label class="modal-label">Student ID</label><input type="text" id="forgot-id" placeholder="TOM-0001"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="submitForgot()">Yuborish</button></div></div></div>
 
+<!-- DEV: tezkor kirish (faqat localhost'da ko'rinadi) -->
+<div id="dev-quick" style="display:none;position:fixed;bottom:14px;left:14px;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px;box-shadow:0 8px 24px rgba(0,0,0,.3)">
+  <div style="font-size:10px;font-family:var(--mono);color:var(--text-3);letter-spacing:.08em;margin-bottom:7px">⚡ DEV — TEZKOR KIRISH</div>
+  <div style="display:flex;gap:6px">
+    <button class="btn btn-sm" onclick="quickLogin('admin')">Admin</button>
+    <button class="btn btn-sm" onclick="quickLogin('teacher')">Ustoz</button>
+    <button class="btn btn-sm" onclick="quickLogin('student')">O'quvchi</button>
+  </div>
+  <div style="text-align:center;margin-top:6px"><span style="font-size:10px;color:var(--text-3);cursor:pointer;text-decoration:underline" onclick="clearDevCreds()">parollarni tozalash</span></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1051,6 +1062,7 @@ function onTeacherPick(){
 
 /* ---------- INIT ---------- */
 async function init(){
+  revealDevQuick();
   if(!sb){showScreen('auth-screen');showToast('Supabase ulanmadi — internet tekshiring');return}
   showLoading(true);
   let session=null;
@@ -1134,6 +1146,25 @@ async function doLogin(){
   currentUser=data.user;
   await routeUser();
 }
+/* ---- DEV: tezkor kirish (faqat localhost; parollar localStorage'da, kodda emas) ---- */
+function isLocalDev(){return ['localhost','127.0.0.1','[::1]',''].includes(location.hostname)}
+function revealDevQuick(){if(isLocalDev()){const d=document.getElementById('dev-quick');if(d)d.style.display='block'}}
+function quickLogin(role){
+  const meta={admin:{mode:'staff',label:'Admin email',def:(typeof ADMIN_EMAILS!=='undefined'&&ADMIN_EMAILS[0])||''},
+              teacher:{mode:'staff',label:'Ustoz email',def:'kisombekuz@gmail.com'},
+              student:{mode:'student',label:'Student ID',def:''}}[role];
+  if(!meta)return;
+  let login=localStorage.getItem('dev-login-'+role);
+  if(!login){login=prompt(meta.label+':',meta.def);if(!login)return;localStorage.setItem('dev-login-'+role,login.trim())}
+  let pw=localStorage.getItem('dev-pw-'+role);
+  if(!pw){pw=prompt(role+' paroli (bir marta saqlanadi):');if(!pw)return;localStorage.setItem('dev-pw-'+role,pw)}
+  setLoginMode(meta.mode);
+  const fid=meta.mode==='staff'?'login-email':'login-id';
+  const el=document.getElementById(fid);if(el)el.value=login;
+  document.getElementById('login-password').value=pw;
+  doLogin();
+}
+function clearDevCreds(){['admin','teacher','student'].forEach(r=>{localStorage.removeItem('dev-login-'+r);localStorage.removeItem('dev-pw-'+r)});showToast('Dev parollar tozalandi — keyingi bosishda qayta so\'raladi')}
 async function doRegister(){
   const err=document.getElementById('reg-err'),suc=document.getElementById('reg-success'),btn=document.getElementById('reg-btn');
   err.textContent='';suc.textContent='';
