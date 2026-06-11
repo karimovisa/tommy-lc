@@ -974,7 +974,9 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <div id="acct-menu" class="hidden"><button class="acct-btn" onclick="toggleAcct(event)" aria-label="Akkaunt">⋮</button><div class="acct-pop" id="acct-pop"><div class="acct-name" id="acct-name"></div><div class="acct-sub" id="acct-sub"></div><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="toggleTheme()" id="theme-btn">Tungi rejim</button><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="togglePwdChange()">Parolni o'zgartirish</button><div id="pwd-change" style="display:none;margin-bottom:8px"><input type="password" id="new-pwd" class="form-input" placeholder="Yangi parol" style="margin-bottom:6px" oninput="document.getElementById('pwd-msg').textContent=''"><div id="pwd-msg" style="font-size:11px;margin-bottom:6px;min-height:14px"></div><button class="btn btn-primary btn-sm btn-block" onclick="savePwd()">Saqlash</button></div><button class="btn btn-sm btn-block" onclick="doLogout()">Chiqish</button></div></div>
 
-<div class="modal-overlay" id="modal-material"><div class="modal"><div class="modal-title">Material qo'shish</div><label class="modal-label">Nomi</label><input type="text" id="mat-title" placeholder="Unit 5 — audio"><label class="modal-label">Havola (YouTube, Drive, PDF...)</label><input type="text" id="mat-url" placeholder="https://..."><div style="text-align:center;font-size:11px;color:var(--text-3);margin:-2px 0 8px">— yoki —</div><label class="modal-label">Fayl yuklash (PDF, audio, rasm)</label><input type="file" id="mat-file"><div style="font-size:11px;color:var(--text-3);margin:-2px 0 10px">Havola yoki fayldan birini kiriting. Fayl: maks. 50MB.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="mat-save-btn" onclick="saveMaterial()">Qo'shish</button></div></div></div>
+<div class="modal-overlay" id="modal-material"><div class="modal"><div class="modal-title">Material qo'shish</div><label class="modal-label">Nomi</label><input type="text" id="mat-title" placeholder="Unit 5 — audio"><label class="modal-label">Havola (YouTube, Drive, PDF...)</label><input type="text" id="mat-url" placeholder="https://..."><div style="text-align:center;font-size:11px;color:var(--text-3);margin:-2px 0 8px">— yoki —</div><label class="modal-label">Fayl yuklash (PDF, audio, rasm)</label><input type="file" id="mat-file"><div style="font-size:11px;color:var(--text-3);margin:-2px 0 10px">Havola yoki fayldan birini kiriting. Fayl: maks. 50MB.</div><div style="text-align:center;font-size:11px;color:var(--text-3);margin:0 0 8px">— yoki so'zlar (lug'at) —</div><label class="modal-label">So'zlar — har qatorda: <b>apple - olma</b></label><textarea id="mat-words" placeholder="apple - olma&#10;book - kitob&#10;run - yugurmoq" style="height:110px"></textarea><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="mat-save-btn" onclick="saveMaterial()">Qo'shish</button></div></div></div>
+
+<div class="modal-overlay" id="modal-vocab"><div class="modal" style="width:480px;max-width:96vw"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="modal-title" id="vocab-title" style="margin:0">So'zlar</div><button class="btn btn-sm" onclick="closeModals()">✕</button></div><div class="role-tabs" style="margin-bottom:14px"><button class="role-tab active" id="vtab-list" onclick="vocabSetMode('list')">Ro'yxat</button><button class="role-tab" id="vtab-card" onclick="vocabSetMode('card')">Kartochka</button><button class="role-tab" id="vtab-test" onclick="vocabSetMode('test')">Test</button></div><div id="vocab-body"></div></div></div>
 
 <div class="modal-overlay" id="modal-notif"><div class="modal"><div class="modal-title">Yangi bildirishnoma</div><label class="modal-label">Sarlavha</label><input type="text" id="notif-title" placeholder="Masalan: Dam olish kuni"><label class="modal-label">Matn</label><textarea id="notif-body" placeholder="Bildirishnoma matni..."></textarea><label class="modal-label">Kimga</label><select id="notif-group"></select><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="notif-send-btn" onclick="sendNotif()">Yuborish</button></div></div></div>
 
@@ -1827,24 +1829,26 @@ function vGo(target){showVView(target)}
 
 /* ---------- MATERIALLAR ---------- */
 let curMatGroup=null;
-function matIcon(m){if(m.kind==='file')return '📄';const u=(m.url||'').toLowerCase();if(u.includes('youtu'))return '▶️';if(u.includes('drive.google'))return '📁';return '🔗'}
+function matIcon(m){if(m.kind==='words')return '📚';if(m.kind==='file')return '📄';const u=(m.url||'').toLowerCase();if(u.includes('youtu'))return '▶️';if(u.includes('drive.google'))return '📁';return '🔗'}
 async function loadGroupMaterials(gid){try{const{data}=await sb.from('materials').select('*').eq('group_id',gid).order('created_at',{ascending:false});groupMaterials=data||[]}catch(e){groupMaterials=[]}}
 function renderGroupMaterials(){
   const el=document.getElementById('group-materials');if(!el)return;
   if(!groupMaterials.length){el.innerHTML=`<div class="card-title" style="margin-bottom:8px">Materiallar</div><div class="no-history" style="margin-bottom:16px">Hali material yo'q — yuqoridagi "+ Material" tugmasi orqali qo'shing</div>`;return}
-  el.innerHTML=`<div class="card-title" style="margin-bottom:8px">Materiallar (${groupMaterials.length})</div>`+groupMaterials.map(m=>`<div class="grp-row" style="cursor:default;margin-bottom:8px"><div class="grp-row-main"><div class="grp-row-name">${matIcon(m)} ${esc(m.title)}</div><div class="grp-row-sub">${m.kind==='file'?'Fayl':'Havola'} · ${esc(m.created_by_name||'')}</div></div><a class="btn btn-sm" href="${esc(m.url)}" target="_blank" rel="noopener">Ochish</a><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteMaterial('${m.id}','${esc(m.file_path||'')}')">O'chirish</button></div>`).join('');
+  el.innerHTML=`<div class="card-title" style="margin-bottom:8px">Materiallar (${groupMaterials.length})</div>`+groupMaterials.map(m=>`<div class="grp-row" style="cursor:default;margin-bottom:8px"><div class="grp-row-main"><div class="grp-row-name">${matIcon(m)} ${esc(m.title)}</div><div class="grp-row-sub">${m.kind==='words'?'So\'zlar':(m.kind==='file'?'Fayl':'Havola')} · ${esc(m.created_by_name||'')}</div></div>${m.kind==='words'?`<button class="btn btn-sm" onclick="openVocab('${m.id}')">Ko'rish</button>`:`<a class="btn btn-sm" href="${esc(m.url)}" target="_blank" rel="noopener">Ochish</a>`}<button class="btn btn-sm" style="color:var(--bad)" onclick="deleteMaterial('${m.id}','${esc(m.file_path||'')}')">O'chirish</button></div>`).join('');
 }
-function openAddMaterial(gid){curMatGroup=gid;document.getElementById('mat-title').value='';document.getElementById('mat-url').value='';const f=document.getElementById('mat-file');if(f)f.value='';document.getElementById('modal-material').classList.add('open')}
+function openAddMaterial(gid){curMatGroup=gid;document.getElementById('mat-title').value='';document.getElementById('mat-url').value='';document.getElementById('mat-words').value='';const f=document.getElementById('mat-file');if(f)f.value='';document.getElementById('modal-material').classList.add('open')}
 async function saveMaterial(){
   const title=document.getElementById('mat-title').value.trim();
   const url=document.getElementById('mat-url').value.trim();
+  const words=document.getElementById('mat-words').value.trim();
   const fileEl=document.getElementById('mat-file');const file=fileEl&&fileEl.files[0];
   if(!title){showToast('Nomini kiriting');return}
-  if(!url&&!file){showToast('Havola yoki fayl kiriting');return}
+  if(!url&&!file&&!words){showToast("Havola, fayl yoki so'zlardan birini kiriting");return}
   const btn=document.getElementById('mat-save-btn');btn.disabled=true;btn.textContent='Yuklanmoqda...';
-  let kind='link',finalUrl=url,filePath=null;
+  let kind='link',finalUrl=url,filePath=null,content=null;
   try{
-    if(file){
+    if(words){kind='words';content=words;finalUrl=null;}
+    else if(file){
       const safe=file.name.replace(/[^\w.\-]/g,'_');
       filePath=curMatGroup+'/'+Date.now()+'_'+safe;
       const{error:upErr}=await sb.storage.from('materials').upload(filePath,file);
@@ -1852,7 +1856,7 @@ async function saveMaterial(){
       finalUrl=sb.storage.from('materials').getPublicUrl(filePath).data.publicUrl;kind='file';
     }
     const senderName=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
-    const{error}=await sb.from('materials').insert({group_id:curMatGroup,title,kind,url:finalUrl,file_path:filePath,created_by:currentUser.id,created_by_name:senderName});
+    const{error}=await sb.from('materials').insert({group_id:curMatGroup,title,kind,url:finalUrl,file_path:filePath,content,created_by:currentUser.id,created_by_name:senderName});
     if(error)throw error;
     btn.disabled=false;btn.textContent="Qo'shish";
     closeModals();showToast("Material qo'shildi");
@@ -1870,7 +1874,58 @@ async function loadViewerMaterials(){try{const{data}=await sb.from('materials').
 function renderViewerMaterials(){
   const el=document.getElementById('viewer-materials');if(!el)return;
   if(!vMaterials||!vMaterials.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📁</div><p>Hozircha material yo'q</p></div>`;return}
-  el.innerHTML=vMaterials.map(m=>`<a class="sd-card" href="${esc(m.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;margin-bottom:10px;text-decoration:none;color:inherit"><div style="font-size:24px">${matIcon(m)}</div><div style="flex:1"><div style="font-weight:700">${esc(m.title)}</div><div style="font-size:12px;color:var(--text-3)">${m.kind==='file'?'Fayl':'Havola'} · ${esc(m.created_by_name||'Ustoz')}</div></div><div style="color:var(--brand);font-size:18px">→</div></a>`).join('');
+  const st='display:flex;align-items:center;gap:12px;margin-bottom:10px;text-decoration:none;color:inherit;cursor:pointer';
+  el.innerHTML=vMaterials.map(m=>{
+    const sub=m.kind==='words'?"So'zlar — mashq qil":(m.kind==='file'?'Fayl':'Havola');
+    const inner=`<div style="font-size:24px">${matIcon(m)}</div><div style="flex:1"><div style="font-weight:700">${esc(m.title)}</div><div style="font-size:12px;color:var(--text-3)">${sub} · ${esc(m.created_by_name||'Ustoz')}</div></div><div style="color:var(--brand);font-size:18px">→</div>`;
+    if(m.kind==='words')return `<div class="sd-card" onclick="openVocab('${m.id}')" style="${st}">${inner}</div>`;
+    return `<a class="sd-card" href="${esc(m.url)}" target="_blank" rel="noopener" style="${st}">${inner}</a>`;
+  }).join('');
+}
+
+/* ---- So'zlar: ro'yxat / kartochka / test ---- */
+let vocabWords=[],vocabMode='list',vcIdx=0,vcFlip=false,vcKnown=0,vtIdx=0,vtScore=0,vtChosen=-1,vtQ=null;
+function parseWords(text){return (text||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(.+?)\s*[-—=:|\t]+\s*(.+)$/);return m?{w:m[1].trim(),t:m[2].trim()}:{w:l,t:''}}).filter(x=>x.w)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function openVocab(matId){
+  const m=(groupMaterials||[]).concat(vMaterials||[]).find(x=>x.id===matId);
+  if(!m){showToast('Topilmadi');return}
+  vocabWords=parseWords(m.content);
+  document.getElementById('vocab-title').textContent='📚 '+m.title;
+  if(!vocabWords.length){showToast("So'zlar yo'q");return}
+  vocabSetMode('list');
+  document.getElementById('modal-vocab').classList.add('open');
+}
+function vocabSetMode(mode){
+  vocabMode=mode;
+  ['list','card','test'].forEach(x=>{const t=document.getElementById('vtab-'+x);if(t)t.classList.toggle('active',x===mode)});
+  if(mode==='card'){vcIdx=0;vcFlip=false;vcKnown=0}
+  if(mode==='test'){vtIdx=0;vtScore=0;vtChosen=-1;vtQ=buildTestQ()}
+  renderVocab();
+}
+function renderVocab(){
+  const b=document.getElementById('vocab-body');if(!b)return;
+  if(vocabMode==='list'){
+    b.innerHTML=`<div style="max-height:58vh;overflow:auto">`+vocabWords.map(x=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 4px;border-bottom:.5px solid var(--border)"><span style="font-weight:600">${esc(x.w)}</span><span style="color:var(--text-2)">${esc(x.t)}</span></div>`).join('')+`</div><div style="text-align:center;font-size:12px;color:var(--text-3);margin-top:10px">${vocabWords.length} ta so'z</div>`;
+  }else if(vocabMode==='card'){
+    if(vcIdx>=vocabWords.length){b.innerHTML=`<div style="text-align:center;padding:26px"><div style="font-size:42px">🎉</div><div style="font-weight:700;margin:10px 0">Tugadi! ${vcKnown}/${vocabWords.length} bildingiz</div><button class="btn btn-primary btn-sm" onclick="vocabSetMode('card')">Qaytadan</button></div>`;return}
+    const x=vocabWords[vcIdx];
+    b.innerHTML=`<div onclick="vcFlip=!vcFlip;renderVocab()" style="cursor:pointer;user-select:none;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:44px 18px;font-size:26px;font-weight:700;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center">${vcFlip?esc(x.t||'—'):esc(x.w)}</div><div style="text-align:center;font-size:12px;color:var(--text-3);margin:9px 0">${vcFlip?'tarjima':"so'z"} · bosib ag'daring · ${vcIdx+1}/${vocabWords.length}</div><div style="display:flex;gap:8px"><button class="btn btn-sm" style="flex:1;color:var(--bad)" onclick="vocabCardNext(false)">Bilmadim</button><button class="btn btn-primary btn-sm" style="flex:1" onclick="vocabCardNext(true)">Bildim ✓</button></div>`;
+  }else{
+    if(vtIdx>=vocabWords.length){b.innerHTML=`<div style="text-align:center;padding:24px"><div style="font-size:42px">${vtScore===vocabWords.length?'🏆':'✅'}</div><div style="font-weight:700;font-size:18px;margin:10px 0">Natija: ${vtScore}/${vocabWords.length}</div><button class="btn btn-primary btn-sm" onclick="vocabSetMode('test')">Qaytadan</button></div>`;return}
+    const q=vtQ;
+    const opts=q.opts.map((o,i)=>{let extra='';if(vtChosen>=0){if(o===q.x.t)extra='border-color:var(--good);color:var(--good)';else if(i===vtChosen)extra='border-color:var(--bad);color:var(--bad)'}return `<button class="btn btn-block" style="margin-bottom:8px;text-align:left;${extra}" ${vtChosen>=0?'disabled':''} onclick="vocabAnswer(${i})">${esc(o)}</button>`}).join('');
+    b.innerHTML=`<div style="font-size:12px;color:var(--text-3);margin-bottom:8px">${vtIdx+1}/${vocabWords.length} · Ball: ${vtScore}</div><div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center;font-size:22px;font-weight:700;margin-bottom:14px">${esc(q.x.w)}</div>${opts}`;
+  }
+}
+function vocabCardNext(known){if(known)vcKnown++;vcFlip=false;vcIdx++;renderVocab()}
+function buildTestQ(){const x=vocabWords[vtIdx];const others=shuffle(vocabWords.filter((_,i)=>i!==vtIdx).map(o=>o.t).filter(Boolean));const opts=shuffle([x.t].concat(others.slice(0,3)));return {x,opts}}
+function vocabAnswer(i){
+  if(vtChosen>=0)return;
+  vtChosen=i;
+  if(vtQ.opts[i]===vtQ.x.t)vtScore++;
+  renderVocab();
+  setTimeout(()=>{vtIdx++;vtChosen=-1;if(vtIdx<vocabWords.length)vtQ=buildTestQ();renderVocab()},850);
 }
 
 /* ---------- BILDIRISHNOMALAR ---------- */
