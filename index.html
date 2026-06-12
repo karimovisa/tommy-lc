@@ -203,7 +203,10 @@ td.center,.center{text-align:center}
 .pending-title{font-size:18px;font-weight:600;margin-bottom:8px}
 .pending-text{font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:20px}
 .dot-ok{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-@media(max-width:640px){.sidebar{width:100%;height:auto;position:relative}.main{margin-left:0}.shell{flex-direction:column}.nav{display:flex;flex-wrap:wrap;padding:6px}.nav-item{width:auto}}
+.app-burger{display:none;position:fixed;top:12px;right:12px;z-index:65;width:42px;height:42px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:11px;cursor:pointer;align-items:center;justify-content:center;box-shadow:var(--shadow-sm)}
+.app-burger svg{width:22px;height:22px}
+.app-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:55}
+@media(max-width:640px){.main{margin-left:0}.shell{flex-direction:column}.sidebar{width:260px;max-width:84vw;position:fixed;top:0;left:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .25s;box-shadow:var(--shadow-lg)}.sidebar.open{transform:none}.nav-item{width:100%}.app-burger{display:flex}.app-scrim.open{display:block}}
 .todo{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:.5px solid var(--border);cursor:pointer}
 .todo:last-child{border-bottom:none}
 .todo-circle{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-strong);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:12px;font-weight:700;transition:all .15s}
@@ -844,6 +847,8 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <!-- ============ APP (admin + o'qituvchi) ============ -->
 <div id="app-shell" class="shell hidden">
+  <button class="app-burger" onclick="toggleAdminSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="app-scrim" id="app-scrim" onclick="toggleAdminSidebar()"></div>
   <aside class="sidebar">
     <div class="brand" onclick="showView('dashboard')" style="cursor:pointer" title="Bosh sahifa">
       <div class="logo-sm tommy-logo" role="img" aria-label="TOMMY"></div>
@@ -1388,6 +1393,7 @@ function renderDashboard(){
   el.innerHTML=html;
 }
 function showView(name){
+  closeAdminSidebar();
   document.querySelectorAll('#app-shell .view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('#app-shell .nav-item').forEach(n=>n.classList.remove('active'));
   const v=document.getElementById('view-'+name);if(v)v.classList.add('active');
@@ -1646,12 +1652,21 @@ function nextLessonInfo(g){
   const uzDays=['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
   const uzMon=['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
   const now=new Date();
-  for(let i=0;i<8;i++){const d=new Date(now);d.setDate(now.getDate()+i);if(set.includes(d.getDay())){
-    const lbl=i===0?'Bugun':(i===1?'Ertaga':uzDays[d.getDay()]);
-    return {day:lbl,date:d.getDate()+'-'+uzMon[d.getMonth()],time:(g.lesson_start||'')+((g.lesson_start&&g.lesson_end)?'–'+g.lesson_end:'')};
-  }}
+  for(let i=0;i<14;i++){
+    const d=new Date(now);d.setDate(now.getDate()+i);
+    if(!set.includes(d.getDay()))continue;
+    if(g.lesson_start){const p=g.lesson_start.split(':');d.setHours(+p[0]||0,+p[1]||0,0,0);}else{d.setHours(23,59,0,0);}
+    if(d<=now)continue;
+    const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate()),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const dayDiff=Math.round((dd-t0)/86400000);
+    const lbl=dayDiff===0?'Bugun':(dayDiff===1?'Ertaga':uzDays[d.getDay()]);
+    const min=Math.floor((d-now)/60000),days=Math.floor(min/1440),hrs=Math.floor((min%1440)/60),mn=min%60;
+    const remain=days>0?(days+' kun '+hrs+' soat'):(hrs>0?(hrs+' soat '+mn+' daq'):(mn+' daqiqa'));
+    return {day:lbl,date:d.getDate()+'-'+uzMon[d.getMonth()],time:(g.lesson_start||'')+((g.lesson_start&&g.lesson_end)?'–'+g.lesson_end:''),dt:d,remain};
+  }
   return null;
 }
+function truncate(s,n){s=String(s||'');return s.length>n?s.slice(0,n).replace(/\s+\S*$/,'')+'…':s}
 function openAddGroup(){editGroupId=null;document.getElementById('group-modal-title').textContent='Yangi guruh';document.getElementById('grp-name').value='';document.getElementById('grp-teacher-name').value='';document.getElementById('grp-teacher-email').value='';document.getElementById('grp-days').value='';document.getElementById('grp-start').value='';document.getElementById('grp-end').value='';document.getElementById('modal-group').classList.add('open')}
 function openEditGroup(id){const g=allGroups.find(x=>x.id===id);if(!g)return;editGroupId=id;document.getElementById('group-modal-title').textContent='Guruhni tahrirlash';document.getElementById('grp-name').value=g.name||'';document.getElementById('grp-teacher-name').value=g.teacher_name||'';document.getElementById('grp-teacher-email').value=g.teacher_email||'';document.getElementById('grp-days').value=g.lesson_days||'';document.getElementById('grp-start').value=g.lesson_start||'';document.getElementById('grp-end').value=g.lesson_end||'';document.getElementById('modal-group').classList.add('open')}
 async function saveGroup(){
@@ -1793,18 +1808,20 @@ function renderStudentHome(){
   const stx=document.getElementById('v-streak');if(stx)stx.textContent=(streak>0&&wk===0?7:wk)+'/7';
   const slbl=document.getElementById('v-streak-label');if(slbl)slbl.textContent=streak>0?('🔥 '+streak+' kunlik seriya'):'Seriyani boshlang';
   const mq=document.getElementById('v-motiv-quote');if(mq)mq.textContent=dailyMotiv();
+  const nl=nextLessonInfo(vGroup);
+  const warnBanner=(pending>0&&nl)?`<div onclick="showVView('homework')" style="background:rgba(232,49,42,.1);border:1px solid rgba(232,49,42,.25);color:var(--bad);border-radius:14px;padding:13px 16px;margin-bottom:16px;cursor:pointer;font-size:14px;line-height:1.5">⏰ <b>${pending} ta uy ishi</b> bajarilmagan — keyingi darsgacha <b>${esc(nl.remain)}</b> qoldi. Ulguring! 💪</div>`:'';
   const heroes=`<div class="sd-hero-grid">`
     +heroCard(ICONS.cal,'var(--text-2)','var(--surface-2)','Bugungi dars','—','Jadval tez orada','soon',true)
     +heroCard(ICONS.clip,'var(--brand)','var(--brand-light)','Uy vazifalari',pending+' <small>ta</small>',pending?'Topshiriq qolgan':'Hammasi bajarildi','homework',false)
     +heroCard(ICONS.chart,'var(--good)','var(--good-light)','Oxirgi test',(lastTest?lastTest.grade+'%':'—'),(lastTest?esc(lastTest.a.title):'Hali test yo\'q'),'tests',false)
     +heroCard(ICONS.trophy,'var(--warn)','var(--warn-light)','Reyting',(vRank&&vRank.total?('#'+vRank.rank+' <small>/ '+vRank.total+'</small>'):'—'),(vRank&&vRank.total?'Guruh o\'rtachasi '+vRank.group_avg+'%':'O\'z o\'rningiz'),'rank',false)
     +`</div>`;
-  const teacher=`<div class="sd-card sd-teacher"><div class="sd-teacher-ava">${initials(vTeacherName||'Ustoz')}</div><div class="sd-teacher-body"><div class="sd-teacher-label">Ustoz xabari <span class="sd-soon-tag">Tez orada</span></div><div class="sd-teacher-text" style="color:var(--text-3)">Ustozdan kelgan xabarlar shu yerda ko'rinadi.</div><div class="sd-teacher-from">— ${esc(vTeacherName||'Ustoz')}</div></div></div>`;
+  const lastN=(vNotifs&&vNotifs[0])||null;
+  const teacher=lastN?`<div class="sd-card sd-teacher" onclick="showVView('notifications')" style="cursor:pointer"><div class="sd-teacher-ava">${initials(lastN.created_by_name||vTeacherName||'Ustoz')}</div><div class="sd-teacher-body"><div class="sd-teacher-label">Ustoz xabari</div><div class="sd-teacher-text"><b>${esc(lastN.title)}</b>${lastN.body?' — '+esc(truncate(lastN.body,90)):''}</div><div class="sd-teacher-from">— ${esc(lastN.created_by_name||vTeacherName||'Ustoz')} · ${fmtNotifDate(lastN.created_at)} · <span style="color:var(--brand)">to'liq o'qish →</span></div></div></div>`:`<div class="sd-card sd-teacher"><div class="sd-teacher-ava">${initials(vTeacherName||'Ustoz')}</div><div class="sd-teacher-body"><div class="sd-teacher-label">Ustoz xabari</div><div class="sd-teacher-text" style="color:var(--text-3)">Hozircha xabar yo'q.</div></div></div>`;
   const chart=vtrend.length>1?sparkline(vtrend.slice(-14),'100%',120):'<div class="no-history">Hali ma\'lumot yetarli emas</div>';
-  const stats=`<div class="sd-row3"><div class="sd-card"><div class="sd-chart-head"><div class="sd-chart-title">O'sish statistikasi</div>${vtrend.length>1?`<div class="sd-chart-delta" style="color:${tdiff>=0?'var(--good)':'var(--bad)'}">${tdiff>=0?'+':''}${tdiff}%<small>boshlanishiga nisbatan</small></div>`:''}</div>${chart}<div class="sd-summary">${sumCard('Davomat',att+'%')}${sumCard('Vazifalar',hw+'%')}${sumCard('Testlar',lastTest?lastTest.grade+'%':'—')}${sumCard("O'sish",(tdiff>=0?'+':'')+tdiff+'%')}</div></div><div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">So'nggi faoliyatlar</div></div>${renderActivities()}</div></div>`;
-  const nl=nextLessonInfo(vGroup);
+  const stats=`<div class="sd-row3"><div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">So'nggi faoliyatlar</div></div>${renderActivities()}</div><div class="sd-card"><div class="sd-chart-head"><div class="sd-chart-title">O'sish statistikasi</div>${vtrend.length>1?`<div class="sd-chart-delta" style="color:${tdiff>=0?'var(--good)':'var(--bad)'}">${tdiff>=0?'+':''}${tdiff}%<small>boshlanishiga nisbatan</small></div>`:''}</div>${chart}<div class="sd-summary">${sumCard('Davomat',att+'%')}${sumCard('Vazifalar',hw+'%')}${sumCard('Testlar',lastTest?lastTest.grade+'%':'—')}${sumCard("O'sish",(tdiff>=0?'+':'')+tdiff+'%')}</div></div></div>`;
   const quick=`<div class="sd-row4"><div><div class="sd-chart-title" style="margin-bottom:12px">Tezkor kirish</div><div class="sd-quick">${quickItem(ICONS.cal,'Dars jadvali','soon')}${quickItem(ICONS.folder,'Materiallar','soon')}${quickItem(ICONS.clip,'Topshiriqlar','homework')}${quickItem(ICONS.card,"To'lovlar",'soon')}${quickItem(ICONS.cert,'Sertifikatlar','soon')}</div></div><div class="sd-next"><div class="sd-next-label">Keyingi dars</div><div class="sd-next-row"><div class="sd-next-ic">${ICONS.cal}</div><div><div class="sd-next-date">${nl?esc(nl.day+', '+nl.date):'Jadval belgilanmagan'}</div><div class="sd-next-course">${nl&&nl.time?esc(nl.time)+' · ':''}${grp?esc(grp):'Sizning guruh'}</div></div></div></div></div>`;
-  el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${heroes}${teacher}${stats}${quick}`;
+  el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${warnBanner}${heroes}${teacher}${stats}${quick}`;
 }
 function heroCard(icon,color,bg,title,big,sub,target,soon){
   return `<div class="sd-card sd-hero"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:${color};background:${bg}">${icon}</span><span class="sd-hero-title">${title}</span></div><div class="sd-hero-big">${big}</div><div class="sd-hero-sub">${sub}</div><a class="sd-hero-link" onclick="vGo('${target}')">${soon?'Tez orada':"Ko'rish"} →</a></div>`;
@@ -2000,6 +2017,8 @@ function renderViewerNotifs(){
   }).join('');
 }
 function toggleVSidebar(){const sb2=document.getElementById('v-sidebar'),sc=document.getElementById('v-scrim');if(!sb2)return;const open=sb2.classList.toggle('open');if(sc)sc.classList.toggle('open',open);}
+function toggleAdminSidebar(){const sb2=document.querySelector('#app-shell .sidebar'),sc=document.getElementById('app-scrim');if(!sb2)return;const open=sb2.classList.toggle('open');if(sc)sc.classList.toggle('open',open);}
+function closeAdminSidebar(){const sb2=document.querySelector('#app-shell .sidebar');if(sb2)sb2.classList.remove('open');const sc=document.getElementById('app-scrim');if(sc)sc.classList.remove('open');}
 function toggleVProfile(e){if(e)e.stopPropagation();const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.toggle('open');}
 function buildViewerNav(){
   const pending=(vHw||[]).filter(x=>!vDone.has(x.id)).length;
