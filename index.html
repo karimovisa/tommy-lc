@@ -1007,7 +1007,7 @@ try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){console.error('
 let currentUser=null, level=null;           // level: 'admin' | 'teacher' | 'student' | 'parent'
 let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[], notifs=[], groupMaterials=[];
 let myProfile=null, currentDate='', regType='student', editGroupId=null;
-let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[], vConfirms=new Set(), vMaterials=[];
+let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[], vConfirms=new Set(), vMaterials=[], vGroup=null;
 let studentsById={}, moveSid=null, curGroup=null;
 let nameToGid={}, gidToName={};
 
@@ -1640,6 +1640,18 @@ function renderGroups(){
   }).join('');
 }
 function scheduleText(g){if(!g)return '';const dm={odd:'Toq (Dush·Chor·Jum)',even:'Juft (Sesh·Pay·Shan)'};const days=dm[g.lesson_days]||'';const time=(g.lesson_start||'')+((g.lesson_start&&g.lesson_end)?'–'+g.lesson_end:'');return [days,time].filter(Boolean).join(' · ')}
+function nextLessonInfo(g){
+  if(!g||!g.lesson_days)return null;
+  const set=g.lesson_days==='odd'?[1,3,5]:[2,4,6];
+  const uzDays=['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+  const uzMon=['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
+  const now=new Date();
+  for(let i=0;i<8;i++){const d=new Date(now);d.setDate(now.getDate()+i);if(set.includes(d.getDay())){
+    const lbl=i===0?'Bugun':(i===1?'Ertaga':uzDays[d.getDay()]);
+    return {day:lbl,date:d.getDate()+'-'+uzMon[d.getMonth()],time:(g.lesson_start||'')+((g.lesson_start&&g.lesson_end)?'–'+g.lesson_end:'')};
+  }}
+  return null;
+}
 function openAddGroup(){editGroupId=null;document.getElementById('group-modal-title').textContent='Yangi guruh';document.getElementById('grp-name').value='';document.getElementById('grp-teacher-name').value='';document.getElementById('grp-teacher-email').value='';document.getElementById('grp-days').value='';document.getElementById('grp-start').value='';document.getElementById('grp-end').value='';document.getElementById('modal-group').classList.add('open')}
 function openEditGroup(id){const g=allGroups.find(x=>x.id===id);if(!g)return;editGroupId=id;document.getElementById('group-modal-title').textContent='Guruhni tahrirlash';document.getElementById('grp-name').value=g.name||'';document.getElementById('grp-teacher-name').value=g.teacher_name||'';document.getElementById('grp-teacher-email').value=g.teacher_email||'';document.getElementById('grp-days').value=g.lesson_days||'';document.getElementById('grp-start').value=g.lesson_start||'';document.getElementById('grp-end').value=g.lesson_end||'';document.getElementById('modal-group').classList.add('open')}
 async function saveGroup(){
@@ -1732,7 +1744,7 @@ async function startViewer(){
   let checks={};
   if(sid){const{data}=await sb.from('daily_checks').select('*').eq('student_id',sid);(data||[]).forEach(r=>{checks[r.date]={hw:r.hw,words:r.words,extra:r.extra,absent:!!r.absent}})}
   let vTeacher='';
-  if(myProfile.group_id){try{const{data:gr}=await sb.from('groups').select('name,teacher_name').eq('id',myProfile.group_id).maybeSingle();if(gr){gidToName[myProfile.group_id]=gr.name;vTeacher=gr.teacher_name||''}}catch(e){}}
+  if(myProfile.group_id){try{const{data:gr}=await sb.from('groups').select('name,teacher_name,lesson_days,lesson_start,lesson_end').eq('id',myProfile.group_id).maybeSingle();if(gr){gidToName[myProfile.group_id]=gr.name;vTeacher=gr.teacher_name||'';vGroup=gr}}catch(e){}}
   showLoading(false);
   showScreen('viewer-app');
   const dispName=myProfile.role==='parent'?(myProfile.child_name||myProfile.full_name||currentUser.email):(myProfile.full_name||currentUser.email);
@@ -1790,7 +1802,8 @@ function renderStudentHome(){
   const teacher=`<div class="sd-card sd-teacher"><div class="sd-teacher-ava">${initials(vTeacherName||'Ustoz')}</div><div class="sd-teacher-body"><div class="sd-teacher-label">Ustoz xabari <span class="sd-soon-tag">Tez orada</span></div><div class="sd-teacher-text" style="color:var(--text-3)">Ustozdan kelgan xabarlar shu yerda ko'rinadi.</div><div class="sd-teacher-from">— ${esc(vTeacherName||'Ustoz')}</div></div></div>`;
   const chart=vtrend.length>1?sparkline(vtrend.slice(-14),'100%',120):'<div class="no-history">Hali ma\'lumot yetarli emas</div>';
   const stats=`<div class="sd-row3"><div class="sd-card"><div class="sd-chart-head"><div class="sd-chart-title">O'sish statistikasi</div>${vtrend.length>1?`<div class="sd-chart-delta" style="color:${tdiff>=0?'var(--good)':'var(--bad)'}">${tdiff>=0?'+':''}${tdiff}%<small>boshlanishiga nisbatan</small></div>`:''}</div>${chart}<div class="sd-summary">${sumCard('Davomat',att+'%')}${sumCard('Vazifalar',hw+'%')}${sumCard('Testlar',lastTest?lastTest.grade+'%':'—')}${sumCard("O'sish",(tdiff>=0?'+':'')+tdiff+'%')}</div></div><div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">So'nggi faoliyatlar</div></div>${renderActivities()}</div></div>`;
-  const quick=`<div class="sd-row4"><div><div class="sd-chart-title" style="margin-bottom:12px">Tezkor kirish</div><div class="sd-quick">${quickItem(ICONS.cal,'Dars jadvali','soon')}${quickItem(ICONS.folder,'Materiallar','soon')}${quickItem(ICONS.clip,'Topshiriqlar','homework')}${quickItem(ICONS.card,"To'lovlar",'soon')}${quickItem(ICONS.cert,'Sertifikatlar','soon')}</div></div><div class="sd-next"><div class="sd-next-label">Keyingi dars <span class="sd-soon-tag" style="background:rgba(255,255,255,.22);color:#fff">Tez orada</span></div><div class="sd-next-row"><div class="sd-next-ic">${ICONS.cal}</div><div><div class="sd-next-date">Jadval tez orada</div><div class="sd-next-course">${grp?esc(grp):'Sizning guruh'}</div></div></div></div></div>`;
+  const nl=nextLessonInfo(vGroup);
+  const quick=`<div class="sd-row4"><div><div class="sd-chart-title" style="margin-bottom:12px">Tezkor kirish</div><div class="sd-quick">${quickItem(ICONS.cal,'Dars jadvali','soon')}${quickItem(ICONS.folder,'Materiallar','soon')}${quickItem(ICONS.clip,'Topshiriqlar','homework')}${quickItem(ICONS.card,"To'lovlar",'soon')}${quickItem(ICONS.cert,'Sertifikatlar','soon')}</div></div><div class="sd-next"><div class="sd-next-label">Keyingi dars</div><div class="sd-next-row"><div class="sd-next-ic">${ICONS.cal}</div><div><div class="sd-next-date">${nl?esc(nl.day+', '+nl.date):'Jadval belgilanmagan'}</div><div class="sd-next-course">${nl&&nl.time?esc(nl.time)+' · ':''}${grp?esc(grp):'Sizning guruh'}</div></div></div></div></div>`;
   el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${heroes}${teacher}${stats}${quick}`;
 }
 function heroCard(icon,color,bg,title,big,sub,target,soon){
@@ -1959,9 +1972,10 @@ async function sendNotif(){
 }
 async function deleteNotif(id){
   if(!confirm("Bildirishnoma o'chirilsinmi?"))return;
-  const{error}=await sb.from('notifications').delete().eq('id',id);
+  const{data,error}=await sb.from('notifications').delete().eq('id',id).select();
   if(error){showToast('Xato: '+error.message);return}
-  renderNotifsAdmin();
+  if(!data||!data.length){showToast("O'chirib bo'lmadi — ruxsat yo'q");return}
+  showToast("O'chirildi");renderNotifsAdmin();
 }
 // --- O'quvchi tomoni ---
 async function loadViewerNotifs(){
@@ -2093,8 +2107,17 @@ async function confirmLesson(date){
   vConfirms.add(date);
   const streak=computeStreak();
   const base=absent?MOTIV_HERO[Math.floor(Math.random()*MOTIV_HERO.length)]:MOTIV[Math.floor(Math.random()*MOTIV.length)];
-  showToast(base+'  ·  🔥 '+streak+' kunlik seriya');
+  showCelebrate(base,streak,absent);
   renderViewerHomework();renderStudentHome();buildViewerNav();
+}
+function showCelebrate(msg,streak,hero){
+  const old=document.getElementById('celebrate-ov');if(old)old.remove();
+  const ov=document.createElement('div');ov.id='celebrate-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:24px';
+  ov.onclick=()=>ov.remove();
+  ov.innerHTML=`<div style="background:var(--surface);border-radius:22px;padding:30px 26px;max-width:340px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);border:1px solid var(--border)" onclick="event.stopPropagation()"><div style="font-size:54px;line-height:1;margin-bottom:8px">${hero?'🔥':'🎉'}</div><div style="font-family:var(--mono);font-size:13px;color:var(--brand);font-weight:700;margin-bottom:12px">🔥 ${streak} KUNLIK SERIYA</div><div style="font-size:17px;font-weight:700;line-height:1.45;margin-bottom:20px">${esc(msg)}</div><button class="btn btn-primary btn-block" onclick="document.getElementById('celebrate-ov').remove()">Zo'r! Davom etaman</button></div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{const e=document.getElementById('celebrate-ov');if(e)e.remove()},7000);
 }
 function renderViewerHomework(){
   const el=document.getElementById('viewer-hw');if(!el)return;
