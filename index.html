@@ -83,6 +83,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .nav-item.active{color:var(--brand);background:var(--brand-light);font-weight:500}
 .nav-icon{width:16px;height:16px;opacity:.7;flex-shrink:0}
 .nav-item.active .nav-icon{opacity:1}
+.nav-ic{display:inline-flex;flex-shrink:0;opacity:.75}
+.nav-ic svg{width:18px;height:18px}
+.nav-item.active .nav-ic{opacity:1}
 .nav-badge{margin-left:auto;background:var(--brand);color:#fff;font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
 .sidebar-footer{padding:14px 18px;border-top:.5px solid var(--border)}
 .role-badge{font-family:var(--mono);font-size:10px;background:var(--brand-light);color:var(--brand-dark);padding:4px 10px;border-radius:20px;display:inline-block;letter-spacing:.04em}
@@ -778,7 +781,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
             <label class="form-label">Student ID</label>
             <div class="input-wrap">
               <svg class="input-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M7 16.2c.4-1.3 1.2-1.9 2-1.9s1.6.6 2 1.9"/><line x1="14" y1="9.5" x2="18" y2="9.5"/><line x1="14" y1="13.5" x2="18" y2="13.5"/></svg>
-              <input class="form-input" type="text" id="login-id" placeholder="TOM-0001" autocomplete="username">
+              <input class="form-input" type="text" id="login-id" placeholder="Student ID" autocomplete="username">
             </div>
             <div class="field-hint" id="parent-hint" style="display:none">Farzandingizning Student ID si bilan kiring.</div>
           </div>
@@ -864,8 +867,8 @@ table.data tbody tr:hover td{background:var(--surface-2)}
     </div>
     <div id="view-group" class="view">
       <div class="page-header"><div><div class="page-title" id="grp-page-title">Guruh</div><div class="page-sub" id="grp-page-sub"></div></div><div class="header-actions" id="grp-page-actions"></div></div>
-      <div class="wrap" id="group-materials"></div>
       <div class="wrap" id="group-detail"></div>
+      <div class="wrap" id="group-materials"></div>
     </div>
     <div id="view-checklist" class="view">
       <div class="page-header"><div><div class="page-title">Kunlik belgilash</div><div class="page-sub">Har dars uchun to'ldiring</div></div><div class="header-actions"><select class="flt" id="cl-group" onchange="onClGroup()"></select><input type="date" id="cl-date"><div class="avg-badge">O'rtacha: <strong id="avg-label">—</strong></div></div></div>
@@ -919,9 +922,9 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 <!-- ============ VIEWER (o'quvchi / ota-ona) ============ -->
 <div id="viewer-app" class="hidden">
   <header class="sd-header">
-    <button class="sd-burger" onclick="toggleVSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
     <div class="sd-logo" onclick="showVView('home')" style="cursor:pointer" title="Bosh sahifa"><div class="logo-sm tommy-logo" role="img" aria-label="TOMMY"></div><div class="sd-logo-txt"><div class="brand-name">TOMMY</div><div class="brand-sub">LEARNING CENTRE</div></div></div>
     <div class="sd-header-right">
+      <button class="sd-burger" onclick="toggleVSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
       <button class="sd-iconbtn" onclick="showVView('notifications')" aria-label="Bildirishnomalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="sd-dot" id="v-bell-dot" style="display:none">0</span></button>
       <button class="sd-iconbtn" onclick="toggleTheme()" aria-label="Rejim"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
       <div class="sd-profile" onclick="toggleVProfile(event)">
@@ -985,7 +988,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <div class="modal-overlay" id="modal-notif"><div class="modal"><div class="modal-title">Yangi bildirishnoma</div><label class="modal-label">Sarlavha</label><input type="text" id="notif-title" placeholder="Masalan: Dam olish kuni"><label class="modal-label">Matn</label><textarea id="notif-body" placeholder="Bildirishnoma matni..."></textarea><label class="modal-label">Kimga</label><select id="notif-group"></select><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="notif-send-btn" onclick="sendNotif()">Yuborish</button></div></div></div>
 
-<div class="modal-overlay" id="modal-forgot"><div class="modal"><div class="modal-title">Parolni tiklash</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Student ID raqamingizni kiriting. Parolingizni o'qituvchi yoki administrator tiklab beradi.</div><label class="modal-label">Student ID</label><input type="text" id="forgot-id" placeholder="TOM-0001"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="submitForgot()">Yuborish</button></div></div></div>
+<div class="modal-overlay" id="modal-forgot"><div class="modal"><div class="modal-title">Parolni tiklash</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Student ID raqamingizni kiriting. Parolingizni o'qituvchi yoki administrator tiklab beradi.</div><label class="modal-label">Student ID</label><input type="text" id="forgot-id" placeholder="Student ID"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="submitForgot()">Yuborish</button></div></div></div>
 
 <!-- DEV: tezkor kirish (faqat localhost'da ko'rinadi) -->
 <div id="dev-quick" style="display:none;position:fixed;bottom:14px;left:14px;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px;box-shadow:0 8px 24px rgba(0,0,0,.3)">
@@ -1241,16 +1244,16 @@ async function doLogout(){try{await sb.auth.signOut()}catch(e){}location.reload(
 
 /* ---------- NAV / SHELL ---------- */
 function buildNav(){
-  const isAdmin=level==='admin';
-  const items=[['dashboard','Bosh sahifa']];
-  if(!isAdmin)items.push(['checklist','Kunlik belgilash'],['homework',"Uy ishi"]);
-  items.push(['students',"O'quvchilar"]);
-  items.push(['approve',"Ro'yxat so'rovlari"]);
-  if(!isAdmin)items.push(['assignments','Vazifalar']);
-  items.push(['report','Umumiy report']);
-  items.push(['notifs','Bildirishnomalar']);
+  const isAdmin=level==='admin';const I=ICONS;
+  const items=[['dashboard','Bosh sahifa',I.home]];
+  if(!isAdmin)items.push(['checklist','Kunlik belgilash',I.cal],['homework',"Uy ishi",I.clip]);
+  items.push(['students',"O'quvchilar",I.users]);
+  if(pendingList.length)items.push(['approve',"Ro'yxat so'rovlari",I.clock]);
+  if(!isAdmin)items.push(['assignments','Vazifalar',I.book]);
+  items.push(['report','Umumiy report',I.chart]);
+  items.push(['notifs','Bildirishnomalar',I.bell]);
   const nav=document.getElementById('nav');
-  nav.innerHTML=items.map((it,i)=>`<button class="nav-item${i===0?' active':''}" data-view="${it[0]}" onclick="showView('${it[0]}')">${esc(it[1])}<span class="nav-badge" id="badge-${it[0]}" style="display:none">0</span></button>`).join('');
+  nav.innerHTML=items.map((it,i)=>`<button class="nav-item${i===0?' active':''}" data-view="${it[0]}" onclick="showView('${it[0]}')"><span class="nav-ic">${it[2]||''}</span>${esc(it[1])}<span class="nav-badge" id="badge-${it[0]}" style="display:none">0</span></button>`).join('');
 }
 function fillGroupSelect(el,withAll,allLabel){
   const gs=(level==='admin')?allGroups:myGroups;
@@ -1325,7 +1328,7 @@ function openGroup(gid){
   const cnt=students.filter(s=>gidOf(s)===gid).length;
   document.getElementById('grp-page-sub').textContent=(g&&g.teacher_name?g.teacher_name+' \u00b7 ':'')+cnt+" o'quvchi"+(scheduleText(g)?' \u00b7 '+scheduleText(g):'');
   const isAdmin=level==='admin';
-  document.getElementById('grp-page-actions').innerHTML=`<button class="btn-back" onclick="showView('dashboard')" aria-label="Orqaga" title="Orqaga">\u2190</button><button class="btn btn-sm" onclick="openAddMaterial('${gid}')">+ Material</button>`+(isAdmin?`<button class="btn btn-sm" onclick="openAddStudent('${gid}')">+ O'quvchi</button><button class="btn btn-sm" onclick="openEditGroup('${gid}')">Guruhni tahrirlash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteGroup('${gid}')">O'chirish</button>`:'');
+  document.getElementById('grp-page-actions').innerHTML=`<button class="btn-back" onclick="showView('dashboard')" aria-label="Orqaga" title="Orqaga">\u2190</button>`+(isAdmin?`<button class="btn btn-sm" onclick="openAddStudent('${gid}')">+ O'quvchi</button>`:'')+`<button class="btn btn-sm" onclick="openAddMaterial('${gid}')">+ Material</button>`+(isAdmin?`<button class="btn btn-sm" onclick="openEditGroup('${gid}')">Guruhni tahrirlash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteGroup('${gid}')">O'chirish</button>`:'');
   renderGroupDetail(gid);
   loadGroupMaterials(gid).then(renderGroupMaterials);
   showView('group');
@@ -1365,7 +1368,7 @@ function renderDashboard(){
     +kpiCard(ICONS.users,students.length,"O'quvchi",'var(--brand)','var(--brand-light)')
     +kpiCard(ICONS.layers,gs.length,'Guruh','var(--good)','var(--good-light)')
     +kpiCard(ICONS.trend,totalAvg+'%',"O'rtacha",'var(--warn)','var(--warn-light)',col(totalAvg))
-    +kpiCard(ICONS.clock,pendingList.length,'Kutilmoqda','var(--brand)','var(--brand-light)',pendingList.length?'var(--brand)':null)
+    +(pendingList.length?kpiCard(ICONS.clock,pendingList.length,'Kutilmoqda','var(--brand)','var(--brand-light)','var(--brand)'):'')
     +`</div>`;
   // Sinf o'zlashtirish dinamikasi (sparkline)
   const trend=[];Object.keys(allChecks).sort().forEach(d=>{const day=allChecks[d];let sum=0,n=0;studs.forEach(x=>{const e=day[x.s.id];if(e&&!e.absent){sum+=dayPct(e);n++}});if(n)trend.push(Math.round(sum/n))});
@@ -1809,9 +1812,10 @@ function renderStudentHome(){
   const slbl=document.getElementById('v-streak-label');if(slbl)slbl.textContent=streak>0?('🔥 '+streak+' kunlik seriya'):'Seriyani boshlang';
   const mq=document.getElementById('v-motiv-quote');if(mq)mq.textContent=dailyMotiv();
   const nl=nextLessonInfo(vGroup);
+  const todayLesson=(vGroup&&vGroup.lesson_days)?(((vGroup.lesson_days==='odd'?[1,3,5]:[2,4,6]).includes(new Date().getDay()))?(vGroup.lesson_start||'Bor'):null):undefined;
   const warnBanner=(pending>0&&nl)?`<div onclick="showVView('homework')" style="background:rgba(232,49,42,.1);border:1px solid rgba(232,49,42,.25);color:var(--bad);border-radius:14px;padding:13px 16px;margin-bottom:16px;cursor:pointer;font-size:14px;line-height:1.5">⏰ <b>${pending} ta uy ishi</b> bajarilmagan — keyingi darsgacha <b>${esc(nl.remain)}</b> qoldi. Ulguring! 💪</div>`:'';
   const heroes=`<div class="sd-hero-grid">`
-    +heroCard(ICONS.cal,'var(--text-2)','var(--surface-2)','Bugungi dars','—','Jadval tez orada','soon',true)
+    +heroCard(ICONS.cal,'var(--brand)','var(--brand-light)','Bugungi dars',(todayLesson?esc(todayLesson):(todayLesson===undefined?'—':"Yo'q")),(todayLesson?'Bugun darsingiz bor':(todayLesson===undefined?'Jadval belgilanmagan':'Bugun dars yo\'q')),'home',false)
     +heroCard(ICONS.clip,'var(--brand)','var(--brand-light)','Uy vazifalari',pending+' <small>ta</small>',pending?'Topshiriq qolgan':'Hammasi bajarildi','homework',false)
     +heroCard(ICONS.chart,'var(--good)','var(--good-light)','Oxirgi test',(lastTest?lastTest.grade+'%':'—'),(lastTest?esc(lastTest.a.title):'Hali test yo\'q'),'tests',false)
     +heroCard(ICONS.trophy,'var(--warn)','var(--warn-light)','Reyting',(vRank&&vRank.total?('#'+vRank.rank+' <small>/ '+vRank.total+'</small>'):'—'),(vRank&&vRank.total?'Guruh o\'rtachasi '+vRank.group_avg+'%':'O\'z o\'rningiz'),'rank',false)
@@ -1820,7 +1824,7 @@ function renderStudentHome(){
   const teacher=lastN?`<div class="sd-card sd-teacher" onclick="showVView('notifications')" style="cursor:pointer"><div class="sd-teacher-ava">${initials(lastN.created_by_name||vTeacherName||'Ustoz')}</div><div class="sd-teacher-body"><div class="sd-teacher-label">Ustoz xabari</div><div class="sd-teacher-text"><b>${esc(lastN.title)}</b>${lastN.body?' — '+esc(truncate(lastN.body,90)):''}</div><div class="sd-teacher-from">— ${esc(lastN.created_by_name||vTeacherName||'Ustoz')} · ${fmtNotifDate(lastN.created_at)} · <span style="color:var(--brand)">to'liq o'qish →</span></div></div></div>`:`<div class="sd-card sd-teacher"><div class="sd-teacher-ava">${initials(vTeacherName||'Ustoz')}</div><div class="sd-teacher-body"><div class="sd-teacher-label">Ustoz xabari</div><div class="sd-teacher-text" style="color:var(--text-3)">Hozircha xabar yo'q.</div></div></div>`;
   const chart=vtrend.length>1?sparkline(vtrend.slice(-14),'100%',120):'<div class="no-history">Hali ma\'lumot yetarli emas</div>';
   const stats=`<div class="sd-row3"><div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">So'nggi faoliyatlar</div></div>${renderActivities()}</div><div class="sd-card"><div class="sd-chart-head"><div class="sd-chart-title">O'sish statistikasi</div>${vtrend.length>1?`<div class="sd-chart-delta" style="color:${tdiff>=0?'var(--good)':'var(--bad)'}">${tdiff>=0?'+':''}${tdiff}%<small>boshlanishiga nisbatan</small></div>`:''}</div>${chart}<div class="sd-summary">${sumCard('Davomat',att+'%')}${sumCard('Vazifalar',hw+'%')}${sumCard('Testlar',lastTest?lastTest.grade+'%':'—')}${sumCard("O'sish",(tdiff>=0?'+':'')+tdiff+'%')}</div></div></div>`;
-  const quick=`<div class="sd-row4"><div><div class="sd-chart-title" style="margin-bottom:12px">Tezkor kirish</div><div class="sd-quick">${quickItem(ICONS.cal,'Dars jadvali','soon')}${quickItem(ICONS.folder,'Materiallar','soon')}${quickItem(ICONS.clip,'Topshiriqlar','homework')}${quickItem(ICONS.card,"To'lovlar",'soon')}${quickItem(ICONS.cert,'Sertifikatlar','soon')}</div></div><div class="sd-next"><div class="sd-next-label">Keyingi dars</div><div class="sd-next-row"><div class="sd-next-ic">${ICONS.cal}</div><div><div class="sd-next-date">${nl?esc(nl.day+', '+nl.date):'Jadval belgilanmagan'}</div><div class="sd-next-course">${nl&&nl.time?esc(nl.time)+' · ':''}${grp?esc(grp):'Sizning guruh'}</div></div></div></div></div>`;
+  const quick=`<div class="sd-row4"><div><div class="sd-chart-title" style="margin-bottom:12px">Tezkor kirish</div><div class="sd-quick">${quickItem(ICONS.clip,'Topshiriqlar','homework')}${quickItem(ICONS.folder,'Materiallar','materials')}${quickItem(ICONS.trophy,'Reyting','rank')}${quickItem(ICONS.bell,'Bildirishnomalar','notifications')}${quickItem(ICONS.card,"To'lovlar",'soon')}</div></div><div class="sd-next"><div class="sd-next-label">Keyingi dars</div><div class="sd-next-row"><div class="sd-next-ic">${ICONS.cal}</div><div><div class="sd-next-date">${nl?esc(nl.day+', '+nl.date):'Jadval belgilanmagan'}</div><div class="sd-next-course">${nl&&nl.time?esc(nl.time)+' · ':''}${grp?esc(grp):'Sizning guruh'}</div></div></div></div></div>`;
   el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${warnBanner}${heroes}${teacher}${stats}${quick}`;
 }
 function heroCard(icon,color,bg,title,big,sub,target,soon){
@@ -1896,9 +1900,10 @@ async function saveMaterial(){
 async function deleteMaterial(id,filePath){
   if(!confirm("Material o'chirilsinmi?"))return;
   if(filePath){try{await sb.storage.from('materials').remove([filePath])}catch(e){}}
-  const{error}=await sb.from('materials').delete().eq('id',id);
+  const{data,error}=await sb.from('materials').delete().eq('id',id).select();
   if(error){showToast('Xato: '+error.message);return}
-  await loadGroupMaterials(curGroup);renderGroupMaterials();
+  if(!data||!data.length){showToast("O'chirib bo'lmadi — ruxsat yo'q");return}
+  showToast("O'chirildi");await loadGroupMaterials(curGroup);renderGroupMaterials();
 }
 async function loadViewerMaterials(){try{const{data}=await sb.from('materials').select('*').order('created_at',{ascending:false}).limit(100);vMaterials=data||[]}catch(e){vMaterials=[]}}
 function renderViewerMaterials(){
@@ -2048,7 +2053,7 @@ function renderViewerProfile(s,teacher){
   const roleLabel=myProfile.role==='parent'?'Ota-ona':"O'quvchi";
   const grp=gidToName[myProfile.group_id]||'—';
   const childRow=(myProfile.role==='parent'&&myProfile.child_name)?`<div class="pf-row"><span class="pf-k">Farzand</span><span class="pf-v">${esc(myProfile.child_name)}</span></div>`:'';
-  el.innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(name)}</div><div><div class="profile-name">${esc(name)}</div><div class="profile-meta">${roleLabel}${grp!=='—'?' · '+esc(grp):''}</div></div></div><div class="pf-list">${childRow}<div class="pf-row"><span class="pf-k">Guruh</span><span class="pf-v">${esc(grp)}</span></div><div class="pf-row"><span class="pf-k">Ustoz</span><span class="pf-v">${esc(teacher||'—')}</span></div><div class="pf-row"><span class="pf-k">Email</span><span class="pf-v">${esc(currentUser.email||'')}</span></div></div></div><div class="profile-card" style="margin-top:14px"><div class="card-title">Parolni o'zgartirish</div><input type="password" id="vp-new-pwd" class="form-input" placeholder="Yangi parol" style="max-width:320px"><div id="vp-pwd-msg" style="font-size:12px;min-height:16px;margin-bottom:8px"></div><button class="btn btn-primary btn-sm" onclick="doChangePwd('vp-new-pwd','vp-pwd-msg')">Saqlash</button></div>`;
+  el.innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(name)}</div><div><div class="profile-name">${esc(name)}</div><div class="profile-meta">${roleLabel}${grp!=='—'?' · '+esc(grp):''}</div></div></div><div class="pf-list">${childRow}<div class="pf-row"><span class="pf-k">Guruh</span><span class="pf-v">${esc(grp)}</span></div><div class="pf-row"><span class="pf-k">Ustoz</span><span class="pf-v">${esc(teacher||'—')}</span></div>${(vStudent&&vStudent.student_id)?`<div class="pf-row"><span class="pf-k">Student ID</span><span class="pf-v" style="font-family:var(--mono);color:var(--brand)">${esc(vStudent.student_id)}</span></div>`:`<div class="pf-row"><span class="pf-k">Email</span><span class="pf-v">${esc(currentUser.email||'')}</span></div>`}</div></div><div class="profile-card" style="margin-top:14px"><div class="card-title">Parolni o'zgartirish</div><input type="password" id="vp-new-pwd" class="form-input" placeholder="Yangi parol" style="max-width:320px"><div id="vp-pwd-msg" style="font-size:12px;min-height:16px;margin-bottom:8px"></div><button class="btn btn-primary btn-sm" onclick="doChangePwd('vp-new-pwd','vp-pwd-msg')">Saqlash</button></div>`;
 }
 async function doChangePwd(inputId,msgId){
   const inp=document.getElementById(inputId),msg=document.getElementById(msgId);if(!inp||!msg)return;
@@ -2148,7 +2153,7 @@ function renderViewerHomework(){
     const allDone=items.every(x=>vDone.has(x.id));
     const confirmed=vConfirms.has(date);
     const absent=isAbsentDate(date);
-    const itemsHtml=items.map(it=>{const dn=vDone.has(it.id);return `<div class="todo ${dn?'done':''}" onclick="toggleHwDone('${it.id}')"><span class="todo-circle">${dn?'✓':''}</span><span class="todo-text"><span class="tag" style="margin-right:8px">${esc(hwTypeLabel(it.type))}</span>${esc(it.title)}</span></div>`}).join('');
+    const itemsHtml=items.map(it=>{const dn=vDone.has(it.id);return `<div class="todo ${dn?'done':''}"${confirmed?' style="opacity:.65;cursor:default"':` onclick="toggleHwDone('${it.id}')"`}><span class="todo-circle">${dn?'✓':''}</span><span class="todo-text"><span class="tag" style="margin-right:8px">${esc(hwTypeLabel(it.type))}</span>${esc(it.title)}</span></div>`}).join('');
     const note=absent?`<div style="background:rgba(232,49,42,.08);color:var(--bad);font-size:12px;padding:10px 12px;border-radius:9px;margin:8px 0;line-height:1.5">⚠️ Siz bu darsga <b>kelmadingiz</b>. Darsni <b>support</b> orqali tushunib, uy ishini yetkazib bajaring — seriyangiz uzilmaydi.</div>`:'';
     let foot='';
     if(confirmed)foot=`<div style="text-align:center;color:var(--good);font-weight:600;font-size:13px;margin-top:10px">✓ Bajarildi va tasdiqlangan</div>`;
@@ -2163,6 +2168,8 @@ function renderViewerHomework(){
 }
 async function toggleHwDone(hid){
   if(!vSid){showToast("Natijalar biriktirilmagan");return}
+  const _it=(vHw||[]).find(x=>x.id===hid);
+  if(_it&&vConfirms.has(_it.lesson_date)){showToast("Bu dars tasdiqlangan — o'zgartirib bo'lmaydi");return}
   if(vDone.has(hid)){vDone.delete(hid);await sb.from('homework_done').delete().eq('homework_id',hid).eq('student_id',vSid)}
   else{vDone.add(hid);await sb.from('homework_done').upsert({homework_id:hid,student_id:vSid,done:true},{onConflict:'homework_id,student_id'})}
   renderViewerHomework();buildViewerNav();renderStudentHome();
