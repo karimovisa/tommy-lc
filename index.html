@@ -992,7 +992,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <div class="modal-overlay" id="modal-group"><div class="modal"><div class="modal-title" id="group-modal-title">Yangi guruh</div><label class="modal-label">Guruh nomi</label><input type="text" id="grp-name" placeholder="301"><label class="modal-label">Ustoz ism familiyasi</label><input type="text" id="grp-teacher-name" placeholder="Asilbek Yusupov"><label class="modal-label">Ustoz emaili (shu email bilan kirsa — o'qituvchi)</label><input type="email" id="grp-teacher-email" placeholder="asilbek@gmail.com"><label class="modal-label">Dars kunlari</label><select id="grp-days"><option value="">— Tanlanmagan —</option><option value="odd">Toq kunlar (Dush·Chor·Jum)</option><option value="even">Juft kunlar (Sesh·Pay·Shan)</option></select><label class="modal-label">Dars vaqti</label><div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="time" id="grp-start" style="margin-bottom:0"><span style="color:var(--text-3)">–</span><input type="time" id="grp-end" style="margin-bottom:0"></div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="save-grp-btn" onclick="saveGroup()">Saqlash</button></div></div></div>
 
-<div class="modal-overlay" id="modal-homework"><div class="modal"><div class="modal-title">Yangi uy ishi</div><label class="modal-label">Guruh</label><select id="hw-new-group"></select><label class="modal-label">Dars sanasi</label><input type="date" id="hw-new-date"><label class="modal-label">Vocabulary</label><select id="hw-new-vocab"></select><label class="modal-label">Grammar / Workbook</label><select id="hw-new-grammar"></select><label class="modal-label">Qo'shimcha (speaking / writing)</label><input type="text" id="hw-new-extra" placeholder="masalan: yarim sahifa essay"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addHomework()">Qo'shish</button></div></div></div>
+<div class="modal-overlay" id="modal-homework"><div class="modal"><div class="modal-title">Yangi uy ishi</div><label class="modal-label">Guruh</label><select id="hw-new-group"></select><label class="modal-label">Dars sanasi</label><input type="date" id="hw-new-date"><label class="modal-label">Vocabulary — unit</label><select id="hw-new-vocab" onchange="hwFill('vocab')"></select><input type="text" id="hw-new-vocab-text" placeholder="izoh (o'zgartirish mumkin)" style="margin-top:6px"><label class="modal-label">Grammar / Workbook — unit</label><select id="hw-new-grammar" onchange="hwFill('grammar')"></select><input type="text" id="hw-new-grammar-text" placeholder="izoh (o'zgartirish mumkin)" style="margin-top:6px"><label class="modal-label">Qo'shimcha (speaking / writing)</label><input type="text" id="hw-new-extra" placeholder="masalan: yarim sahifa essay"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addHomework()">Qo'shish</button></div></div></div>
 
 <div class="modal-overlay" id="modal-move"><div class="modal"><div class="modal-title">Boshqa guruhga ko'chirish</div><div id="move-info" style="font-size:13px;color:var(--text-2);margin-bottom:12px"></div><label class="modal-label">Yangi guruh</label><select id="move-group"></select><div style="font-size:12px;color:var(--text-3);margin:6px 0 10px;line-height:1.5">Ko'chirilgach joriy ko'rsatkich 0 dan boshlanadi. Eski guruhdagi natija profil arxivida saqlanadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="confirmMove()">Ko'chirish</button></div></div></div>
 
@@ -1051,6 +1051,7 @@ function dotCol(v){return v>=1?'var(--good)':v>=0.5?'#9fd4a6':'var(--border-stro
 const HW_VARIANTS=(function(){const a=[];let p=0;for(let u=1;u<=12;u++){['a','b','c'].forEach(t=>a.push(u+t));if(u%2===0){p++;a.push('Practical '+p)}}return a})();
 function hwTypeLabel(t){return t==='vocab'?'Vocab':t==='grammar'?'Grammar/Workbook':t==='extra'?"Qo'shimcha":''}
 function fillHwSelects(){const opts='<option value=\"\">\u2014 tanlang \u2014</option>'+HW_VARIANTS.map(v=>'<option>'+v+'</option>').join('');const a=document.getElementById('hw-new-vocab'),b=document.getElementById('hw-new-grammar');if(a)a.innerHTML=opts;if(b)b.innerHTML=opts}
+function hwFill(kind){const sel=document.getElementById('hw-new-'+kind).value;const txt=document.getElementById('hw-new-'+kind+'-text');if(!txt)return;txt.value=sel?(sel+' unit '+(kind==='vocab'?"so'zlarini yodlash":'mashqlarini bajarish')):''}
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmtDate(d){if(!d)return'';const p=d.split('-');return p[2]+'-'+['yan','fev','mar','apr','may','iyun','iyul','avg','sen','okt','noy','dek'][(+p[1])-1]}
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
@@ -1195,21 +1196,14 @@ function revealDevQuick(){
   try{const p=new URLSearchParams(location.search);if(p.has('dev')){if(p.get('dev')==='0'){localStorage.removeItem('dev-mode');showToast('Dev rejim o\'chirildi')}else localStorage.setItem('dev-mode','1')}}catch(e){}
   if(devEnabled()){const d=document.getElementById('dev-quick');if(d)d.style.display='block'}
 }
-// VAQTINCHALIK TEST CREDS — ishga tushirishdan OLDIN OLIB TASHLANSIN!
-const DEV_CREDS={
-  admin:{mode:'staff', login:'karimov.islom7@icloud.com', pw:'karimov_0303'},
-  teacher:{mode:'staff', login:'kisombekuz@gmail.com', pw:'karimov0303'},
-  student:{mode:'student', login:'TLC26002', pw:'Karimov0303'}
-};
+// DEV tezkor kirish — parollar KODDA YO'Q (brauzer localStorage'da, bir marta so'raladi)
+const DEV_CREDS={admin:{mode:'staff'},teacher:{mode:'staff'},student:{mode:'student'}};
 function quickLogin(role){
   const c=DEV_CREDS[role];if(!c)return;
-  let login=c.login, pw=c.pw;
-  if(!login||!pw){ // hali to'ldirilmagan (masalan o'quvchi) -> bir marta so'rab, localStorage'ga saqlaymiz
-    login=login||localStorage.getItem('dev-login-'+role)||(prompt(role+' login (ID yoki email):')||'').trim();
-    if(!login)return; localStorage.setItem('dev-login-'+role,login);
-    pw=pw||localStorage.getItem('dev-pw-'+role)||prompt(role+' parol:')||'';
-    if(!pw)return; localStorage.setItem('dev-pw-'+role,pw);
-  }
+  let login=localStorage.getItem('dev-login-'+role);
+  if(!login){login=(prompt(role+' login (ID yoki email):')||'').trim();if(!login)return;localStorage.setItem('dev-login-'+role,login)}
+  let pw=localStorage.getItem('dev-pw-'+role);
+  if(!pw){pw=prompt(role+' parol (bir marta saqlanadi):')||'';if(!pw)return;localStorage.setItem('dev-pw-'+role,pw)}
   setLoginMode(c.mode);
   const fid=c.mode==='staff'?'login-email':'login-id';
   const el=document.getElementById(fid);if(el)el.value=login;
@@ -2193,17 +2187,19 @@ function renderHomework(){
 function openAddHomework(){fillHwSelects();const g=document.getElementById('hw-group').value;const sel=document.getElementById('hw-new-group');if(g&&g!=='all')sel.value=g;document.getElementById('hw-new-date').value=todayStr();document.getElementById('modal-homework').classList.add('open')}
 async function addHomework(){
   const gid=document.getElementById('hw-new-group').value;const date=document.getElementById('hw-new-date').value;
-  const vocab=document.getElementById('hw-new-vocab').value;const grammar=document.getElementById('hw-new-grammar').value;const extra=document.getElementById('hw-new-extra').value.trim();
+  const vSel=document.getElementById('hw-new-vocab').value;const gSel=document.getElementById('hw-new-grammar').value;
+  const vText=document.getElementById('hw-new-vocab-text').value.trim();const gText=document.getElementById('hw-new-grammar-text').value.trim();
+  const extra=document.getElementById('hw-new-extra').value.trim();
   if(!gid){showToast('Guruh tanlang');return}
   if(!date){showToast('Sana tanlang');return}
   const rows=[];
-  if(vocab)rows.push({group_id:gid,lesson_date:date,type:'vocab',title:vocab});
-  if(grammar)rows.push({group_id:gid,lesson_date:date,type:'grammar',title:grammar});
+  if(vSel)rows.push({group_id:gid,lesson_date:date,type:'vocab',title:vText||vSel});
+  if(gSel)rows.push({group_id:gid,lesson_date:date,type:'grammar',title:gText||gSel});
   if(extra)rows.push({group_id:gid,lesson_date:date,type:'extra',title:extra});
   if(!rows.length){showToast("Kamida bittasini to'ldiring");return}
   const{error}=await sb.from('homework').insert(rows);
   if(error){showToast('Xato: '+error.message);return}
-  closeModals();document.getElementById('hw-new-vocab').value='';document.getElementById('hw-new-grammar').value='';document.getElementById('hw-new-extra').value='';
+  closeModals();['hw-new-vocab','hw-new-grammar','hw-new-extra','hw-new-vocab-text','hw-new-grammar-text'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
   await loadHomework();renderHomework();showToast("Uy ishi qo'shildi");
 }
 async function deleteHomework(id){if(!confirm("Bu vazifani o'chirasizmi?"))return;await sb.from('homework_done').delete().eq('homework_id',id);await sb.from('homework').delete().eq('id',id);await loadHomework();renderHomework();showToast("O'chirildi")}
