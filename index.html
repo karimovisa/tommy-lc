@@ -680,6 +680,21 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 :root[data-theme="dark"] .fs-t{display:block;position:absolute;font-family:var(--sans);font-weight:800;color:rgba(255,255,255,.028);pointer-events:none;z-index:0;line-height:1;user-select:none}
 .fs-t1{font-size:190px;top:4%;left:5%}
 .fs-t2{font-size:130px;bottom:7%;right:9%}
+/* Ota-ona paneli */
+.pc-title{font-weight:700;font-size:15px;margin-bottom:12px}
+.pc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.pc-h{text-align:center;font-size:11px;color:var(--text-3);font-family:var(--mono);padding-bottom:4px}
+.pc-cell{aspect-ratio:1;border-radius:9px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px}
+.pc-num{color:var(--text-2)}
+.pc-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.pc-dot.green{background:var(--good)}.pc-dot.red{background:var(--bad)}
+.pc-legend{display:flex;gap:18px;margin-top:12px;font-size:12px;color:var(--text-2)}
+.pc-legend span{display:flex;align-items:center;gap:6px}
+.pp-badge{display:inline-block;background:rgba(232,49,42,.15);color:var(--brand);font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.08em;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.pp-cmp{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0}
+.pp-cmp-val{font-size:26px;font-weight:800}
+.pp-bar{height:8px;border-radius:5px;background:var(--bg);overflow:hidden}
+.pp-bar>div{height:100%;border-radius:5px}
 
 /* Kirish animatsiyalari */
 @keyframes authLogoIn{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
@@ -962,6 +977,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
       <div id="vview-settings" class="vview"><h2 class="sd-vtitle">Sozlamalar</h2><div class="student-dash" id="viewer-profile"></div></div>
       <div id="vview-notifications" class="vview"><h2 class="sd-vtitle">Bildirishnomalar</h2><div class="student-dash" id="viewer-notifs"></div></div>
       <div id="vview-materials" class="vview"><h2 class="sd-vtitle">Materiallar</h2><div class="student-dash" id="viewer-materials"></div></div>
+      <div id="vview-comments" class="vview"><h2 class="sd-vtitle">O'qituvchi izohlari</h2><div class="student-dash" id="viewer-comments"></div></div>
       <div id="vview-soon" class="vview"><div id="v-soon"></div></div>
     </main>
   </div>
@@ -972,7 +988,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 
 <div class="modal-overlay" id="modal-creds"><div class="modal"><div class="modal-title">✅ O'quvchi yaratildi</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Quyidagilarni <b id="cred-name"></b>ga bering. U birinchi kirganda parolni o'zgartiradi.</div><div class="cred-row"><span class="cred-k">Student ID</span><span class="cred-v" id="cred-id"></span></div><div class="cred-row"><span class="cred-k">Vaqtinchalik parol</span><span class="cred-v" id="cred-pw"></span></div><div class="modal-footer"><button class="btn btn-primary btn-sm" onclick="copyCreds()">Nusxalash</button><button class="btn btn-sm" onclick="closeModals()">Yopish</button></div></div></div>
 
-<div class="modal-overlay" id="modal-assignment"><div class="modal"><div class="modal-title">Yangi vazifa</div><label class="modal-label">Vazifa nomi</label><input type="text" id="new-assign-title" placeholder="Unit 3 test"><label class="modal-label">Guruh</label><select id="new-assign-group"></select><label class="modal-label">Topshirish muddati</label><input type="date" id="new-assign-due"><label class="modal-label">Izoh (ixtiyoriy)</label><textarea id="new-assign-note" placeholder="Qo'shimcha ma'lumot..."></textarea><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addAssignment()">Yaratish</button></div></div></div>
+<div class="modal-overlay" id="modal-assignment"><div class="modal"><div class="modal-title">Yangi vazifa</div><label class="modal-label">Vazifa nomi</label><input type="text" id="new-assign-title" placeholder="Unit 3 test"><label class="modal-label">Guruh</label><select id="new-assign-group"></select><label class="modal-label">Topshirish muddati</label><input type="date" id="new-assign-due"><label class="modal-label">Maksimal ball (test uchun, ixtiyoriy)</label><input type="number" id="new-assign-max" min="1" placeholder="masalan 75"><label class="modal-label">Izoh (ixtiyoriy)</label><textarea id="new-assign-note" placeholder="Qo'shimcha ma'lumot..."></textarea><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addAssignment()">Yaratish</button></div></div></div>
 
 <div class="modal-overlay" id="modal-group"><div class="modal"><div class="modal-title" id="group-modal-title">Yangi guruh</div><label class="modal-label">Guruh nomi</label><input type="text" id="grp-name" placeholder="301"><label class="modal-label">Ustoz ism familiyasi</label><input type="text" id="grp-teacher-name" placeholder="Asilbek Yusupov"><label class="modal-label">Ustoz emaili (shu email bilan kirsa — o'qituvchi)</label><input type="email" id="grp-teacher-email" placeholder="asilbek@gmail.com"><label class="modal-label">Dars kunlari</label><select id="grp-days"><option value="">— Tanlanmagan —</option><option value="odd">Toq kunlar (Dush·Chor·Jum)</option><option value="even">Juft kunlar (Sesh·Pay·Shan)</option></select><label class="modal-label">Dars vaqti</label><div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="time" id="grp-start" style="margin-bottom:0"><span style="color:var(--text-3)">–</span><input type="time" id="grp-end" style="margin-bottom:0"></div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="save-grp-btn" onclick="saveGroup()">Saqlash</button></div></div></div>
 
@@ -981,6 +997,8 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 <div class="modal-overlay" id="modal-move"><div class="modal"><div class="modal-title">Boshqa guruhga ko'chirish</div><div id="move-info" style="font-size:13px;color:var(--text-2);margin-bottom:12px"></div><label class="modal-label">Yangi guruh</label><select id="move-group"></select><div style="font-size:12px;color:var(--text-3);margin:6px 0 10px;line-height:1.5">Ko'chirilgach joriy ko'rsatkich 0 dan boshlanadi. Eski guruhdagi natija profil arxivida saqlanadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="confirmMove()">Ko'chirish</button></div></div></div>
 
 <div id="acct-menu" class="hidden"><button class="acct-btn" onclick="toggleAcct(event)" aria-label="Akkaunt">⋮</button><div class="acct-pop" id="acct-pop"><div class="acct-name" id="acct-name"></div><div class="acct-sub" id="acct-sub"></div><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="toggleTheme()" id="theme-btn">Tungi rejim</button><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="togglePwdChange()">Parolni o'zgartirish</button><div id="pwd-change" style="display:none;margin-bottom:8px"><input type="password" id="new-pwd" class="form-input" placeholder="Yangi parol" style="margin-bottom:6px" oninput="document.getElementById('pwd-msg').textContent=''"><div id="pwd-msg" style="font-size:11px;margin-bottom:6px;min-height:14px"></div><button class="btn btn-primary btn-sm btn-block" onclick="savePwd()">Saqlash</button></div><button class="btn btn-sm btn-block" onclick="doLogout()">Chiqish</button></div></div>
+
+<div class="modal-overlay" id="modal-parent"><div class="modal"><div class="modal-title">Ota-ona kirishi</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px" id="pa-child"></div><button class="btn btn-primary btn-block" onclick="createParentAcc()">Yangi ota-ona akkounti yaratish</button><div style="text-align:center;font-size:11px;color:var(--text-3);margin:12px 0 8px">— yoki mavjud ota-onaga bog'lash (aka-uka/opa-singil) —</div><label class="modal-label">Mavjud Parent ID</label><input type="text" id="pa-link-id" placeholder="TLC26002P"><button class="btn btn-block btn-sm" onclick="linkParentAcc()">Bu farzandni bog'lash</button><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Yopish</button></div></div></div>
 
 <div class="modal-overlay" id="modal-material"><div class="modal"><div class="modal-title">Material qo'shish</div><label class="modal-label">Nomi</label><input type="text" id="mat-title" placeholder="Unit 5 — audio"><label class="modal-label">Havola (YouTube, Drive, PDF...)</label><input type="text" id="mat-url" placeholder="https://..."><div style="text-align:center;font-size:11px;color:var(--text-3);margin:-2px 0 8px">— yoki —</div><label class="modal-label">Fayl yuklash (PDF, audio, rasm)</label><input type="file" id="mat-file"><div style="font-size:11px;color:var(--text-3);margin:-2px 0 10px">Havola yoki fayldan birini kiriting. Fayl: maks. 50MB.</div><div style="text-align:center;font-size:11px;color:var(--text-3);margin:0 0 8px">— yoki so'zlar (lug'at) —</div><label class="modal-label">So'zlar — har qatorda: <b>apple - olma</b></label><textarea id="mat-words" placeholder="apple - olma&#10;book - kitob&#10;run - yugurmoq" style="height:110px"></textarea><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" id="mat-save-btn" onclick="saveMaterial()">Qo'shish</button></div></div></div>
 
@@ -1016,6 +1034,7 @@ let currentUser=null, level=null;           // level: 'admin' | 'teacher' | 'stu
 let myGroups=[], allGroups=[], students=[], allChecks={}, assignments=[], pendingList=[], notifs=[], groupMaterials=[];
 let myProfile=null, currentDate='', regType='student', editGroupId=null;
 let homework=[], hwDoneCount={}, vHw=[], vDone=new Set(), vSid=null, vRank=null, vView='home', vChecks={}, vGrades=[], vStudent=null, vTeacherName='', vNotifs=[], vConfirms=new Set(), vMaterials=[], vGroup=null;
+let isParent=false, vChildren=[], vComments=[], vCompare=null;
 let studentsById={}, moveSid=null, curGroup=null;
 let nameToGid={}, gidToName={};
 
@@ -1308,7 +1327,7 @@ async function loadAssignments(){
   const{data:g}=await sb.from('assignment_grades').select('*');
   let list=a||[];
   if(level!=='admin'){const set=myGidSet();list=list.filter(x=>!x.group_id||set.has(x.group_id))}
-  assignments=list.map(x=>({...x,grades:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.grade]))}));
+  assignments=list.map(x=>({...x,grades:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.grade])),scores:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.score]))}));
 }
 async function loadPending(){
   const{data}=await sb.from('profiles').select('*').eq('approved',false).in('role',['student','parent']);
@@ -1340,7 +1359,7 @@ function renderGroupDetail(gid){
   if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">\u{1F464}</div><p>Bu guruhda o'quvchi yo'q</p></div>`;return}
   const isAdmin=level==='admin';
   let html=list.map(s=>{const st=studentStats(s.id);const c=st.overall>=75?'var(--good)':st.overall>=50?'var(--warn)':'var(--bad)';
-    const actions=isAdmin?`<div class="sc-actions" style="width:100%" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openMoveStudent('${s.id}')">Ko'chirish</button><button class="btn btn-sm" onclick="toggleFreeze('${s.id}',${s.frozen?0:1})">${s.frozen?'Faollashtirish':'Muzlatish'}</button><button class="btn btn-sm" onclick="resetStudentPassword('${s.id}')">Parol tiklash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteStudent('${s.id}')">O'chirish</button></div>`:'';
+    const actions=isAdmin?`<div class="sc-actions" style="width:100%" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openMoveStudent('${s.id}')">Ko'chirish</button><button class="btn btn-sm" onclick="toggleFreeze('${s.id}',${s.frozen?0:1})">${s.frozen?'Faollashtirish':'Muzlatish'}</button><button class="btn btn-sm" onclick="resetStudentPassword('${s.id}')">Parol tiklash</button><button class="btn btn-sm" onclick="openParentAccess('${s.id}','${esc(s.name)}')">Ota-ona</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteStudent('${s.id}')">O'chirish</button></div>`:'';
     return `<div class="grp-row${s.frozen?' frozen':''}" style="flex-wrap:wrap;cursor:pointer" onclick="openProfile('${s.id}')"><div class="grp-row-main"><div class="grp-row-name">${esc(s.name)}${s.frozen?' <span class="tag">muzlatilgan</span>':''}</div><div class="grp-row-sub">Vocab ${st.words}% \u00b7 Workbook ${st.hw}% \u00b7 Qo'shimcha ${st.extra}% \u00b7 ${st.count} dars</div></div><div class="grp-row-pct" style="color:${c}">${st.overall}%</div>${actions}</div>`;
   }).join('');
   const attention=list.filter(s=>!s.frozen).map(s=>({s,st:studentStats(s.id)})).filter(x=>x.st.count>0&&x.st.overall<50).sort((a,b)=>a.st.overall-b.st.overall);
@@ -1485,7 +1504,7 @@ function renderStudents(){
   if(!list.length){grid.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><p>${q?'Topilmadi':"O'quvchi yo'q"}</p></div>`;return}
   const isAdmin=level==='admin';
   list.forEach(s=>{const st=studentStats(s.id);const c=document.createElement('div');c.className='student-card'+(s.frozen?' frozen':'');c.onclick=()=>openProfile(s.id);
-    const actions=isAdmin?`<div class="sc-actions" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openMoveStudent('${s.id}')">Ko'chirish</button><button class="btn btn-sm" onclick="toggleFreeze('${s.id}',${s.frozen?0:1})">${s.frozen?'Faollashtirish':'Muzlatish'}</button><button class="btn btn-sm" onclick="resetStudentPassword('${s.id}')">Parol tiklash</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteStudent('${s.id}')">O'chirish</button></div>`:'';
+    const actions=isAdmin?`<div class="sc-actions" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openMoveStudent('${s.id}')">Ko'chirish</button><button class="btn btn-sm" onclick="toggleFreeze('${s.id}',${s.frozen?0:1})">${s.frozen?'Faollashtirish':'Muzlatish'}</button><button class="btn btn-sm" onclick="resetStudentPassword('${s.id}')">Parol tiklash</button><button class="btn btn-sm" onclick="openParentAccess('${s.id}','${esc(s.name)}')">Ota-ona</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteStudent('${s.id}')">O'chirish</button></div>`:'';
     c.innerHTML=`<div class="sc-top"><div class="avatar-md">${initials(s.name)}</div><div style="flex:1;min-width:0"><div class="sc-name">${esc(s.name)}${s.frozen?' <span class="tag">muzlatilgan</span>':''}</div><div class="sc-phone">${esc(gidToName[gidOf(s)]||'')}${s.phone?' · '+esc(s.phone):''}</div></div><div class="ring-wrap">${ring(st.overall,54,6)}</div></div><div class="sc-stats"><div class="sc-stat"><div class="sc-stat-val">${st.words}%</div><div class="sc-stat-label">Vocab</div></div><div class="sc-stat"><div class="sc-stat-val">${st.hw}%</div><div class="sc-stat-label">Workbook</div></div><div class="sc-stat"><div class="sc-stat-val">${st.count}</div><div class="sc-stat-label">Dars</div></div></div>${actions}`;
     grid.appendChild(c)});
 }
@@ -1541,6 +1560,11 @@ async function submitNewPassword(){
   showToast('Parol o\'rnatildi');
   setTimeout(()=>location.reload(),700);
 }
+let paStudentPk=null;
+function openParentAccess(sid,name){paStudentPk=sid;document.getElementById('pa-child').textContent=(name||"O'quvchi")+' uchun ota-ona kirishi.';document.getElementById('pa-link-id').value='';document.getElementById('modal-parent').classList.add('open')}
+async function callAdminFn(body){const tok=(await sb.auth.getSession()).data.session?.access_token||'';try{const r=await fetch(SUPABASE_URL+'/functions/v1/admin-student',{method:'POST',body:JSON.stringify({_token:tok,...body})});return await r.json()}catch(e){return{error:String(e)}}}
+async function createParentAcc(){const d=await callAdminFn({action:'create_parent',student_pk:paStudentPk});if(!d||d.error){showToast('Xato: '+((d&&d.error)||'')+(d&&d.parent_id?(' ('+d.parent_id+')'):''));return}closeModals();showStudentCreds(d.child_name+' ota-onasi',d.parent_id,d.temp_password)}
+async function linkParentAcc(){const pid=document.getElementById('pa-link-id').value.trim();if(!pid){showToast('Parent ID kiriting');return}const d=await callAdminFn({action:'link_parent',student_pk:paStudentPk,parent_id:pid});if(!d||d.error){showToast('Xato: '+((d&&d.error)||''));return}closeModals();showToast("Farzand bog'landi: "+pid)}
 async function resetStudentPassword(sid){
   const s=studentsById[sid];if(!s)return;
   if(!confirm((s.name||"O'quvchi")+" uchun yangi vaqtinchalik parol yaratilsinmi?"))return;
@@ -1576,9 +1600,13 @@ function openProfile(sid){
   if(!h)h='<div class="no-history">Hali ma\'lumot yo\'q</div>';
   let arch='';try{if(so&&Array.isArray(so.archive)&&so.archive.length){arch='<div class="history-card"><div class="card-title">Arxiv (oldingi guruhlar)</div>'+so.archive.map(a=>`<div class="hist-row"><span class="hist-detail" style="flex:1">${esc(a.group||'\u2014')}</span><span class="hist-date">${a.until?fmtDate(a.until):''}</span><span class="pct-pill ${pctClass(a.overall||0)}">${a.overall||0}%</span></div>`).join('')+'</div>'}}catch(e){}
   const ptr=studentTrend(sid);const ptrend=ptr.length>1?`<div class="bars-card"><div class="card-title">O'zlashtirish dinamikasi</div>${sparkline(ptr.slice(-14),'100%',60)}</div>`:'';
-  document.getElementById('profile-content').innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(s.name)}</div><div style="flex:1;min-width:0"><div class="profile-name">${esc(s.name)}</div><div class="profile-meta">${esc(gidToName[gidOf(s)]||'')}${s.phone?' · '+esc(s.phone):''} · ${st.count} dars</div></div><div class="ring-wrap">${ring(st.overall,72,7)}</div></div><div class="metrics-row"><div class="metric-box"><div class="metric-box-val ${valColor(st.overall)}">${st.overall}%</div><div class="metric-box-label">Umumiy ball</div></div><div class="metric-box"><div class="metric-box-val ${valColor(st.words)}">${st.words}%</div><div class="metric-box-label">Vocabulary</div></div><div class="metric-box"><div class="metric-box-val ${valColor(st.hw)}">${st.hw}%</div><div class="metric-box-label">Workbook</div></div><div class="metric-box"><div class="metric-box-val ${valColor(st.extra)}">${st.extra}%</div><div class="metric-box-label">Qo'shimcha</div></div></div></div>${ptrend}<div class="bars-card"><div class="card-title">Mezon bo'yicha tahlil</div>${barRow('Vocabulary',st.words)}${barRow('Workbook',st.hw)}${barRow("Qo'shimcha",st.extra)}</div><div class="history-card"><div class="card-title">So'nggi darslar tarixi</div>${h}</div>${arch}`;
+  document.getElementById('profile-content').innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(s.name)}</div><div style="flex:1;min-width:0"><div class="profile-name">${esc(s.name)}</div><div class="profile-meta">${esc(gidToName[gidOf(s)]||'')}${s.phone?' · '+esc(s.phone):''} · ${st.count} dars</div></div><div class="ring-wrap">${ring(st.overall,72,7)}</div></div><div class="metrics-row"><div class="metric-box"><div class="metric-box-val ${valColor(st.overall)}">${st.overall}%</div><div class="metric-box-label">Umumiy ball</div></div><div class="metric-box"><div class="metric-box-val ${valColor(st.words)}">${st.words}%</div><div class="metric-box-label">Vocabulary</div></div><div class="metric-box"><div class="metric-box-val ${valColor(st.hw)}">${st.hw}%</div><div class="metric-box-label">Workbook</div></div><div class="metric-box"><div class="metric-box-val ${valColor(st.extra)}">${st.extra}%</div><div class="metric-box-label">Qo'shimcha</div></div></div></div>${ptrend}<div class="bars-card"><div class="card-title">Mezon bo'yicha tahlil</div>${barRow('Vocabulary',st.words)}${barRow('Workbook',st.hw)}${barRow("Qo'shimcha",st.extra)}</div><div class="history-card"><div class="card-title">So'nggi darslar tarixi</div>${h}</div>${arch}<div class="history-card"><div class="card-title">O'qituvchi izohlari</div><textarea id="pc-comment-new" class="form-input" placeholder="Izoh yozing (ota-ona/o'quvchi ko'radi)..." style="height:60px;margin-bottom:8px"></textarea><button class="btn btn-primary btn-sm" onclick="addComment('${sid}')">Izoh qo'shish</button><div id="profile-comments" style="margin-top:12px"></div></div>`;
+  loadProfileComments(sid);
   showView('profile');
 }
+async function loadProfileComments(sid){const el=document.getElementById('profile-comments');if(!el)return;const{data}=await sb.from('teacher_comments').select('*').eq('student_id',sid).order('created_at',{ascending:false});const list=data||[];el.innerHTML=list.length?list.map(c=>`<div class="hist-row"><div style="flex:1"><div style="font-size:13px">${esc(c.body)}</div><div style="font-size:11px;color:var(--text-3)">${esc(c.created_by_name||'')} · ${fmtNotifDate(c.created_at)}</div></div><button class="btn btn-sm" style="color:var(--bad)" onclick="delComment('${c.id}','${sid}')">×</button></div>`).join(''):'<div class="no-history">Hali izoh yo\'q</div>'}
+async function addComment(sid){const t=document.getElementById('pc-comment-new');const body=t.value.trim();if(!body){showToast('Izoh yozing');return}const nm=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);const{error}=await sb.from('teacher_comments').insert({student_id:sid,body,created_by:currentUser.id,created_by_name:nm});if(error){showToast('Xato: '+error.message);return}t.value='';showToast('Izoh qo\'shildi');loadProfileComments(sid)}
+async function delComment(id,sid){if(!confirm('Izoh o\'chirilsinmi?'))return;const{error}=await sb.from('teacher_comments').delete().eq('id',id);if(error){showToast('Xato: '+error.message);return}loadProfileComments(sid)}
 function barRow(lbl,p){return `<div class="bar-row"><span class="bar-lbl">${esc(lbl)}</span><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${barColor(p)}"></div></div><span class="bar-pct">${p}%</span></div>`}
 
 /* ---------- VIZUAL HELPERLAR (ring, sparkline, ikonalar) ---------- */
@@ -1713,7 +1741,7 @@ function renderAssignments(){
   el.innerHTML=assignments.map(a=>{
     const gname=a.group_id?(gidToName[a.group_id]||''):'Umumiy';
     const slist=a.group_id?students.filter(s=>gidOf(s)===a.group_id):students;
-    return `<div class="assign-card"><div class="assign-header"><span class="assign-title-text">${esc(a.title)}</span><span class="tag">${esc(gname)}</span><span class="assign-due">Muddat: ${fmtDate(a.due_date)||'—'}</span><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteAssignment('${a.id}')">O'chirish</button></div>${a.note?`<div style="font-size:12px;color:var(--text-2);margin-bottom:10px">${esc(a.note)}</div>`:''}<table class="grade-table"><thead><tr><th>O'quvchi</th><th class="center">Baho (0-100)</th></tr></thead><tbody>${slist.map(s=>`<tr><td>${esc(s.name)}</td><td class="center"><input class="grade-input" type="number" min="0" max="100" value="${a.grades&&a.grades[s.id]!=null?a.grades[s.id]:''}" placeholder="—" onchange="saveGrade('${a.id}','${s.id}',this.value)"></td></tr>`).join('')}</tbody></table></div>`;
+    return `<div class="assign-card"><div class="assign-header"><span class="assign-title-text">${esc(a.title)}</span><span class="tag">${esc(gname)}</span><span class="assign-due">Muddat: ${fmtDate(a.due_date)||'—'}</span><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteAssignment('${a.id}')">O'chirish</button></div>${a.note?`<div style="font-size:12px;color:var(--text-2);margin-bottom:10px">${esc(a.note)}</div>`:''}<table class="grade-table"><thead><tr><th>O'quvchi</th><th class="center">${a.max_score?('Ball (0-'+a.max_score+')'):'Baho (0-100)'}</th></tr></thead><tbody>${slist.map(s=>`<tr><td>${esc(s.name)}</td><td class="center"><input class="grade-input" type="number" min="0" max="${a.max_score||100}" value="${a.max_score?(a.scores&&a.scores[s.id]!=null?a.scores[s.id]:''):(a.grades&&a.grades[s.id]!=null?a.grades[s.id]:'')}" placeholder="—" onchange="saveGrade('${a.id}','${s.id}',this.value,${a.max_score||0})"></td></tr>`).join('')}</tbody></table></div>`;
   }).join('');
 }
 function openAddAssignment(){const g=document.getElementById('cl-group').value;const sel=document.getElementById('new-assign-group');if(g&&g!=='all')sel.value=g;document.getElementById('new-assign-due').value=todayStr();document.getElementById('modal-assignment').classList.add('open')}
@@ -1721,13 +1749,13 @@ async function addAssignment(){
   const title=document.getElementById('new-assign-title').value.trim();
   if(!title){showToast('Vazifa nomini kiriting');return}
   const gid=document.getElementById('new-assign-group').value||null;
-  const{error}=await sb.from('assignments').insert({title,group_id:gid,due_date:document.getElementById('new-assign-due').value||null,note:document.getElementById('new-assign-note').value.trim()});
+  const{error}=await sb.from('assignments').insert({title,group_id:gid,due_date:document.getElementById('new-assign-due').value||null,note:document.getElementById('new-assign-note').value.trim(),max_score:parseInt(document.getElementById('new-assign-max').value)||null});
   if(error){showToast('Xato: '+error.message);return}
-  closeModals();document.getElementById('new-assign-title').value='';document.getElementById('new-assign-note').value='';
+  closeModals();document.getElementById('new-assign-title').value='';document.getElementById('new-assign-note').value='';document.getElementById('new-assign-max').value='';
   await loadAssignments();renderAssignments();showToast('Vazifa yaratildi');
 }
 async function deleteAssignment(aid){if(!confirm("Bu vazifani o'chirasizmi?"))return;await sb.from('assignments').delete().eq('id',aid);await loadAssignments();renderAssignments()}
-async function saveGrade(aid,sid,val){const grade=val===''?null:parseInt(val);await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,grade},{onConflict:'assignment_id,student_id'});const a=assignments.find(x=>x.id===aid);if(a){if(!a.grades)a.grades={};a.grades[sid]=grade}}
+async function saveGrade(aid,sid,val,max){let score=null,grade=null;if(val!==''){if(max>0){score=parseFloat(val);grade=Math.round(score/max*100);}else{grade=parseInt(val);}}await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,grade,score},{onConflict:'assignment_id,student_id'});const a=assignments.find(x=>x.id===aid);if(a){if(!a.grades)a.grades={};if(!a.scores)a.scores={};a.grades[sid]=grade;a.scores[sid]=score}}
 
 /* ---------- REPORT ---------- */
 function renderReport(){
@@ -1739,10 +1767,17 @@ function renderReport(){
 }
 
 /* ---------- VIEWER (o'quvchi/ota-ona) ---------- */
-async function startViewer(){
+async function startViewer(childId){
   showLoading(true);
-  let sid=myProfile.student_id;
+  isParent=(myProfile.role==='parent');
+  let sid=childId||myProfile.student_id;
   let sData=null;
+  if(isParent){
+    const{data:links}=await sb.from('parent_links').select('student_id').eq('parent_uid',currentUser.id);
+    const ids=(links||[]).map(l=>l.student_id);
+    if(ids.length){const{data:kids}=await sb.from('students').select('*').in('id',ids).order('name');vChildren=kids||[]}
+    if(!sid||!vChildren.find(c=>c.id===sid))sid=(vChildren[0]&&vChildren[0].id)||sid;
+  }
   if(sid){const{data}=await sb.from('students').select('*').eq('id',sid).maybeSingle();sData=data}
   if(!sData){const nm=myProfile.role==='parent'?myProfile.child_name:myProfile.full_name;if(nm){const{data}=await sb.from('students').select('*').ilike('name',nm).maybeSingle();sData=data;if(sData)sid=sData.id}}
   // Status nazorati: faqat ACTIVE kira oladi
@@ -1771,13 +1806,14 @@ async function startViewer(){
   document.getElementById('v-avatar').textContent=initials(dispName);
   setAcct(myProfile.full_name||currentUser.email, (myProfile.role==='parent'?'Ota-ona':"O'quvchi")+(gidToName[myProfile.group_id]?' \u00b7 '+gidToName[myProfile.group_id]:'')+(myProfile.child_name?' \u00b7 '+myProfile.child_name:''));
   vSid=sid;vDone=new Set();vHw=[];vConfirms=new Set();
-  if(myProfile.group_id){const r=await sb.from('homework').select('*').eq('group_id',myProfile.group_id).order('lesson_date',{ascending:false});vHw=r.data||[]}
+  const _gid=(sData&&sData.group_id)||myProfile.group_id;
+  if(_gid){const r=await sb.from('homework').select('*').eq('group_id',_gid).order('lesson_date',{ascending:false});vHw=r.data||[]}
   if(sid){const r=await sb.from('homework_done').select('*').eq('student_id',sid);(r.data||[]).forEach(x=>{if(x.done)vDone.add(x.homework_id)})}
   if(sid){try{const r=await sb.from('lesson_confirms').select('lesson_date').eq('student_id',sid);(r.data||[]).forEach(x=>vConfirms.add(x.lesson_date))}catch(e){}}
   vRank=null;
   try{const rr=await sb.rpc('my_group_rank');if(rr&&rr.data&&rr.data.length)vRank=rr.data[0];}catch(e){}
   let vg=[];
-  if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,a:amap[g.assignment_id]})).filter(x=>x.a)}}
+  if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,score:g.score,a:amap[g.assignment_id]})).filter(x=>x.a)}}
   vChecks=checks;vGrades=vg;vStudent=sData;vTeacherName=vTeacher;
   await loadViewerNotifs();updateNotifBadge();
   await loadViewerMaterials();
@@ -1787,8 +1823,72 @@ async function startViewer(){
   renderViewerProfile(sData,vTeacher);
   renderLessonHistory();
   renderRankView();
+  if(isParent){
+    if(sid){const r=await sb.from('teacher_comments').select('*').eq('student_id',sid).order('created_at',{ascending:false});vComments=r.data||[]}
+    vCompare=null;try{const cc=await sb.rpc('child_compare',{sid});if(cc&&cc.data)vCompare=cc.data}catch(e){}
+    buildParentNav();
+    renderComments();
+    renderParentHome();
+    showVView('home');
+    showLoading(false);
+    return;
+  }
   renderStudentHome();
   showVView('home');
+}
+/* ---------- OTA-ONA PANELI ---------- */
+function buildParentNav(){
+  const I=ICONS;
+  const items=[['home','Bosh sahifa',I.home],['lessons','Davomat',I.cal],['homework','Vazifalar',I.clip],['tests','Testlar',I.chart],['comments',"O'qituvchi izohlari",I.book],['settings','Sozlamalar',I.gear]];
+  const nav=document.getElementById('v-nav');if(!nav)return;
+  nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span></button>`).join('');
+}
+function switchChild(id){vView='home';startViewer(id);}
+function renderAttCalendar(){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  const start=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+  const uzMon=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+  const head=['Du','Se','Cho','Pa','Ju','Sha','Ya'].map(d=>`<div class="pc-h">${d}</div>`).join('');
+  let cells='';for(let i=0;i<start;i++)cells+='<div></div>';
+  for(let d=1;d<=days;d++){const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const e=vChecks[ds];const dot=e?(e.absent?'<span class="pc-dot red"></span>':'<span class="pc-dot green"></span>'):'';cells+=`<div class="pc-cell"><div class="pc-num">${d}</div>${dot}</div>`}
+  return `<div class="sd-card"><div class="pc-title">📅 Davomat (${uzMon[m]} ${y})</div><div class="pc-grid">${head}${cells}</div><div class="pc-legend"><span><span class="pc-dot green"></span> Keldi</span><span><span class="pc-dot red"></span> Kelmadi</span></div></div>`;
+}
+function renderComments(){
+  const el=document.getElementById('viewer-comments');if(!el)return;
+  if(!vComments.length){el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><p>Hozircha izoh yo\'q</p></div>';return}
+  el.innerHTML=vComments.map(c=>`<div class="sd-card" style="margin-bottom:10px"><div style="font-size:14px;line-height:1.5">${esc(c.body)}</div><div style="font-size:11px;color:var(--text-3);margin-top:8px;font-family:var(--mono)">${esc(c.created_by_name||'Ustoz')} · ${fmtNotifDate(c.created_at)}</div></div>`).join('');
+}
+function renderParentHome(){
+  const el=document.getElementById('v-home');if(!el)return;
+  const child=vStudent||{};const childName=child.name||'Farzandingiz';
+  let keldi=0,kelmadi=0;Object.values(vChecks||{}).forEach(e=>{if(e.absent)kelmadi++;else keldi++});
+  const dow=new Date().getDay();
+  const isLessonToday=vGroup&&vGroup.lesson_days?((vGroup.lesson_days==='odd'?[1,3,5]:[2,4,6]).includes(dow)):false;
+  const tc=vChecks[todayStr()];
+  const dars=tc?(tc.absent?{t:'Kelmadi ✕',c:'var(--bad)'}:{t:'Keldi ✓',c:'var(--good)'}):(isLessonToday?{t:'Belgilanmagan',c:'var(--text-3)'}:{t:'Dars yo\'q',c:'var(--text-3)'});
+  const time=vGroup&&vGroup.lesson_start?(vGroup.lesson_start+(vGroup.lesson_end?' - '+vGroup.lesson_end:'')):'';
+  const maxDate=(vHw||[]).map(x=>x.lesson_date).sort().reverse()[0];
+  const curHw=(vHw||[]).filter(x=>x.lesson_date===maxDate);
+  const pending=curHw.filter(x=>!vDone.has(x.id)).length;
+  const grades=(vGrades||[]).slice().sort((a,b)=>((b.a.due_date||b.a.created_at||'')+'').localeCompare((a.a.due_date||a.a.created_at||'')+''));
+  const lt=grades.find(x=>x.grade!=null);
+  const ltBall=(lt&&lt.a&&lt.a.max_score&&lt.score!=null)?`${lt.score}/${lt.a.max_score} ball`:'';
+  const lastC=vComments[0];
+  const cards=`<div class="sd-hero-grid">
+    <div class="sd-card sd-hero"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:var(--good);background:var(--good-light)">${ICONS.cal}</span><span class="sd-hero-title">Bugungi dars</span></div><div class="sd-hero-big" style="color:${dars.c}">${dars.t}</div><div class="sd-hero-sub">${time?esc(time)+' · ':''}${esc(gidToName[child.group_id]||child.group_name||'')}</div></div>
+    <div class="sd-card sd-hero" style="${pending?'border-color:var(--bad)':''}"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:var(--brand);background:var(--brand-light)">${ICONS.clip}</span><span class="sd-hero-title">Uy vazifasi</span></div><div class="sd-hero-big" style="color:${pending?'var(--bad)':'var(--good)'}">${pending?'Topshirmagan':'Topshirgan'}</div><div class="sd-hero-sub">${pending?pending+' ta vazifa qolgan':'Hammasi bajarildi'}</div><a class="sd-hero-link" onclick="showVView('homework')">Vazifalarni ko'rish →</a></div>
+    <div class="sd-card sd-hero"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:var(--good);background:var(--good-light)">${ICONS.chart}</span><span class="sd-hero-title">Oxirgi test</span></div><div class="sd-hero-big">${lt?(lt.grade+'%'):'—'}</div><div class="sd-hero-sub">${lt?(esc(lt.a.title)+(ltBall?' · '+ltBall:'')):'Hali test yo\'q'}</div><a class="sd-hero-link" onclick="showVView('tests')">Testlar tarixi →</a></div>
+    <div class="sd-card sd-hero"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:var(--warn);background:var(--warn-light)">${ICONS.book}</span><span class="sd-hero-title">O'qituvchi izohi</span></div><div class="sd-hero-big" style="font-size:18px">${lastC?'Yangi izoh':'Izoh yo\'q'}</div><div class="sd-hero-sub">${lastC?fmtNotifDate(lastC.created_at):'—'}</div><a class="sd-hero-link" onclick="showVView('comments')">Izohlarni ko'rish →</a></div>
+  </div>`;
+  const sum=`<div style="display:flex;flex-direction:column;gap:12px"><div class="sd-card" style="background:var(--good-light)"><div style="font-size:12px;color:var(--good)">Keldi</div><div style="font-size:30px;font-weight:800">${keldi} <small style="font-size:14px">ta</small></div></div><div class="sd-card" style="background:var(--bad-light)"><div style="font-size:12px;color:var(--bad)">Kelmadi</div><div style="font-size:30px;font-weight:800">${kelmadi} <small style="font-size:14px">ta</small></div></div></div>`;
+  const mid=`<div class="sd-row3" style="grid-template-columns:2fr 1fr">${renderAttCalendar()}${sum}</div>`;
+  const cmp=vCompare||{};const tch=cmp.test_child||0,tgr=cmp.test_group||0;
+  const hwTotal=cmp.hw_total||0,hwChild=cmp.hw_child||0,hwChildPct=hwTotal?Math.round(100*hwChild/hwTotal):0,hwGr=cmp.hw_group_pct||0;
+  const cmpBlock=`<div class="sd-card"><div class="card-title" style="margin-bottom:12px">Farzandimning natijalari</div><div style="font-weight:600;margin-bottom:4px">Testlar bo'yicha</div><div class="pp-cmp"><div><div style="font-size:11px;color:var(--text-3)">Farzandingiz</div><div class="pp-cmp-val" style="color:var(--brand)">${tch}%</div></div><div style="color:var(--text-3)">vs</div><div style="text-align:right"><div style="font-size:11px;color:var(--text-3)">Guruh o'rtachasi</div><div class="pp-cmp-val" style="color:var(--text-2)">${tgr}%</div></div></div><div class="pp-bar"><div style="width:${tch}%;background:var(--brand)"></div></div><div style="font-weight:600;margin:16px 0 4px">Uy vazifalari bo'yicha</div><div class="pp-cmp"><div><div style="font-size:11px;color:var(--text-3)">Farzandingiz</div><div class="pp-cmp-val" style="color:var(--good)">${hwChildPct}%</div><div style="font-size:11px;color:var(--text-3)">${hwChild}/${hwTotal} bajarilgan</div></div><div style="color:var(--text-3)">vs</div><div style="text-align:right"><div style="font-size:11px;color:var(--text-3)">Guruh o'rtachasi</div><div class="pp-cmp-val" style="color:var(--text-2)">${hwGr}%</div></div></div><div class="pp-bar"><div style="width:${hwChildPct}%;background:var(--good)"></div></div></div>`;
+  const cprev=`<div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">O'qituvchi izohlari</div></div>${vComments.length?vComments.slice(0,3).map(c=>`<div style="padding:9px 0;border-bottom:.5px solid var(--border)"><div style="font-size:13px;line-height:1.4">${esc(truncate(c.body,80))}</div><div style="font-size:11px;color:var(--text-3);margin-top:3px">${fmtNotifDate(c.created_at)}</div></div>`).join(''):'<div class="no-history">Izoh yo\'q</div>'}</div>`;
+  const hwList=`<div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">Bugungi vazifalar</div></div>${curHw.length?curHw.map(it=>{const dn=vDone.has(it.id);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${esc(it.title)}</div><div style="font-size:11px;color:var(--text-3)">${esc(hwTypeLabel(it.type))}</div></div><span class="tag" style="color:${dn?'var(--good)':'var(--bad)'}">${dn?'Topshirilgan':'Topshirmagan'}</span></div>`}).join(''):'<div class="no-history">Vazifa yo\'q</div>'}</div>`;
+  const switcher=(vChildren.length>1)?`<div style="margin-bottom:14px"><select onchange="switchChild(this.value)" class="form-select" style="max-width:280px">${vChildren.map(c=>`<option value="${c.id}"${c.id===vSid?' selected':''}>${esc(c.name)}</option>`).join('')}</select></div>`:'';
+  el.innerHTML=`<span class="pp-badge">OTA-ONA PANELI</span><div class="sd-greet">Salom, ${esc(childName)}ning ota-onasi! 👋</div><div class="sd-greet-sub">Bu yerda farzandingizning o'quv jarayoni haqida ma'lumotlar.</div>${switcher}${cards}${mid}<div class="sd-row3">${cmpBlock}${cprev}</div><div class="sd-row3" style="grid-template-columns:1fr">${hwList}</div>`;
 }
 function renderStudentHome(){
   const el=document.getElementById('v-home');if(!el)return;
@@ -2042,6 +2142,8 @@ function showVView(name){
   if(soonTitle)renderSoon(soonTitle);
   if(name==='notifications'){renderViewerNotifs();markNotifsSeen();}
   if(name==='materials'){renderViewerMaterials();}
+  if(name==='comments'){renderComments();}
+  if(name==='home'&&isParent){renderParentHome();}
   const sb2=document.getElementById('v-sidebar');if(sb2)sb2.classList.remove('open');
   const sc=document.getElementById('v-scrim');if(sc)sc.classList.remove('open');
   const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.remove('open');
@@ -2167,6 +2269,7 @@ function renderViewerHomework(){
   el.innerHTML=html;
 }
 async function toggleHwDone(hid){
+  if(isParent){showToast("Ota-ona faqat kuzatadi");return}
   if(!vSid){showToast("Natijalar biriktirilmagan");return}
   const _it=(vHw||[]).find(x=>x.id===hid);
   if(_it&&vConfirms.has(_it.lesson_date)){showToast("Bu dars tasdiqlangan — o'zgartirib bo'lmaydi");return}

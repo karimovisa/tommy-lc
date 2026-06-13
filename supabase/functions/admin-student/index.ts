@@ -92,6 +92,63 @@ Deno.serve(async (req) => {
       return json({ ok: true, temp_password: temp })
     }
 
+    // ---------- OTA-ONA AKKOUNTI YARATISH ----------
+    if (body.action === 'create_parent') {
+      const { student_pk } = body   // students.id
+      const { data: st } = await admin.from('students')
+        .select('id,name,student_id,group_id').eq('id', student_pk).maybeSingle()
+      if (!st) return json({ error: "O'quvchi topilmadi" }, 404)
+      // mavjud ota-ona bormi?
+      const { data: existing } = await admin.from('parent_links')
+        .select('parent_uid').eq('student_id', student_pk).limit(1).maybeSingle()
+      if (existing) {
+        const { data: pp } = await admin.from('profiles')
+          .select('parent_login_id').eq('id', existing.parent_uid).maybeSingle()
+        return json({ error: "Bu o'quvchining ota-onasi allaqachon bor", parent_id: pp?.parent_login_id || '' }, 400)
+      }
+      const parentId = (st.student_id || '') + 'P'
+      const email = parentId.toLowerCase() + '@' + DOMAIN
+      const temp = tempPassword()
+      const { data: created, error: ce } = await admin.auth.admin.createUser({
+        email, password: temp, email_confirm: true,
+        user_metadata: { full_name: st.name + ' ota-onasi', role: 'parent' },
+      })
+      if (ce) return json({ error: ce.message }, 400)
+      const uid = created.user!.id
+      await admin.from('profiles').insert({
+        id: uid, full_name: st.name + ' ota-onasi', role: 'parent',
+        group_id: st.group_id, student_id: st.id, parent_login_id: parentId, approved: true,
+      })
+      await admin.from('parent_links').insert({ parent_uid: uid, student_id: st.id })
+      return json({ ok: true, parent_id: parentId, temp_password: temp, child_name: st.name })
+    }
+
+    // ---------- OTA-ONAGA YANA FARZAND BOG'LASH ----------
+    if (body.action === 'link_parent') {
+      const { student_pk, parent_id } = body
+      if (!parent_id) return json({ error: 'Parent ID kiriting' }, 400)
+      const { data: pp } = await admin.from('profiles')
+        .select('id').eq('parent_login_id', parent_id).eq('role', 'parent').maybeSingle()
+      if (!pp) return json({ error: 'Bunday Parent ID topilmadi' }, 404)
+      const { data: ex } = await admin.from('parent_links')
+        .select('student_id').eq('parent_uid', pp.id).eq('student_id', student_pk).maybeSingle()
+      if (ex) return json({ error: 'Bu farzand allaqachon bog\'langan' }, 400)
+      await admin.from('parent_links').insert({ parent_uid: pp.id, student_id: student_pk })
+      return json({ ok: true, parent_id })
+    }
+
+    // ---------- OTA-ONA PAROLINI TIKLASH ----------
+    if (body.action === 'reset_parent') {
+      const { parent_id } = body
+      const { data: pp } = await admin.from('profiles')
+        .select('id').eq('parent_login_id', parent_id).eq('role', 'parent').maybeSingle()
+      if (!pp) return json({ error: 'Ota-ona topilmadi' }, 404)
+      const temp = tempPassword()
+      const { error } = await admin.auth.admin.updateUserById(pp.id, { password: temp })
+      if (error) return json({ error: error.message }, 400)
+      return json({ ok: true, temp_password: temp })
+    }
+
     return json({ error: 'Noma\'lum amal' }, 400)
   } catch (e) {
     return json({ error: String((e as Error)?.message || e) }, 500)
