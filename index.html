@@ -10,7 +10,7 @@
 <style>
 :root{
   color-scheme:light;
-  --bg:#f7f8fa;--surface:#ffffff;--surface-2:#f9fafb;--border:#ececef;--border-strong:#dcdce1;
+  --bg:#f7f8fa;--surface:#ffffff;--surface-2:#f9fafb;--border:#e2e3e7;--border-strong:#d2d3d9;
   --text:#101114;--text-2:#5b5d66;--text-3:#6e707a;
   --brand:#e5242b;--brand-dark:#c41a23;--brand-light:#fdecec;
   --good:#15803d;--good-light:#e7f6ec;--warn:#b45309;--warn-light:#fef3e2;--bad:#dc2626;--bad-light:#fdecec;
@@ -24,7 +24,7 @@
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#0c0d10;--surface:#16181d;--surface-2:#1c1f26;--border:#262932;--border-strong:#3a3e49;
-  --text:#f2f3f5;--text-2:#a6aab5;--text-3:#71747e;
+  --text:#f2f3f5;--text-2:#a6aab5;--text-3:#969aa6;
   --brand:#ff4d54;--brand-dark:#ff6b71;--brand-light:#2a1416;
   --good:#34d058;--good-light:#15261a;--warn:#e3a93c;--warn-light:#2a2113;--bad:#ff5a5f;--bad-light:#2a1416;
   --shadow-sm:0 1px 2px rgba(0,0,0,.35);
@@ -32,7 +32,7 @@
   --shadow-lg:0 12px 40px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
 .hidden{display:none!important}
 #loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:999}
 .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite}
@@ -92,8 +92,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .user-info{font-size:12px;color:var(--text-2);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logout-btn{margin-top:8px;font-size:11px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:0;font-family:var(--sans)}
 .logout-btn:hover{color:var(--brand)}
-.page-header{padding:18px 64px 16px 28px;border-bottom:.5px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
-.page-title{font-size:16px;font-weight:600}
+.page-header{padding:18px 28px 16px 28px;border-bottom:.5px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.page-title{font-size:19px;font-weight:700}
 .page-sub{font-size:12px;color:var(--text-3);margin-top:2px;font-family:var(--mono)}
 .header-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .view{display:none}
@@ -517,6 +517,14 @@ table.data tbody tr:hover td{background:var(--surface-2)}
   .sd-quick{grid-template-columns:repeat(2,1fr)}
   .sd-greet{font-size:21px}
   .sd-hero-big{font-size:22px}
+  /* Touch-target: telefon foydalanuvchilari (o'quvchi/ota-ona) uchun */
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px}
+  .btn-block{width:100%}
+  .role-tab,.role-pill,.auth-tab{min-height:44px}
+  .form-input,.form-select{min-height:44px;font-size:16px}
+  .nav-item{min-height:44px}
+  .acct-btn,.btn-back,.row-menu-btn{min-width:40px;min-height:40px}
+  .mark{min-width:34px;min-height:34px}
 }
 /* Qidiruv maydoni */
 .search-box{position:relative;display:flex;align-items:center}
@@ -747,6 +755,19 @@ table.data tbody tr:hover td{background:var(--surface-2)}
   .ab-feats li{padding:10px 13px}
   .ab-trust{margin-top:18px}
 }
+/* ===== Audit: login ierarxiyasi + dekoratsiyani tozalash ===== */
+/* Desktopda forma kartasidagi takroriy logo/brandni yashirish (chap bannerда bor) */
+@media(min-width:821px){.auth-card-brand{display:none}}
+/* Mayda/o'qib bo'lmas subtitlelarni kattalashtirish */
+.auth-card-brand-sub{font-size:10px}
+.ab-namesub{font-size:10px}
+.auth-card-brand-name{font-size:16px}
+/* CTA — o'ng tomonning eng og'ir elementi */
+.auth-box .btn-primary.btn-block{padding:14px 16px;font-size:15px;font-weight:600;border-radius:11px;min-height:50px}
+.role-tab.active{font-weight:700}
+/* Sof dekoratsiya (suzuvchi "T" harflari + animatsiya) — minimalizm uchun olib tashlandi */
+.tfloat{display:none}
+.fs-t{display:none!important}
 </style>
 </head>
 <body>
