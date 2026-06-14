@@ -1017,7 +1017,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
           <div class="sd-motiv-ic">🏆</div>
           <div class="sd-motiv-title">Doimiy o'sish sari!</div>
           <div class="sd-motiv-sub" id="v-motiv-quote">Har kuni bir qadam oldinga.</div>
-          <div class="sd-streak-lbl"><span id="v-streak-label">🔥 Seriya</span><span id="v-streak">0/7</span></div>
+          <div class="sd-streak-lbl"><span id="v-streak-label">🔥 Seriya</span><span id="v-streak">0/10</span></div>
           <div class="sd-streak-track"><div class="sd-streak-fill" id="v-streak-fill"></div></div>
         </div>
         <button class="sd-support" onclick="showVView('notifications')">
@@ -2033,9 +2033,9 @@ function renderStudentHome(){
   const greet=myProfile.role==='parent'?`${esc(dispName)}ning natijalari`:`Salom, ${esc((dispName||'').split(' ')[0]||'')}! 👋`;
   const grp=gidToName[myProfile.group_id]||'';
   const streak=computeStreak();
-  const wk=streak%7;const fillPct=streak>0?(wk===0?100:Math.round(wk/7*100)):0;
+  const tgt=streakTarget(streak);const fillPct=streak>0?Math.min(100,Math.round(streak/tgt*100)):0;
   const sf=document.getElementById('v-streak-fill');if(sf)sf.style.width=fillPct+'%';
-  const stx=document.getElementById('v-streak');if(stx)stx.textContent=(streak>0&&wk===0?7:wk)+'/7';
+  const stx=document.getElementById('v-streak');if(stx)stx.textContent=streak+'/'+tgt;
   const slbl=document.getElementById('v-streak-label');if(slbl)slbl.textContent=streak>0?('🔥 '+streak+' kunlik seriya'):'Seriyani boshlang';
   const mq=document.getElementById('v-motiv-quote');if(mq)mq.textContent=dailyMotiv();
   const nl=nextLessonInfo(vGroup);
@@ -2355,6 +2355,8 @@ function computeStreak(){
   }
   return streak;
 }
+// Seriya bosqichlari: 10 -> 20 -> 50 -> 100 -> keyin har 100 talik
+function streakTarget(s){const ms=[10,20,50,100];for(const m of ms){if(s<m)return m;}return (Math.floor(s/100)+1)*100;}
 function dailyMotiv(){const di=Math.floor(Date.now()/864e5);return MOTIV[di%MOTIV.length];}
 async function confirmLesson(date){
   if(!vSid){showToast('Natijalar biriktirilmagan');return}
