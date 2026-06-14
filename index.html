@@ -93,7 +93,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .user-info{font-size:12px;color:var(--text-2);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logout-btn{margin-top:8px;font-size:11px;color:var(--text-3);background:none;border:none;cursor:pointer;padding:0;font-family:var(--sans)}
 .logout-btn:hover{color:var(--brand)}
-.page-header{padding:var(--s4) var(--s6);border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.page-header{padding:var(--s4) 64px var(--s4) var(--s6);border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
 .page-title{font-size:19px;font-weight:700}
 .page-sub{font-size:12px;color:var(--text-3);margin-top:2px;font-family:var(--mono)}
 .header-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -996,9 +996,9 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 <!-- ============ VIEWER (o'quvchi / ota-ona) ============ -->
 <div id="viewer-app" class="hidden">
   <header class="sd-header">
+    <button class="sd-burger" onclick="toggleVSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
     <div class="sd-logo" onclick="showVView('home')" style="cursor:pointer" title="Bosh sahifa"><div class="logo-sm tommy-logo" role="img" aria-label="TOMMY"></div><div class="sd-logo-txt"><div class="brand-name">TOMMY</div><div class="brand-sub">LEARNING CENTRE</div></div></div>
     <div class="sd-header-right">
-      <button class="sd-burger" onclick="toggleVSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
       <button class="sd-iconbtn" onclick="showVView('notifications')" aria-label="Bildirishnomalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="sd-dot" id="v-bell-dot" style="display:none">0</span></button>
       <button class="sd-iconbtn" onclick="toggleTheme()" aria-label="Rejim"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
       <div class="sd-profile" onclick="toggleVProfile(event)">
@@ -1362,7 +1362,7 @@ async function loadAssignments(){
   const{data:g}=await sb.from('assignment_grades').select('*');
   let list=a||[];
   if(level!=='admin'){const set=myGidSet();list=list.filter(x=>!x.group_id||set.has(x.group_id))}
-  assignments=list.map(x=>({...x,grades:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.grade])),scores:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.score])),breakdowns:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id&&gr.breakdown).map(gr=>[gr.student_id,gr.breakdown]))}));
+  assignments=list.map(x=>({...x,grades:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.grade])),scores:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.score])),breakdowns:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id&&gr.breakdown).map(gr=>[gr.student_id,gr.breakdown])),statuses:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id&&gr.status).map(gr=>[gr.student_id,gr.status]))}));
 }
 async function loadPending(){
   const{data}=await sb.from('profiles').select('*').eq('approved',false).in('role',['student','parent']);
@@ -1430,7 +1430,7 @@ function renderDashboard(){
     html+=`<div class="trend-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="card-title" style="margin:0">Sinf o'zlashtirish dinamikasi</div><div style="font-family:var(--mono);font-size:12px;color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'▲ +':'▼ '}${Math.abs(diff)}%</div></div>${sparkline(tv,'100%',56)}</div>`;
   }
   html+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px"><div class="card-title" style="margin:0">Guruhlar ko'rsatkichi</div>${level==='admin'?'<button class="btn btn-sm" onclick="openAddGroup()">+ Yangi guruh</button>':''}</div>`;
-  html+=grpStats.length?grpStats.map(x=>`<div class="grp-row" onclick="openGroup('${x.g.id}')" style="cursor:pointer"><div class="grp-row-main"><div class="grp-row-name">${esc(x.g.name)}</div><div class="grp-row-sub">${esc(x.g.teacher_name||'ustoz belgilanmagan')} · ${x.count} o'quvchi${scheduleText(x.g)?'<br>🗓️ '+esc(scheduleText(x.g)):''}</div><div class="bar-track" style="margin-top:9px"><div class="bar-fill" style="width:${x.avg}%;background:${col(x.avg)}"></div></div></div><div class="grp-row-pct" style="color:${col(x.avg)}">${x.avg}%</div>${isAdmin?`<div class="row-menu" onclick="event.stopPropagation()"><button class="row-menu-btn" onclick="toggleRowMenu(event,this)" aria-label="Amallar">⋮</button><div class="row-menu-pop"><button onclick="openEditGroup('${x.g.id}')">Tahrirlash</button><button class="danger" onclick="deleteGroup('${x.g.id}')">O'chirish</button></div></div>`:''}</div>`).join(''):`<div class="no-history">Guruh yo'q</div>`;
+  html+=grpStats.length?grpStats.map(x=>`<div class="grp-row" onclick="openGroup('${x.g.id}')" style="cursor:pointer"><div class="grp-row-main"><div class="grp-row-name">${esc(x.g.name)}</div><div class="grp-row-sub">${esc(x.g.teacher_name||'ustoz belgilanmagan')} · ${x.count} o'quvchi${scheduleText(x.g)?'<br>🗓️ '+esc(scheduleText(x.g)):''}</div><div class="bar-track" style="margin-top:9px"><div class="bar-fill" style="width:${x.avg}%;background:${col(x.avg)}"></div></div></div><div class="grp-row-pct" style="color:${col(x.avg)}">${x.avg}%</div>${(isAdmin||level==='teacher')?`<div class="row-menu" onclick="event.stopPropagation()"><button class="row-menu-btn" onclick="toggleRowMenu(event,this)" aria-label="Amallar">⋮</button><div class="row-menu-pop"><button onclick="openEditGroup('${x.g.id}')">Tahrirlash</button>${isAdmin?`<button class="danger" onclick="deleteGroup('${x.g.id}')">O'chirish</button>`:''}</div></div>`:''}</div>`).join(''):`<div class="no-history">Guruh yo'q</div>`;
   // O'quvchilar reytingi — podium (top 3) + to'liq reyting
   const ranked=studs.filter(x=>x.st.count>0).sort((a,b)=>b.st.overall-a.st.overall);
   if(ranked.length){
@@ -1792,12 +1792,18 @@ function renderTestCard(a){
   const cks=Object.keys(crit);
   const head=`<tr><th>O'quvchi</th>${cks.map(c=>`<th class="center">${esc(CRIT_LABEL[c]||c)}<div style="font-size:10px;color:var(--text-3);font-weight:400">/${crit[c]}</div></th>`).join('')}<th class="center">Jami</th><th class="center">%</th><th class="center">Holat</th></tr>`;
   const rows=slist.map(s=>{
+    const st=(a.statuses&&a.statuses[s.id])||null;
+    if(st==='absent'){
+      return `<tr style="opacity:.65"><td>${esc(s.name)}</td><td class="center" colspan="${cks.length}" style="color:var(--text-3)">— testga kelmadi —</td><td class="center">—</td><td class="center">—</td><td class="center"><span class="tag" style="color:var(--warn)">Qatnashmadi</span> <button class="row-menu-btn" style="width:24px;height:24px;font-size:13px;display:inline-flex" onclick="setTestAbsent('${a.id}','${s.id}',false)" title="Bekor — ball kiritish">↺</button></td></tr>`;
+    }
     const bd=(a.breakdowns&&a.breakdowns[s.id])||{};
     let tot=0,filled=false,allFilled=true;
     const cells=cks.map(c=>{const v=(bd[c]!=null)?bd[c]:'';if(v!=='')filled=true;else allFilled=false;tot+=(+v||0);return `<td class="center"><input class="grade-input" type="number" min="0" max="${crit[c]}" value="${v}" placeholder="—" onchange="saveCrit('${a.id}','${s.id}','${c}',this.value)"></td>`}).join('');
     const pct=allFilled&&max?Math.round(tot/max*100):null;
     const passed=allFilled?(tot>=pass):null;
-    const statusCell=allFilled?`<td class="center"><span class="tag" style="color:${passed?'var(--good)':'var(--bad)'}">${passed?"✓ O'tdi":"✗ O'tmadi"}</span></td>`:'<td class="center" style="color:var(--text-3)">—</td>';
+    const statusCell=allFilled
+      ? `<td class="center"><span class="tag" style="color:${passed?'var(--good)':'var(--bad)'}">${passed?"✓ O'tdi":"✗ O'tmadi"}</span></td>`
+      : `<td class="center"><button class="btn btn-sm" onclick="setTestAbsent('${a.id}','${s.id}',true)" title="Testga kelmadi — ball qo'yilmaydi">Kelmadi</button></td>`;
     return `<tr><td>${esc(s.name)}</td>${cells}<td class="center" style="font-weight:700">${filled?tot+'/'+max:'—'}</td><td class="center">${pct!=null?pct+'%':'—'}</td>${statusCell}</tr>`;
   }).join('');
   return `<div class="assign-card">${header}<div style="overflow-x:auto"><table class="grade-table"><thead>${head}</thead><tbody>${rows}</tbody></table></div></div>`;
@@ -1831,6 +1837,22 @@ async function addTest(){
   closeModals();await loadAssignments();renderTests();showToast('Test yaratildi');
 }
 async function deleteTest(aid){if(!confirm("Bu testni o'chirasizmi? Natijalar ham o'chadi."))return;await sb.from('assignment_grades').delete().eq('assignment_id',aid);await sb.from('assignments').delete().eq('id',aid);await loadAssignments();renderTests();showToast("O'chirildi")}
+async function setTestAbsent(aid,sid,on){
+  const a=assignments.find(x=>x.id===aid);if(!a)return;
+  if(!a.statuses)a.statuses={};
+  if(on){
+    a.statuses[sid]='absent';
+    if(a.breakdowns)delete a.breakdowns[sid];
+    if(a.grades)delete a.grades[sid];if(a.scores)delete a.scores[sid];
+    const{error}=await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,status:'absent',grade:null,score:null,breakdown:null},{onConflict:'assignment_id,student_id'});
+    if(error){showToast('Xato: '+error.message);return}
+  }else{
+    delete a.statuses[sid];
+    const{error}=await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,status:null},{onConflict:'assignment_id,student_id'});
+    if(error){showToast('Xato: '+error.message);return}
+  }
+  renderTests();
+}
 async function saveLegacyGrade(aid,sid,val,max){let score=null,grade=null;if(val!==''){if(max>0){score=parseFloat(val);grade=Math.round(score/max*100);}else{grade=parseInt(val);}}await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,grade,score},{onConflict:'assignment_id,student_id'});const a=assignments.find(x=>x.id===aid);if(a){if(!a.grades)a.grades={};if(!a.scores)a.scores={};a.grades[sid]=grade;a.scores[sid]=score}}
 let _testNotified=new Set();
 async function saveCrit(aid,sid,crit,val){
@@ -1846,7 +1868,8 @@ async function saveCrit(aid,sid,crit,val){
   const max=a.max_score||0;const pass=a.pass_score||0;
   const grade=allFilled&&max?Math.round(tot/max*100):null;
   const score=filled?tot:null;
-  const{error}=await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,grade,score,breakdown:bd},{onConflict:'assignment_id,student_id'});
+  if(a.statuses&&a.statuses[sid])delete a.statuses[sid];
+  const{error}=await sb.from('assignment_grades').upsert({assignment_id:aid,student_id:sid,grade,score,breakdown:bd,status:null},{onConflict:'assignment_id,student_id'});
   if(error){showToast('Xato: '+error.message);return}
   if(!a.grades)a.grades={};if(!a.scores)a.scores={};a.grades[sid]=grade;a.scores[sid]=score;
   if(allFilled){const s=studentsById[sid]||students.find(x=>x.id===sid);if(s)await notifyResult(a,s,tot,tot>=pass);}
@@ -1917,7 +1940,7 @@ async function startViewer(childId){
   vRank=null;
   try{const rr=await sb.rpc('my_group_rank');if(rr&&rr.data&&rr.data.length)vRank=rr.data[0];}catch(e){}
   let vg=[];
-  if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,score:g.score,breakdown:g.breakdown,a:amap[g.assignment_id]})).filter(x=>x.a)}}
+  if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,score:g.score,breakdown:g.breakdown,status:g.status,a:amap[g.assignment_id]})).filter(x=>x.a)}}
   vChecks=checks;vGrades=vg;vStudent=sData;vTeacherName=vTeacher;
   await loadViewerNotifs();updateNotifBadge();
   await loadViewerMaterials();
@@ -2393,7 +2416,9 @@ function renderViewerGrades(list){
   const sorted=list.slice().filter(x=>x.a).sort((a,b)=>dkey(a).localeCompare(dkey(b))); // eski -> yangi
   const out=sorted.slice().reverse(); // yangi -> eski (ko'rsatish)
   el.innerHTML=out.map(x=>{
-    const a=x.a;const crit=critOf(a);const max=a.max_score||0;const pass=a.pass_score||0;
+    const a=x.a;
+    if(x.status==='absent'){return `<div class="dash-history" style="margin-bottom:14px"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${esc(a.title)}</span><span class="tag" style="color:var(--warn)">Qatnashmadi</span></div><div style="font-size:12px;color:var(--text-3);margin-top:4px">${fmtDate(a.due_date)||''} · Bu testda qatnashmadingiz — ball qo'yilmagan.</div></div>`;}
+    const crit=critOf(a);const max=a.max_score||0;const pass=a.pass_score||0;
     const bd=x.breakdown||{};
     const tot=x.score!=null?x.score:null;
     const pct=x.grade!=null?x.grade:(tot!=null&&max?Math.round(tot/max*100):null);
