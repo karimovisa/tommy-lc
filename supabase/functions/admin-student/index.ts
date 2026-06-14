@@ -73,9 +73,13 @@ Deno.serve(async (req) => {
       }).select('id').single()
       if (se) return json({ error: se.message }, 400)
 
-      await admin.from('profiles').insert({
+      const { error: pe } = await admin.from('profiles').insert({
         id: uid, full_name, role: 'student', group_id: grp!.id, student_id: st!.id, approved: true,
       })
+      if (pe) {
+        await admin.auth.admin.deleteUser(uid)
+        return json({ error: 'Profil yaratilmadi: ' + pe.message }, 400)
+      }
       return json({ ok: true, student_id: studentId, temp_password: temp, full_name })
     }
 
@@ -115,11 +119,18 @@ Deno.serve(async (req) => {
       })
       if (ce) return json({ error: ce.message }, 400)
       const uid = created.user!.id
-      await admin.from('profiles').insert({
+      const { error: pe } = await admin.from('profiles').insert({
         id: uid, full_name: st.name + ' ota-onasi', role: 'parent',
-        group_id: st.group_id, student_id: st.id, parent_login_id: parentId, approved: true,
+        group_id: st.group_id, student_id: st.id, parent_login_id: parentId,
+        child_name: st.name, approved: true,
       })
-      await admin.from('parent_links').insert({ parent_uid: uid, student_id: st.id })
+      if (pe) {
+        // Profil yaratilmadi -> orfan auth-userni tozalab, ANIQ xato qaytaramiz (jimgina yiqilmasin)
+        await admin.auth.admin.deleteUser(uid)
+        return json({ error: 'Profil yaratilmadi: ' + pe.message }, 400)
+      }
+      const { error: le } = await admin.from('parent_links').insert({ parent_uid: uid, student_id: st.id })
+      if (le) return json({ error: "Bog'lash xatosi: " + le.message }, 400)
       return json({ ok: true, parent_id: parentId, temp_password: temp, child_name: st.name })
     }
 
