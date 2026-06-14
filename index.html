@@ -799,6 +799,12 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 /* Jadval qatori hover — ball kiritishda qaysi o'quvchidaligi ko'rinadi */
 table.data tbody tr,.grade-table tbody tr{transition:background .12s}
 table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2)}
+/* Onboarding ko'rsatma kartasi (birinchi login) */
+.sd-tip{position:relative;background:linear-gradient(135deg,var(--brand-light),var(--surface));border:1px solid var(--border);border-radius:16px;padding:var(--s4) var(--s5);margin-bottom:var(--s4);animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both;transition:opacity .25s,transform .25s}
+.sd-tip-h{font-weight:700;font-size:15px;margin-bottom:6px}
+.sd-tip-b{font-size:13px;color:var(--text-2);line-height:1.55;max-width:560px}
+.sd-tip-x{position:absolute;top:10px;right:10px;width:28px;height:28px;border:none;background:transparent;color:var(--text-3);cursor:pointer;font-size:14px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.sd-tip-x:hover{background:var(--bg);color:var(--text)}
 </style>
 </head>
 <body>
@@ -826,7 +832,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
         </ul>
       </div>
       <div class="ab-trust">
-        <div class="ab-trust-avatars"><span>👩</span><span>👦</span><span>👧</span><span>+</span></div>
+        <div class="ab-trust-avatars"><span>A</span><span>S</span><span>M</span><span>+</span></div>
         <div class="ab-trust-txt"><b>1101+ o'quvchi</b>Tommy'ga ishonadi</div>
       </div>
       <div class="ab-foot">© 2026 TOMMY Learning Centre</div>
@@ -1061,17 +1067,6 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 
 <div class="modal-overlay" id="modal-forgot"><div class="modal"><div class="modal-title">Parolni tiklash</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Student ID raqamingizni kiriting. Parolingizni o'qituvchi yoki administrator tiklab beradi.</div><label class="modal-label">Student ID</label><input type="text" id="forgot-id" placeholder="Student ID"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="submitForgot()">Yuborish</button></div></div></div>
 
-<!-- DEV: tezkor kirish (faqat localhost'da ko'rinadi) -->
-<div id="dev-quick" style="display:none;position:fixed;bottom:14px;left:14px;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px;box-shadow:0 8px 24px rgba(0,0,0,.3)">
-  <div style="font-size:10px;font-family:var(--mono);color:var(--text-3);letter-spacing:.08em;margin-bottom:7px">⚡ DEV — TEZKOR KIRISH</div>
-  <div style="display:flex;gap:6px">
-    <button class="btn btn-sm" onclick="quickLogin('admin')">Admin</button>
-    <button class="btn btn-sm" onclick="quickLogin('teacher')">Ustoz</button>
-    <button class="btn btn-sm" onclick="quickLogin('student')">O'quvchi</button>
-  </div>
-  <div style="text-align:center;margin-top:6px"><span style="font-size:10px;color:var(--text-3);cursor:pointer;text-decoration:underline" onclick="clearDevCreds()">parollarni tozalash</span></div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1173,7 +1168,6 @@ function onTeacherPick(){
 
 /* ---------- INIT ---------- */
 async function init(){
-  revealDevQuick();
   if(!sb){showScreen('auth-screen');showToast('Supabase ulanmadi — internet tekshiring');return}
   showLoading(true);
   let session=null;
@@ -1253,34 +1247,11 @@ async function doLogin(){
   const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
   btn.disabled=false;btn.textContent='Kirish';
   if(error){err.textContent=(loginMode==='staff')?"Email yoki parol noto'g'ri":"Student ID yoki parol noto'g'ri";return}
-  try{const rm=document.getElementById('remember-me');if(rm&&rm.checked&&idVal)localStorage.setItem('tommy-last-id',idVal);else localStorage.removeItem('tommy-last-id')}catch(e){}
+  try{const rm=document.getElementById('remember-me');const _v=(loginMode==='staff')?email:idVal;if(rm&&rm.checked&&_v){localStorage.setItem('tommy-last-id',_v);localStorage.setItem('tommy-last-mode',loginMode);}else{localStorage.removeItem('tommy-last-id');localStorage.removeItem('tommy-last-mode');}}catch(e){}
   window.lastTempPw=pass;window.lastLoginId=idVal;
   currentUser=data.user;
   await routeUser();
 }
-/* ---- DEV: tezkor kirish (faqat localhost; parollar localStorage'da, kodda emas) ---- */
-function isLocalDev(){return ['localhost','127.0.0.1','[::1]',''].includes(location.hostname)}
-function devEnabled(){try{return isLocalDev()||localStorage.getItem('dev-mode')==='1'}catch(e){return isLocalDev()}}
-function revealDevQuick(){
-  // ?dev=1 -> shu brauzerda yoqiladi (eslab qoladi); ?dev=0 -> o'chiriladi
-  try{const p=new URLSearchParams(location.search);if(p.has('dev')){if(p.get('dev')==='0'){localStorage.removeItem('dev-mode');showToast('Dev rejim o\'chirildi')}else localStorage.setItem('dev-mode','1')}}catch(e){}
-  if(devEnabled()){const d=document.getElementById('dev-quick');if(d)d.style.display='block'}
-}
-// DEV tezkor kirish — parollar KODDA YO'Q (brauzer localStorage'da, bir marta so'raladi)
-const DEV_CREDS={admin:{mode:'staff'},teacher:{mode:'staff'},student:{mode:'student'}};
-function quickLogin(role){
-  const c=DEV_CREDS[role];if(!c)return;
-  let login=localStorage.getItem('dev-login-'+role);
-  if(!login){login=(prompt(role+' login (ID yoki email):')||'').trim();if(!login)return;localStorage.setItem('dev-login-'+role,login)}
-  let pw=localStorage.getItem('dev-pw-'+role);
-  if(!pw){pw=prompt(role+' parol (bir marta saqlanadi):')||'';if(!pw)return;localStorage.setItem('dev-pw-'+role,pw)}
-  setLoginMode(c.mode);
-  const fid=c.mode==='staff'?'login-email':'login-id';
-  const el=document.getElementById(fid);if(el)el.value=login;
-  document.getElementById('login-password').value=pw;
-  doLogin();
-}
-function clearDevCreds(){['admin','teacher','student'].forEach(r=>{localStorage.removeItem('dev-login-'+r);localStorage.removeItem('dev-pw-'+r)});showToast('Dev parollar tozalandi — keyingi bosishda qayta so\'raladi')}
 async function doRegister(){
   const err=document.getElementById('reg-err'),suc=document.getElementById('reg-success'),btn=document.getElementById('reg-btn');
   err.textContent='';suc.textContent='';
@@ -2058,8 +2029,11 @@ function renderStudentHome(){
   const chart=vtrend.length>1?sparkline(vtrend.slice(-14),'100%',120):'<div class="no-history">Hali ma\'lumot yetarli emas</div>';
   const stats=`<div class="sd-row3"><div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">So'nggi faoliyatlar</div></div>${renderActivities()}</div><div class="sd-card"><div class="sd-chart-head"><div class="sd-chart-title">O'sish statistikasi</div>${vtrend.length>1?`<div class="sd-chart-delta" style="color:${tdiff>=0?'var(--good)':'var(--bad)'}">${tdiff>=0?'+':''}${tdiff}%<small>boshlanishiga nisbatan</small></div>`:''}</div>${chart}<div class="sd-summary">${sumCard('Davomat',att+'%')}${sumCard('Vazifalar',hw+'%')}${sumCard('Testlar',lastTest?lastTest.grade+'%':'—')}${sumCard("O'sish",(tdiff>=0?'+':'')+tdiff+'%')}</div></div></div>`;
   const quick=`<div class="sd-row4"><div><div class="sd-chart-title" style="margin-bottom:12px">Tezkor kirish</div><div class="sd-quick">${quickItem(ICONS.clip,'Topshiriqlar','homework')}${quickItem(ICONS.folder,'Materiallar','materials')}${quickItem(ICONS.trophy,'Reyting','rank')}${quickItem(ICONS.bell,'Bildirishnomalar','notifications')}${quickItem(ICONS.card,"To'lovlar",'soon')}</div></div><div class="sd-next"><div class="sd-next-label">Keyingi dars</div><div class="sd-next-row"><div class="sd-next-ic">${ICONS.cal}</div><div><div class="sd-next-date">${nl?esc(nl.day+', '+nl.date):'Jadval belgilanmagan'}</div><div class="sd-next-course">${nl&&nl.time?esc(nl.time)+' · ':''}${grp?esc(grp):'Sizning guruh'}</div></div></div></div></div>`;
-  el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${warnBanner}${heroes}${teacher}${stats}${quick}`;
+  const tipSeen=(()=>{try{return localStorage.getItem('tommy-tip-seen')==='1'}catch(e){return false}})();
+  const tipBanner=(!tipSeen&&myProfile.role!=='parent')?`<div class="sd-tip" id="sd-tip"><button class="sd-tip-x" onclick="dismissTip()" aria-label="Yopish">✕</button><div class="sd-tip-h">👋 Boshlash juda oson</div><div class="sd-tip-b">Har darsdan keyin <b>Uy ishi</b> bo'limida vazifalarni belgilab <b>tasdiqlang</b> — shunda har kuni <b>🔥 seriya</b> yig'asiz. Darsga kelolmasangiz ham bajarib qo'ysangiz, seriyangiz <b>uzilmaydi</b>.</div><button class="btn btn-primary btn-sm" onclick="showVView('homework')" style="margin-top:12px">Uy ishini ochish →</button></div>`:'';
+  el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${tipBanner}${warnBanner}${heroes}${teacher}${stats}${quick}`;
 }
+function dismissTip(){try{localStorage.setItem('tommy-tip-seen','1')}catch(e){}const t=document.getElementById('sd-tip');if(t){t.style.opacity='0';t.style.transform='translateY(-6px)';setTimeout(()=>{if(t)t.remove()},250);}}
 function heroCard(icon,color,bg,title,big,sub,target,soon){
   return `<div class="sd-card sd-hero"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:${color};background:${bg}">${icon}</span><span class="sd-hero-title">${title}</span></div><div class="sd-hero-big">${big}</div><div class="sd-hero-sub">${sub}</div><a class="sd-hero-link" onclick="vGo('${target}')">${soon?'Tez orada':"Ko'rish"} →</a></div>`;
 }
@@ -2382,7 +2356,7 @@ function showCelebrate(msg,streak,hero){
 }
 function renderViewerHomework(){
   const el=document.getElementById('viewer-hw');if(!el)return;
-  if(!vHw.length){el.innerHTML='<div class="empty"><div class="empty-icon">📒</div><p>Hozircha uy ishi yo\'q</p></div>';return}
+  if(!vHw.length){el.innerHTML='<div class="empty"><div class="empty-icon">📒</div><p>Hozircha uy ishi yo\'q</p><p style="font-size:12px;color:var(--text-3);margin-top:6px">Keyingi darsdan so\'ng vazifalaring shu yerda chiqadi 🎯</p></div>';return}
   const isStudent=!(myProfile&&myProfile.role==='parent');
   const dates=lessonDatesDesc();
   const block=date=>{
@@ -2414,7 +2388,7 @@ async function toggleHwDone(hid){
 }
 function renderViewerGrades(list){
   const el=document.getElementById('viewer-grades');if(!el)return;
-  if(!list||!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div><p>Hali test natijasi yo\'q</p></div>';return}
+  if(!list||!list.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div><p>Hali test natijasi yo\'q</p><p style="font-size:12px;color:var(--text-3);margin-top:6px">Birinchi testdan so\'ng natijang va o\'sishing shu yerda ko\'rinadi 📈</p></div>';return}
   const dkey=x=>((x.a.due_date||x.a.created_at||'')+'');
   const sorted=list.slice().filter(x=>x.a).sort((a,b)=>dkey(a).localeCompare(dkey(b))); // eski -> yangi
   const out=sorted.slice().reverse(); // yangi -> eski (ko'rsatish)
@@ -2487,7 +2461,7 @@ function toggleTheme(){
   applyTheme(cur);
 }
 (function(){let t='dark';try{t=localStorage.getItem('tommy-theme')||'dark'}catch(e){}applyTheme(t)})();
-(function(){try{const lid=localStorage.getItem('tommy-last-id');if(lid){const el=document.getElementById('login-id');if(el)el.value=lid}}catch(e){}})();
+(function(){try{const lid=localStorage.getItem('tommy-last-id');const lmode=localStorage.getItem('tommy-last-mode');if(lmode&&typeof setLoginMode==='function')setLoginMode(lmode);if(lid){const el=document.getElementById(lmode==='staff'?'login-email':'login-id');if(el)el.value=lid;const pw=document.getElementById('login-password');if(pw)setTimeout(()=>{try{pw.focus()}catch(e){}},60);}}catch(e){}})();
 
 init();
 </script>
