@@ -2340,7 +2340,7 @@ async function addHomework(){
 }
 async function deleteHomework(id){if(!confirm("Bu vazifani o'chirasizmi?"))return;await sb.from('homework_done').delete().eq('homework_id',id);await sb.from('homework').delete().eq('id',id);await loadHomework();renderHomework();showToast("O'chirildi")}
 /* ---------- SERIYA (STREAK) ---------- */
-const MOTIV=["Zo'r! Yana bir qadam oldinga 🚀","Davom et, sen ajoyibsan! 💪","Bilim — sening kuching! ⭐","Har kuni yaxshilanyapsan! 📈","Mana bu — intizom! 🎯","Bugun ham g'alaba! 🏆","Sekin, lekin to'xtovsiz — eng zo'ri! 🌱"];
+const MOTIV=["Zo'r! Shu tempda davom et 🚀","TOMMY senga ishonadi! 🤝","Jarayonga ishon — daraxt bir kunda meva bermaydi 🌳","Maqsad sari yana bir kichik qadam — ajoyib 👣","Intizoming borligi endi ko'rinyabdi, to'xtab qolma atlet 🏃","Ishon, sendan zo'ri yo'q 🏆","Maqsading atrofidagi tuman, kunlik qadamlaring bilan ochilyabdi 🌤️","Toma-toma daryo bo'lur, gazini bos 💧"];
 const MOTIV_HERO=["🔥 Qoyil! Darsga kelmaslik senga bahona emas!","🔥 Mana bu — chempion ruhi!","🔥 Hech narsa seni to'xtata olmaydi!","🔥 Kelmasang ham bajarding — tan berdik!"];
 function lessonDatesDesc(){return [...new Set((vHw||[]).map(x=>x.lesson_date))].sort().reverse();}
 function lessonAllDone(date){const items=(vHw||[]).filter(x=>x.lesson_date===date);return items.length>0&&items.every(x=>vDone.has(x.id));}
