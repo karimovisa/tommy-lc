@@ -214,7 +214,8 @@ td.center,.center{text-align:center}
 .todo{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:.5px solid var(--border);cursor:pointer}
 .todo:last-child{border-bottom:none}
 .todo-circle{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-strong);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:12px;font-weight:700;transition:all .15s}
-.todo.done .todo-circle{background:var(--good);border-color:var(--good)}
+.todo.done .todo-circle{background:var(--good);border-color:var(--good);animation:tickPop .3s cubic-bezier(.2,.8,.3,1.3)}
+@keyframes tickPop{0%{transform:scale(.5);opacity:.4}55%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
 .todo-text{font-size:14px}
 .todo.done .todo-text{text-decoration:line-through;color:var(--text-3)}
 .hw-arch{margin-top:8px}
@@ -769,6 +770,18 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 /* Sof dekoratsiya (suzuvchi "T" harflari + animatsiya) — minimalizm uchun olib tashlandi */
 .tfloat{display:none}
 .fs-t{display:none!important}
+/* Forgot — modal o'rniga inline silliq pastga tushuvchi yozuv */
+.forgot-note{max-height:0;overflow:hidden;opacity:0;transform:translateY(-6px);padding:0 14px;margin:0;background:var(--brand-light);border-radius:10px;font-size:13px;color:var(--brand-dark);line-height:1.5;transition:max-height .35s ease,opacity .3s ease,transform .35s ease,padding .3s ease,margin .3s ease}
+.forgot-note.open{max-height:90px;opacity:1;transform:none;padding:11px 14px;margin:0 0 12px}
+/* Kirish logosi — suzib turishi (desktop bannerда ham) */
+.auth-banner .logo-sm{animation:floaty 5.5s ease-in-out infinite}
+/* Sahifa ochilganda kartalar/iconlar silliq ko'tarilishi (fade-up, stagger) */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.sd-hero-grid>*,.sd-quick>*,.dash-cards>*{animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both}
+.sd-hero-grid>*:nth-child(2),.sd-quick>*:nth-child(2),.dash-cards>*:nth-child(2){animation-delay:.06s}
+.sd-hero-grid>*:nth-child(3),.sd-quick>*:nth-child(3),.dash-cards>*:nth-child(3){animation-delay:.12s}
+.sd-hero-grid>*:nth-child(4),.sd-quick>*:nth-child(4),.dash-cards>*:nth-child(4){animation-delay:.18s}
+.sd-quick>*:nth-child(5){animation-delay:.24s}
 </style>
 </head>
 <body>
@@ -837,11 +850,12 @@ table.data tbody tr:hover td{background:var(--surface-2)}
           </div>
           <div class="auth-row">
             <label class="remember"><input type="checkbox" id="remember-me" checked><span>Meni eslab qol</span></label>
-            <span class="forgot-link" onclick="openForgot()">Parolni unutdingizmi?</span>
+            <span class="forgot-link" onclick="toggleForgotNote(event)">Parolni unutdingizmi?</span>
           </div>
+          <div class="forgot-note" id="forgot-note"><span>🔑 Parolni tiklash uchun <b>administrator</b> bilan bog'laning.</span></div>
           <div class="auth-err" id="login-err"></div>
           <button class="btn btn-primary btn-block" id="login-btn" onclick="doLogin()">Kirish</button>
-          <div class="auth-foot-note">Kirishda muammo bo'lsa — <span class="forgot-link" onclick="openForgot()">admin bilan bog'laning</span></div>
+          <div class="auth-foot-note">Kirishda muammo bo'lsa — <span class="forgot-link" onclick="toggleForgotNote(event)">admin bilan bog'laning</span></div>
         </div>
       </div>
     </div>
@@ -968,7 +982,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
         <div class="sd-avatar" id="v-avatar"></div>
         <div class="sd-profile-info"><div class="sd-pname" id="v-pname"></div><div class="sd-pid" id="v-pid"></div></div>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-        <div class="sd-profile-menu" id="v-profile-menu"><button onclick="showVView('settings')">Sozlamalar</button><button onclick="doLogout()">Chiqish</button></div>
+        <div class="sd-profile-menu" id="v-profile-menu"><button onclick="showVView('settings')">Sozlamalar</button></div>
       </div>
     </div>
   </header>
@@ -1187,6 +1201,7 @@ function togglePwdVisible(inputId,btn){
   const show=inp.type==='password';inp.type=show?'text':'password';
   if(btn)btn.classList.toggle('on',show);
 }
+function toggleForgotNote(e){if(e){e.stopPropagation();e.preventDefault();}const n=document.getElementById('forgot-note');if(n)n.classList.toggle('open');}
 async function openForgot(){
   if(loginMode==='staff'){
     const email=document.getElementById('login-email').value.trim();
@@ -1905,7 +1920,7 @@ async function startViewer(childId){
   document.getElementById('v-pname').textContent=(dispName||'').split(' ')[0]||dispName;
   document.getElementById('v-pid').textContent='ID: '+(sid?('TOM'+String(sid).replace(/[^a-zA-Z0-9]/g,'').slice(-4).toUpperCase()):'—');
   document.getElementById('v-avatar').textContent=initials(dispName);
-  setAcct(myProfile.full_name||currentUser.email, (myProfile.role==='parent'?'Ota-ona':"O'quvchi")+(gidToName[myProfile.group_id]?' \u00b7 '+gidToName[myProfile.group_id]:'')+(myProfile.child_name?' \u00b7 '+myProfile.child_name:''));
+  { const _am=document.getElementById('acct-menu'); if(_am) _am.classList.add('hidden'); }  // viewer: \u22ee menyu ko'rsatilmaydi (rejim header'da, parol kerak emas, chiqish sozlamalarda)
   vSid=sid;vDone=new Set();vHw=[];vConfirms=new Set();
   const _gid=(sData&&sData.group_id)||myProfile.group_id;
   if(_gid){const r=await sb.from('homework').select('*').eq('group_id',_gid).order('lesson_date',{ascending:false});vHw=r.data||[]}
@@ -2256,7 +2271,7 @@ function renderViewerProfile(s,teacher){
   const roleLabel=myProfile.role==='parent'?'Ota-ona':"O'quvchi";
   const grp=gidToName[myProfile.group_id]||'—';
   const childRow=(myProfile.role==='parent'&&myProfile.child_name)?`<div class="pf-row"><span class="pf-k">Farzand</span><span class="pf-v">${esc(myProfile.child_name)}</span></div>`:'';
-  el.innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(name)}</div><div><div class="profile-name">${esc(name)}</div><div class="profile-meta">${roleLabel}${grp!=='—'?' · '+esc(grp):''}</div></div></div><div class="pf-list">${childRow}<div class="pf-row"><span class="pf-k">Guruh</span><span class="pf-v">${esc(grp)}</span></div><div class="pf-row"><span class="pf-k">Ustoz</span><span class="pf-v">${esc(teacher||'—')}</span></div>${(vStudent&&vStudent.student_id)?`<div class="pf-row"><span class="pf-k">Student ID</span><span class="pf-v" style="font-family:var(--mono);color:var(--brand)">${esc(vStudent.student_id)}</span></div>`:`<div class="pf-row"><span class="pf-k">Email</span><span class="pf-v">${esc(currentUser.email||'')}</span></div>`}</div></div><div class="profile-card" style="margin-top:14px"><div class="card-title">Parolni o'zgartirish</div><input type="password" id="vp-new-pwd" class="form-input" placeholder="Yangi parol" style="max-width:320px"><div id="vp-pwd-msg" style="font-size:12px;min-height:16px;margin-bottom:8px"></div><button class="btn btn-primary btn-sm" onclick="doChangePwd('vp-new-pwd','vp-pwd-msg')">Saqlash</button></div>`;
+  el.innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(name)}</div><div><div class="profile-name">${esc(name)}</div><div class="profile-meta">${roleLabel}${grp!=='—'?' · '+esc(grp):''}</div></div></div><div class="pf-list">${childRow}<div class="pf-row"><span class="pf-k">Guruh</span><span class="pf-v">${esc(grp)}</span></div><div class="pf-row"><span class="pf-k">Ustoz</span><span class="pf-v">${esc(teacher||'—')}</span></div>${(vStudent&&vStudent.student_id)?`<div class="pf-row"><span class="pf-k">Student ID</span><span class="pf-v" style="font-family:var(--mono);color:var(--brand)">${esc(vStudent.student_id)}</span></div>`:`<div class="pf-row"><span class="pf-k">Email</span><span class="pf-v">${esc(currentUser.email||'')}</span></div>`}</div></div><div class="profile-card" style="margin-top:var(--s4)"><div class="card-title">Hisob</div><div style="font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:var(--s4)">Parolni o'zgartirish kerak bo'lsa, <b>administrator</b> bilan bog'laning.</div><button class="btn btn-block" onclick="doLogout()" style="color:var(--bad);font-weight:600">Chiqish</button></div>`;
 }
 async function doChangePwd(inputId,msgId){
   const inp=document.getElementById(inputId),msg=document.getElementById(msgId);if(!inp||!msg)return;
