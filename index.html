@@ -807,12 +807,20 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .sd-tip-x:hover{background:var(--bg);color:var(--text)}
 /* Website founder — shimmer attributsiya */
 .founder-credit{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:14px;user-select:none}
-.founder-label{font-size:9px;font-family:var(--mono);letter-spacing:.26em;color:var(--text-3);opacity:.85;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-.founder-label::before,.founder-label::after{content:"";width:14px;height:1px;background:linear-gradient(90deg,transparent,var(--border-strong))}
+.founder-label{font-size:7.5px;font-family:var(--mono);letter-spacing:.3em;color:var(--text-3);opacity:.75;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.founder-label::before,.founder-label::after{content:"";width:12px;height:1px;background:linear-gradient(90deg,transparent,var(--border-strong))}
 .founder-label::after{background:linear-gradient(90deg,var(--border-strong),transparent)}
-.founder-name{font-size:14.5px;font-weight:800;letter-spacing:.015em;background:linear-gradient(100deg,var(--brand-dark) 0%,var(--brand) 38%,#ffe0c2 50%,var(--brand) 62%,var(--brand-dark) 100%);background-size:240% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:founderShine 5s linear infinite;transition:transform .2s}
-.founder-name:hover{transform:scale(1.04)}
+.founder-name{font-size:11.5px;font-weight:600;letter-spacing:.05em;background:linear-gradient(100deg,var(--brand-dark) 0%,var(--brand) 38%,#ffe0c2 50%,var(--brand) 62%,var(--brand-dark) 100%);background-size:240% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:founderShine 6s linear infinite}
 @keyframes founderShine{to{background-position:-240% center}}
+/* Telegram ulanish banneri (ota-ona panelida) */
+.tg-connect{display:flex;align-items:center;gap:16px;justify-content:space-between;background:linear-gradient(135deg,rgba(34,160,246,.12),var(--surface));border:1px solid #229af6;border-radius:16px;padding:16px 18px;margin-bottom:16px;animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both,tgPulse 2.4s ease-in-out infinite}
+@keyframes tgPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,160,246,.22)}50%{box-shadow:0 0 0 6px rgba(34,160,246,0)}}
+.tg-connect-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tg-connect-txt b{font-size:15px}
+.tg-connect-txt span{font-size:12.5px;color:var(--text-2);line-height:1.5}
+.tg-connect .btn{flex-shrink:0;background:#229af6;border-color:#229af6;color:#fff}
+.tg-connect .btn:hover{background:#1b87dd}
+@media(max-width:560px){.tg-connect{flex-direction:column;align-items:stretch}.tg-connect .btn{width:100%}}
 /* ===== CHAT ===== */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 230px);min-height:340px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .chat-list{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
@@ -1653,7 +1661,7 @@ let paStudentPk=null;
 function openParentAccess(sid,name){paStudentPk=sid;document.getElementById('pa-child').textContent=(name||"O'quvchi")+' uchun ota-ona kirishi.';document.getElementById('pa-link-id').value='';document.getElementById('modal-parent').classList.add('open')}
 async function callAdminFn(body){const tok=(await sb.auth.getSession()).data.session?.access_token||'';try{const r=await fetch(SUPABASE_URL+'/functions/v1/admin-student',{method:'POST',body:JSON.stringify({_token:tok,...body})});return await r.json()}catch(e){return{error:String(e)}}}
 const TG_BOT='tommy_lc_bot';
-async function callTgSend(student_pk,kind){const tok=(await sb.auth.getSession()).data.session?.access_token||'';try{await fetch(SUPABASE_URL+'/functions/v1/tg-send',{method:'POST',body:JSON.stringify({_token:tok,student_pk,kind})});}catch(e){}}
+async function callTgSend(student_pk,kind,text){const tok=(await sb.auth.getSession()).data.session?.access_token||'';try{await fetch(SUPABASE_URL+'/functions/v1/tg-send',{method:'POST',body:JSON.stringify({_token:tok,student_pk,kind,text})});}catch(e){}}
 async function createParentAcc(){const d=await callAdminFn({action:'create_parent',student_pk:paStudentPk});if(!d||d.error){showToast('Xato: '+((d&&d.error)||'')+(d&&d.parent_id?(' ('+d.parent_id+')'):''));return}closeModals();showStudentCreds(d.child_name+' ota-onasi',d.parent_id,d.temp_password)}
 async function linkParentAcc(){const pid=document.getElementById('pa-link-id').value.trim();if(!pid){showToast('Parent ID kiriting');return}const d=await callAdminFn({action:'link_parent',student_pk:paStudentPk,parent_id:pid});if(!d||d.error){showToast('Xato: '+((d&&d.error)||''));return}closeModals();showToast("Farzand bog'landi: "+pid)}
 async function resetStudentPassword(sid){
@@ -1938,6 +1946,7 @@ async function notifyResult(a,s,tot,passed){
   const body=`Natijangiz: ${tot}/${a.max_score} (${pct}%).\n${passed?"✅ Tabriklaymiz — testdan o'tdingiz!":"❌ Afsuski, bu safar o'ta olmadingiz. O'qituvchingiz bilan zaif mavzularni qaytaring."}`;
   const sender=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
   await sb.from('notifications').insert({title,body,group_id:a.group_id,student_id:s.id,created_by:currentUser.id,created_by_name:sender});
+  try{const tgText=`📊 Farzandingiz ${s.name}: «${a.title}» — ${tot}/${a.max_score} (${pct}%).\n${passed?"✅ Testdan o'tdi.":"❌ Testdan o'ta olmadi — zaif mavzularni qaytarish tavsiya etiladi."}`;callTgSend(s.id,'test',tgText);}catch(e){}
 }
 
 /* ---------- REPORT ---------- */
@@ -2076,7 +2085,7 @@ function renderParentHome(){
   const cprev=`<div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">O'qituvchi izohlari</div></div>${vComments.length?vComments.slice(0,3).map(c=>`<div style="padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;line-height:1.4">${esc(truncate(c.body,80))}</div><div style="font-size:11px;color:var(--text-3);margin-top:3px">${fmtNotifDate(c.created_at)}</div></div>`).join(''):'<div class="no-history">Izoh yo\'q</div>'}</div>`;
   const hwList=`<div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">Bugungi vazifalar</div></div>${curHw.length?curHw.map(it=>{const dn=vDone.has(it.id);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${esc(it.title)}</div><div style="font-size:11px;color:var(--text-3)">${esc(hwTypeLabel(it.type))}</div></div><span class="tag" style="color:${dn?'var(--good)':'var(--bad)'}">${dn?'Topshirilgan':'Topshirmagan'}</span></div>`}).join(''):'<div class="no-history">Vazifa yo\'q</div>'}</div>`;
   const switcher=(vChildren.length>1)?`<div style="margin-bottom:14px"><select onchange="switchChild(this.value)" class="form-select" style="max-width:280px">${vChildren.map(c=>`<option value="${c.id}"${c.id===vSid?' selected':''}>${esc(c.name)}</option>`).join('')}</select></div>`:'';
-  el.innerHTML=`<span class="pp-badge">OTA-ONA PANELI</span><div class="sd-greet">Salom, ${esc(childName)}ning ota-onasi! 👋</div><div class="sd-greet-sub">Bu yerda farzandingizning o'quv jarayoni haqida ma'lumotlar.</div>${switcher}${cards}${mid}<div class="sd-row3">${cmpBlock}${cprev}</div><div class="sd-row3" style="grid-template-columns:1fr">${hwList}</div>`;
+  el.innerHTML=`<span class="pp-badge">OTA-ONA PANELI</span><div class="sd-greet">Salom, ${esc(childName)}ning ota-onasi! 👋</div><div class="sd-greet-sub">Bu yerda farzandingizning o'quv jarayoni haqida ma'lumotlar.</div>${!myProfile.telegram_chat_id?('<div class="tg-connect"><div class="tg-connect-txt"><b>📨 Telegram bildirishnoma</b><span>Farzandingiz darsga kelmasa, test natijasi va boshqa muhim xabarlarni Telegram orqali <b>darrov</b> oling.</span></div><a class="btn" href="https://t.me/'+TG_BOT+'?start='+myProfile.id+'" target="_blank" rel="noopener">Ulanish</a></div>'):''}${switcher}${cards}${mid}<div class="sd-row3">${cmpBlock}${cprev}</div><div class="sd-row3" style="grid-template-columns:1fr">${hwList}</div>`;
 }
 function renderStudentHome(){
   const el=document.getElementById('v-home');if(!el)return;

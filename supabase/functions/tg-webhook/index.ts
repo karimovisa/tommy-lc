@@ -44,8 +44,23 @@ Deno.serve(async (req) => {
         if (!error) {
           await tg('sendMessage', {
             chat_id: chatId,
-            text: '✅ Telegram ulandi!\nEndi muhim bildirishnomalar (masalan, farzandingiz darsga kelmagani) shu yerga keladi.',
+            text: '✅ Telegram ulandi!\nEndi muhim bildirishnomalar (darsga kelmaslik, test natijasi, uy ishi va h.k.) shu yerga keladi.',
           })
+          // Ulangan zahoti — bugungi holat (agar farzand bugun kelmagan bo'lsa, darrov bildiramiz)
+          try {
+            const uzDate = new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 10) // O'zbekiston (UTC+5)
+            const { data: links } = await admin.from('parent_links').select('student_id').eq('parent_uid', param)
+            const sids = (links || []).map((l: { student_id: string }) => l.student_id)
+            if (sids.length) {
+              const { data: checks } = await admin.from('daily_checks').select('student_id,absent').eq('date', uzDate).in('student_id', sids)
+              const absentSids = (checks || []).filter((c: { absent: boolean }) => c.absent).map((c: { student_id: string }) => c.student_id)
+              if (absentSids.length) {
+                const { data: studs } = await admin.from('students').select('name').in('id', absentSids)
+                const names = (studs || []).map((s: { name: string }) => s.name).join(', ')
+                await tg('sendMessage', { chat_id: chatId, text: `⚠️ Bugun farzandingiz ${names} darsga kelmadi.` })
+              }
+            }
+          } catch (_e) { /* ignore */ }
         } else {
           await tg('sendMessage', { chat_id: chatId, text: '❌ Ulashda xato. Saytdagi havoladan qaytadan urinib ko\'ring.' })
         }
