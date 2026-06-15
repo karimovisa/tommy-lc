@@ -1576,6 +1576,16 @@ async function saveChecklist(){
       if(toNotify.length)await sb.from('daily_checks').update({tg_notified:true}).eq('date',date).in('student_id',toNotify);
     }
   }catch(e){}
+  // Telegram: kelgan, lekin uy ishini bajarmagan/yarim qilganlar (takrorlanmaydi — tg_hw_notified)
+  try{
+    const hwSids=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e&&!e.absent&&(e.hw||0)<1}).map(s=>s.id);
+    if(hwSids.length){
+      const{data:rows}=await sb.from('daily_checks').select('student_id,hw,tg_hw_notified').eq('date',date).in('student_id',hwSids);
+      const toNotify=(rows||[]).filter(r=>!r.tg_hw_notified);
+      for(const r of toNotify){const txt=`📚 Bugun farzandingiz uy ishini ${(r.hw||0)===0.5?'yarim bajardi':'bajarmadi'}.`;callTgSend(r.student_id,'hw',txt);}
+      if(toNotify.length)await sb.from('daily_checks').update({tg_hw_notified:true}).eq('date',date).in('student_id',toNotify.map(r=>r.student_id));
+    }
+  }catch(e){}
   await loadAllChecks();const m=document.getElementById('saved-msg');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);
 }
 
