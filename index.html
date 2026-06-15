@@ -1553,6 +1553,16 @@ async function saveChecklist(){
   const{error}=await sb.from('daily_checks').upsert(ups,{onConflict:'student_id,date'});
   btn.disabled=false;btn.textContent='Saqlash';
   if(error){showToast('Xato: '+error.message);return}
+  // Telegram: yangi "kelmadi" belgilanganlarga ota-onaga xabar (takrorlanmaydi — tg_notified)
+  try{
+    const absentSids=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e&&e.absent}).map(s=>s.id);
+    if(absentSids.length){
+      const{data:rows}=await sb.from('daily_checks').select('student_id,tg_notified').eq('date',date).in('student_id',absentSids);
+      const toNotify=(rows||[]).filter(r=>!r.tg_notified).map(r=>r.student_id);
+      for(const sid of toNotify)callTgSend(sid,'absent');
+      if(toNotify.length)await sb.from('daily_checks').update({tg_notified:true}).eq('date',date).in('student_id',toNotify);
+    }
+  }catch(e){}
   await loadAllChecks();const m=document.getElementById('saved-msg');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);
 }
 
@@ -1637,6 +1647,8 @@ async function submitNewPassword(){
 let paStudentPk=null;
 function openParentAccess(sid,name){paStudentPk=sid;document.getElementById('pa-child').textContent=(name||"O'quvchi")+' uchun ota-ona kirishi.';document.getElementById('pa-link-id').value='';document.getElementById('modal-parent').classList.add('open')}
 async function callAdminFn(body){const tok=(await sb.auth.getSession()).data.session?.access_token||'';try{const r=await fetch(SUPABASE_URL+'/functions/v1/admin-student',{method:'POST',body:JSON.stringify({_token:tok,...body})});return await r.json()}catch(e){return{error:String(e)}}}
+const TG_BOT='tommy_lc_bot';
+async function callTgSend(student_pk,kind){const tok=(await sb.auth.getSession()).data.session?.access_token||'';try{await fetch(SUPABASE_URL+'/functions/v1/tg-send',{method:'POST',body:JSON.stringify({_token:tok,student_pk,kind})});}catch(e){}}
 async function createParentAcc(){const d=await callAdminFn({action:'create_parent',student_pk:paStudentPk});if(!d||d.error){showToast('Xato: '+((d&&d.error)||'')+(d&&d.parent_id?(' ('+d.parent_id+')'):''));return}closeModals();showStudentCreds(d.child_name+' ota-onasi',d.parent_id,d.temp_password)}
 async function linkParentAcc(){const pid=document.getElementById('pa-link-id').value.trim();if(!pid){showToast('Parent ID kiriting');return}const d=await callAdminFn({action:'link_parent',student_pk:paStudentPk,parent_id:pid});if(!d||d.error){showToast('Xato: '+((d&&d.error)||''));return}closeModals();showToast("Farzand bog'landi: "+pid)}
 async function resetStudentPassword(sid){
@@ -2424,7 +2436,8 @@ function renderViewerProfile(s,teacher){
   const roleLabel=myProfile.role==='parent'?'Ota-ona':"O'quvchi";
   const grp=gidToName[myProfile.group_id]||'—';
   const childRow=(myProfile.role==='parent'&&myProfile.child_name)?`<div class="pf-row"><span class="pf-k">Farzand</span><span class="pf-v">${esc(myProfile.child_name)}</span></div>`:'';
-  el.innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(name)}</div><div><div class="profile-name">${esc(name)}</div><div class="profile-meta">${roleLabel}${grp!=='—'?' · '+esc(grp):''}</div></div></div><div class="pf-list">${childRow}<div class="pf-row"><span class="pf-k">Guruh</span><span class="pf-v">${esc(grp)}</span></div><div class="pf-row"><span class="pf-k">Ustoz</span><span class="pf-v">${esc(teacher||'—')}</span></div>${(vStudent&&vStudent.student_id)?`<div class="pf-row"><span class="pf-k">Student ID</span><span class="pf-v" style="font-family:var(--mono);color:var(--brand)">${esc(vStudent.student_id)}</span></div>`:`<div class="pf-row"><span class="pf-k">Email</span><span class="pf-v">${esc(currentUser.email||'')}</span></div>`}</div></div><div class="profile-card" style="margin-top:var(--s4)"><div class="card-title">Hisob</div><div style="font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:var(--s4)">Parolni o'zgartirish kerak bo'lsa, <b>administrator</b> bilan bog'laning.</div><button class="btn btn-block" onclick="doLogout()" style="color:var(--bad);font-weight:600">Chiqish</button></div>`;
+  const tgCard=(myProfile.role==='parent')?`<div class="profile-card" style="margin-top:var(--s4)"><div class="card-title">Telegram bildirishnoma</div>${myProfile.telegram_chat_id?`<div style="color:var(--good);font-size:13px">✅ Telegram ulangan — farzandingiz darsga kelmaganda xabar keladi.</div>`:`<div style="font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:12px">Farzandingiz darsga kelmaganda Telegram orqali <b>darrov</b> xabar olish uchun ulang.</div><a class="btn btn-primary" href="https://t.me/${TG_BOT}?start=${myProfile.id}" target="_blank" rel="noopener">📨 Telegramga ulanish</a>`}</div>`:'';
+  el.innerHTML=`<div class="profile-card"><div class="profile-top"><div class="avatar-lg">${initials(name)}</div><div><div class="profile-name">${esc(name)}</div><div class="profile-meta">${roleLabel}${grp!=='—'?' · '+esc(grp):''}</div></div></div><div class="pf-list">${childRow}<div class="pf-row"><span class="pf-k">Guruh</span><span class="pf-v">${esc(grp)}</span></div><div class="pf-row"><span class="pf-k">Ustoz</span><span class="pf-v">${esc(teacher||'—')}</span></div>${(vStudent&&vStudent.student_id)?`<div class="pf-row"><span class="pf-k">Student ID</span><span class="pf-v" style="font-family:var(--mono);color:var(--brand)">${esc(vStudent.student_id)}</span></div>`:`<div class="pf-row"><span class="pf-k">Email</span><span class="pf-v">${esc(currentUser.email||'')}</span></div>`}</div></div>${tgCard}<div class="profile-card" style="margin-top:var(--s4)"><div class="card-title">Hisob</div><div style="font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:var(--s4)">Parolni o'zgartirish kerak bo'lsa, <b>administrator</b> bilan bog'laning.</div><button class="btn btn-block" onclick="doLogout()" style="color:var(--bad);font-weight:600">Chiqish</button></div>`;
 }
 async function doChangePwd(inputId,msgId){
   const inp=document.getElementById(inputId),msg=document.getElementById(msgId);if(!inp||!msg)return;
