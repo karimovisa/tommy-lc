@@ -808,6 +808,32 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 /* Ishlab chiquvchi attributsiyasi */
 .dev-credit{font-size:10px;color:var(--text-3);font-family:var(--mono);letter-spacing:.03em;opacity:.7;margin-top:8px}
 .auth-credit{text-align:center;font-size:11px;color:var(--text-3);font-family:var(--mono);letter-spacing:.03em;opacity:.7;margin-top:10px}
+/* ===== CHAT ===== */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 230px);min-height:340px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.chat-list{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.chat-empty{color:var(--text-3);text-align:center;padding:24px;font-size:13px}
+.chat-row{display:flex}
+.chat-row.me{justify-content:flex-end}
+.chat-row.them{justify-content:flex-start}
+.chat-bubble{max-width:78%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word}
+.chat-row.them .chat-bubble{background:var(--surface-2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.chat-row.me .chat-bubble{background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.chat-time{font-size:10px;opacity:.6;margin-top:3px;font-family:var(--mono)}
+.chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:var(--surface)}
+.chat-input input{flex:1;padding:10px 14px;border:1px solid var(--border-strong);border-radius:12px;background:var(--surface-2);color:var(--text);font-family:var(--sans);font-size:14px;outline:none}
+.chat-input input:focus{border-color:var(--brand)}
+.chat-admin-wrap{display:flex;gap:14px;height:calc(100vh - 170px);min-height:420px}
+.chat-threads{width:280px;flex-shrink:0;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px}
+.chat-thread{display:block;width:100%;text-align:left;border:none;background:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-family:var(--sans);color:var(--text)}
+.chat-thread:hover{background:var(--bg)}
+.chat-thread.active{background:var(--brand-light)}
+.chat-thread-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chat-thread-name{font-weight:600;font-size:14px}
+.chat-thread-badge{background:var(--brand);color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px;font-family:var(--mono)}
+.chat-thread-sub{font-size:12px;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-pane{flex:1;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0}
+.chat-pane-head{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px}
+@media(max-width:767px){.chat-admin-wrap{flex-direction:column;height:auto}.chat-threads{width:100%;max-height:34vh}.chat-pane{height:60vh}}
 </style>
 </head>
 <body>
@@ -994,6 +1020,11 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div class="page-header"><div><div class="page-title">Bildirishnomalar</div><div class="page-sub">O'quvchilarga e'lon yuborish</div></div><div class="header-actions"><button class="btn btn-primary btn-sm" onclick="openAddNotif()">+ Yangi bildirishnoma</button></div></div>
       <div class="wrap" id="notifs-list"></div>
     </div>
+
+    <div id="view-chat" class="view">
+      <div class="page-header"><div><div class="page-title">Xabarlar</div><div class="page-sub">O'quvchi va ota-onalar bilan suhbat</div></div></div>
+      <div class="wrap" id="chat-admin"></div>
+    </div>
   </div>
 </div>
 
@@ -1040,6 +1071,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div id="vview-rank" class="vview"><h2 class="sd-vtitle">Reyting</h2><div id="v-rank"></div></div>
       <div id="vview-settings" class="vview"><h2 class="sd-vtitle">Sozlamalar</h2><div class="student-dash" id="viewer-profile"></div></div>
       <div id="vview-notifications" class="vview"><h2 class="sd-vtitle">Bildirishnomalar</h2><div class="student-dash" id="viewer-notifs"></div></div>
+      <div id="vview-chat" class="vview"><h2 class="sd-vtitle">O'qituvchi bilan suhbat</h2><div id="viewer-chat"></div></div>
       <div id="vview-materials" class="vview"><h2 class="sd-vtitle">Materiallar</h2><div class="student-dash" id="viewer-materials"></div></div>
       <div id="vview-comments" class="vview"><h2 class="sd-vtitle">O'qituvchi izohlari</h2><div class="student-dash" id="viewer-comments"></div></div>
       <div id="vview-soon" class="vview"><div id="v-soon"></div></div>
@@ -1310,6 +1342,7 @@ function buildNav(){
   if(pendingList.length)items.push(['approve',"Ro'yxat so'rovlari",I.clock]);
   if(!isAdmin)items.push(['assignments','Testlar',I.book]);
   items.push(['report','Umumiy report',I.chart]);
+  items.push(['chat','Xabarlar',CHAT_ICON]);
   items.push(['notifs','Bildirishnomalar',I.bell]);
   const nav=document.getElementById('nav');
   nav.innerHTML=items.map((it,i)=>`<button class="nav-item${i===0?' active':''}" data-view="${it[0]}" onclick="showView('${it[0]}')"><span class="nav-ic">${it[2]||''}</span>${esc(it[1])}<span class="nav-badge" id="badge-${it[0]}" style="display:none">0</span></button>`).join('');
@@ -1467,6 +1500,7 @@ function showView(name){
   if(name==='assignments')renderTests();
   if(name==='report')renderReport();
   if(name==='notifs')renderNotifsAdmin();
+  if(name==='chat')renderChatAdmin();
   if(name==='homework')renderHomework();
   if(name==='dashboard')renderDashboard();
   if(name==='group'&&curGroup)renderGroupDetail(curGroup);
@@ -1950,6 +1984,7 @@ async function startViewer(childId){
   vChecks=checks;vGrades=vg;vStudent=sData;vTeacherName=vTeacher;
   await loadViewerNotifs();updateNotifBadge();
   await loadViewerMaterials();
+  await loadChatUnread();subscribeFamilyChat();
   buildViewerNav();
   renderViewerHomework();
   renderViewerGrades(vg);
@@ -1973,9 +2008,10 @@ async function startViewer(childId){
 /* ---------- OTA-ONA PANELI ---------- */
 function buildParentNav(){
   const I=ICONS;
-  const items=[['home','Bosh sahifa',I.home],['lessons','Davomat',I.cal],['homework','Vazifalar',I.clip],['tests','Testlar',I.chart],['comments',"O'qituvchi izohlari",I.book],['settings','Sozlamalar',I.gear]];
+  const items=[['home','Bosh sahifa',I.home],['lessons','Davomat',I.cal],['homework','Vazifalar',I.clip],['tests','Testlar',I.chart],['chat','Suhbat',CHAT_ICON],['comments',"O'qituvchi izohlari",I.book],['settings','Sozlamalar',I.gear]];
   const nav=document.getElementById('v-nav');if(!nav)return;
-  nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span></button>`).join('');
+  const _cu=window.vChatUnread||0;
+  nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='chat'&&_cu?`<span class="nav-badge">${_cu}</span>`:''}</button>`).join('');
 }
 function switchChild(id){vView='home';startViewer(id);}
 function renderAttCalendar(){
@@ -2249,6 +2285,99 @@ function updateNotifBadge(){
   if(dot){if(unread>0){dot.textContent=unread>9?'9+':unread;dot.style.display=''}else dot.style.display='none'}
 }
 function markNotifsSeen(){localStorage.setItem(notifSeenKey(),Date.now());updateNotifBadge()}
+/* ====================== CHAT (realtime) ====================== */
+const CHAT_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+let chatMsgs=[], chatChannel=null, chatActive=null, chatThreads=[];
+function chatBubble(m,mine){return `<div class="chat-row ${mine?'me':'them'}"><div class="chat-bubble"><div>${esc(m.body)}</div><div class="chat-time">${fmtNotifDate(m.created_at)}</div></div></div>`;}
+function rebuildViewerNav(){ if(typeof isParent!=='undefined'&&isParent)buildParentNav(); else buildViewerNav(); }
+async function loadChatUnread(){try{const{count}=await sb.from('messages').select('id',{count:'exact',head:true}).eq('family_uid',myProfile.id).eq('read_family',false);window.vChatUnread=count||0;}catch(e){window.vChatUnread=0;}}
+/* ---- OILA (o'quvchi/ota-ona) tomoni ---- */
+async function openFamilyChat(){
+  const el=document.getElementById('viewer-chat');if(!el)return;
+  el.innerHTML=`<div class="chat-wrap"><div class="chat-list" id="chat-list"><div class="chat-empty">Yuklanmoqda...</div></div><form class="chat-input" onsubmit="return sendFamilyMsg(event)"><input id="chat-text" placeholder="Xabar yozing..." autocomplete="off"><button class="btn btn-primary" type="submit">Yuborish</button></form></div>`;
+  const{data}=await sb.from('messages').select('*').eq('family_uid',myProfile.id).order('created_at');
+  chatMsgs=data||[];renderChatList(myProfile.id);
+  try{await sb.from('messages').update({read_family:true}).eq('family_uid',myProfile.id).eq('read_family',false);}catch(e){}
+  window.vChatUnread=0;rebuildViewerNav();subscribeFamilyChat();
+}
+function renderChatList(myUid){
+  const list=document.getElementById('chat-list');if(!list)return;
+  if(!chatMsgs.length){list.innerHTML='<div class="chat-empty">Hali xabar yo\'q. O\'qituvchingizga birinchi xabarni yozing 👇</div>';return;}
+  list.innerHTML=chatMsgs.map(m=>chatBubble(m,m.sender_uid===myUid)).join('');list.scrollTop=list.scrollHeight;
+}
+async function sendFamilyMsg(e){
+  e.preventDefault();const inp=document.getElementById('chat-text');const body=(inp.value||'').trim();if(!body)return false;inp.value='';
+  const role=myProfile.role==='parent'?'parent':'student';
+  const name=myProfile.role==='parent'?(myProfile.full_name||'Ota-ona'):((vStudent&&vStudent.name)||myProfile.full_name||'O\'quvchi');
+  const{error}=await sb.from('messages').insert({student_id:vSid,family_uid:myProfile.id,sender_uid:myProfile.id,sender_role:role,sender_name:name,body,read_family:true});
+  if(error)showToast('Xato: '+error.message);
+  return false;
+}
+function subscribeFamilyChat(){
+  if(!myProfile)return;
+  try{if(chatChannel)sb.removeChannel(chatChannel);}catch(e){}
+  chatChannel=sb.channel('chat-fam-'+myProfile.id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'family_uid=eq.'+myProfile.id},payload=>{
+      const m=payload.new;if(chatMsgs.find(x=>x.id===m.id))return;chatMsgs.push(m);
+      if(vView==='chat'){renderChatList(myProfile.id);if(m.sender_uid!==myProfile.id){try{sb.from('messages').update({read_family:true}).eq('id',m.id);}catch(e){}}}
+      else if(m.sender_uid!==myProfile.id){window.vChatUnread=(window.vChatUnread||0)+1;rebuildViewerNav();}
+    }).subscribe();
+}
+/* ---- O'QITUVCHI/ADMIN tomoni ---- */
+async function renderChatAdmin(){
+  const el=document.getElementById('chat-admin');if(!el)return;
+  el.innerHTML='<div class="chat-admin-wrap"><div class="chat-threads" id="chat-threads"><div class="chat-empty" style="padding:16px">Yuklanmoqda...</div></div><div class="chat-pane" id="chat-pane"><div class="chat-empty">← Suhbatni tanlang</div></div></div>';
+  await reloadChatThreads();subscribeStaffChat();
+}
+async function reloadChatThreads(){
+  const{data}=await sb.from('messages').select('*').order('created_at',{ascending:true});
+  const msgs=data||[];const map={};
+  msgs.forEach(m=>{const k=m.student_id+'|'+m.family_uid;if(!map[k])map[k]={student_id:m.student_id,family_uid:m.family_uid,last:m,unread:0,name:'',role:''};const t=map[k];t.last=m;if(m.sender_role!=='teacher'&&m.sender_role!=='admin'){t.name=m.sender_name;t.role=m.sender_role;if(!m.read_staff)t.unread++;}});
+  chatThreads=Object.values(map).sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+  renderChatThreads();
+}
+function renderChatThreads(){
+  const el=document.getElementById('chat-threads');if(!el)return;
+  if(!chatThreads.length){el.innerHTML='<div class="chat-empty" style="padding:16px">Hali suhbat yo\'q</div>';return;}
+  el.innerHTML=chatThreads.map(t=>{
+    const sname=(studentsById[t.student_id]&&studentsById[t.student_id].name)||t.name||'—';
+    const who=t.role==='parent'?'👪 Ota-ona':"🎓 O'quvchi";
+    return `<button class="chat-thread${chatActive&&chatActive.family_uid===t.family_uid?' active':''}" onclick="openStaffThread('${t.student_id}','${t.family_uid}')"><div class="chat-thread-top"><span class="chat-thread-name">${esc(sname)}</span>${t.unread?`<span class="chat-thread-badge">${t.unread}</span>`:''}</div><div class="chat-thread-sub">${who} · ${esc(truncate(t.last.body,28))}</div></button>`;
+  }).join('');
+}
+async function openStaffThread(sid,fuid){
+  chatActive={student_id:sid,family_uid:fuid};
+  const pane=document.getElementById('chat-pane');if(!pane)return;
+  const sname=(studentsById[sid]&&studentsById[sid].name)||'';
+  const{data}=await sb.from('messages').select('*').eq('family_uid',fuid).order('created_at');
+  const msgs=data||[];const who=(msgs.find(m=>m.sender_role==='parent')?' · ota-ona':(msgs.find(m=>m.sender_role==='student')?" · o'quvchi":''));
+  pane.innerHTML=`<div class="chat-pane-head">${esc(sname)}${who}</div><div class="chat-list" id="chat-list-staff">${msgs.map(m=>chatBubble(m,m.sender_role==='teacher'||m.sender_role==='admin')).join('')||'<div class="chat-empty">Xabar yo\'q</div>'}</div><form class="chat-input" onsubmit="return sendStaffMsg(event)"><input id="chat-text-staff" placeholder="Javob yozing..." autocomplete="off"><button class="btn btn-primary" type="submit">Yuborish</button></form>`;
+  const cl=document.getElementById('chat-list-staff');if(cl)cl.scrollTop=cl.scrollHeight;
+  try{await sb.from('messages').update({read_staff:true}).eq('family_uid',fuid).eq('read_staff',false);}catch(e){}
+  renderChatThreads();
+}
+async function sendStaffMsg(e){
+  e.preventDefault();if(!chatActive)return false;
+  const inp=document.getElementById('chat-text-staff');const body=(inp.value||'').trim();if(!body)return false;inp.value='';
+  const role=level==='admin'?'admin':'teacher';
+  const name=level==='admin'?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
+  const{error}=await sb.from('messages').insert({student_id:chatActive.student_id,family_uid:chatActive.family_uid,sender_uid:currentUser.id,sender_role:role,sender_name:name,body,read_staff:true});
+  if(error)showToast('Xato: '+error.message);
+  return false;
+}
+function subscribeStaffChat(){
+  try{if(chatChannel)sb.removeChannel(chatChannel);}catch(e){}
+  chatChannel=sb.channel('chat-staff-'+currentUser.id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
+      const m=payload.new;
+      if(chatActive&&m.family_uid===chatActive.family_uid){
+        const cl=document.getElementById('chat-list-staff');
+        if(cl){cl.insertAdjacentHTML('beforeend',chatBubble(m,m.sender_role==='teacher'||m.sender_role==='admin'));cl.scrollTop=cl.scrollHeight;}
+        if(m.sender_role!=='teacher'&&m.sender_role!=='admin'){try{sb.from('messages').update({read_staff:true}).eq('id',m.id);}catch(e){}}
+      }
+      reloadChatThreads();
+    }).subscribe();
+}
 function renderViewerNotifs(){
   const el=document.getElementById('viewer-notifs');if(!el)return;
   if(!vNotifs||!vNotifs.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔔</div><p>Hozircha bildirishnoma yo'q</p></div>`;return}
@@ -2265,9 +2394,10 @@ function closeAdminSidebar(){const sb2=document.querySelector('#app-shell .sideb
 function toggleVProfile(e){if(e)e.stopPropagation();const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.toggle('open');}
 function buildViewerNav(){
   const pending=(vHw||[]).filter(x=>!vDone.has(x.id)).length;
-  const items=[['home','Bosh sahifa',ICONS.home],['lessons','Darslar',ICONS.book],['homework','Vazifalar',ICONS.clip],['tests','Testlar',ICONS.chart],['rank','Reyting',ICONS.trophy],['materials','Materiallar',ICONS.folder],['payments',"To'lovlar",ICONS.card],['notifications','Bildirishnomalar',ICONS.bell],['settings','Sozlamalar',ICONS.gear]];
+  const items=[['home','Bosh sahifa',ICONS.home],['lessons','Darslar',ICONS.book],['homework','Vazifalar',ICONS.clip],['tests','Testlar',ICONS.chart],['chat','Suhbat',CHAT_ICON],['rank','Reyting',ICONS.trophy],['materials','Materiallar',ICONS.folder],['payments',"To'lovlar",ICONS.card],['notifications','Bildirishnomalar',ICONS.bell],['settings','Sozlamalar',ICONS.gear]];
   const nav=document.getElementById('v-nav');if(!nav)return;
-  nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='homework'&&pending?`<span class="nav-badge">${pending}</span>`:''}</button>`).join('');
+  const _cu=window.vChatUnread||0;
+  nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='homework'&&pending?`<span class="nav-badge">${pending}</span>`:''}${it[0]==='chat'&&_cu?`<span class="nav-badge">${_cu}</span>`:''}</button>`).join('');
 }
 function showVView(name){
   const soonMap={payments:"To'lovlar"};
@@ -2281,6 +2411,7 @@ function showVView(name){
   if(name==='notifications'){renderViewerNotifs();markNotifsSeen();}
   if(name==='materials'){renderViewerMaterials();}
   if(name==='comments'){renderComments();}
+  if(name==='chat'){openFamilyChat();}
   if(name==='home'&&isParent){renderParentHome();}
   const sb2=document.getElementById('v-sidebar');if(sb2)sb2.classList.remove('open');
   const sc=document.getElementById('v-scrim');if(sc)sc.classList.remove('open');
