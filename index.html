@@ -1038,6 +1038,11 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div class="page-header"><div><div class="page-title">Xabarlar</div><div class="page-sub">O'quvchi va ota-onalar bilan suhbat</div></div></div>
       <div class="wrap" id="chat-admin"></div>
     </div>
+
+    <div id="view-payments" class="view">
+      <div class="page-header"><div><div class="page-title">To'lovlar</div><div class="page-sub">Oylik to'lovlarni qayd qilish</div></div><div class="header-actions"><select class="flt" id="pay-group" onchange="renderPayments()"></select><input type="month" id="pay-month" onchange="renderPayments()"><button class="btn btn-sm" onclick="remindDebtors()">📨 Qarzdorlarga eslatma</button></div></div>
+      <div class="wrap" id="payments-admin"></div>
+    </div>
   </div>
 </div>
 
@@ -1085,6 +1090,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div id="vview-settings" class="vview"><h2 class="sd-vtitle">Sozlamalar</h2><div class="student-dash" id="viewer-profile"></div></div>
       <div id="vview-notifications" class="vview"><h2 class="sd-vtitle">Bildirishnomalar</h2><div class="student-dash" id="viewer-notifs"></div></div>
       <div id="vview-chat" class="vview"><h2 class="sd-vtitle">O'qituvchi bilan suhbat</h2><div id="viewer-chat"></div></div>
+      <div id="vview-payments" class="vview"><h2 class="sd-vtitle">To'lovlar</h2><div class="student-dash" id="viewer-payments"></div></div>
       <div id="vview-materials" class="vview"><h2 class="sd-vtitle">Materiallar</h2><div class="student-dash" id="viewer-materials"></div></div>
       <div id="vview-comments" class="vview"><h2 class="sd-vtitle">O'qituvchi izohlari</h2><div class="student-dash" id="viewer-comments"></div></div>
       <div id="vview-soon" class="vview"><div id="v-soon"></div></div>
@@ -1099,7 +1105,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 
 <div class="modal-overlay" id="modal-assignment"><div class="modal"><div class="modal-title">Yangi test</div><label class="modal-label">Guruh</label><select id="test-new-group" onchange="onTestGroupChange()"></select><div id="test-level-info" style="font-size:12px;color:var(--text-2);margin:-2px 0 10px;line-height:1.5"></div><label class="modal-label">Test turi</label><select id="test-new-kind" onchange="onTestKindChange()"><option value="unit">Unit test</option><option value="middle">Middle / Yakuniy test</option></select><div id="test-unit-wrap"><label class="modal-label">Unit raqami</label><input type="number" id="test-new-unit" min="1" max="12" placeholder="masalan 5"></div><div id="test-mid-wrap" style="display:none"><label class="modal-label">Test oralig'i</label><select id="test-new-range"></select></div><label class="modal-label">Sana</label><input type="date" id="test-new-date"><div id="test-crit-info" style="font-size:12px;color:var(--text-3);margin:8px 0 0;line-height:1.6"></div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="test-create-btn" onclick="addTest()">Yaratish</button></div></div></div>
 
-<div class="modal-overlay" id="modal-group"><div class="modal"><div class="modal-title" id="group-modal-title">Yangi guruh</div><label class="modal-label">Guruh nomi</label><input type="text" id="grp-name" placeholder="301"><label class="modal-label">Daraja (test ball tizimi shunga qarab tanlanadi)</label><select id="grp-level"><option value="">— Tanlanmagan —</option><option value="beginner">Beginner</option><option value="elementary">Elementary</option><option value="pre_intermediate">Pre-intermediate</option></select><label class="modal-label">Ustoz ism familiyasi</label><input type="text" id="grp-teacher-name" placeholder="Asilbek Yusupov"><label class="modal-label">Ustoz emaili (shu email bilan kirsa — o'qituvchi)</label><input type="email" id="grp-teacher-email" placeholder="asilbek@gmail.com"><label class="modal-label">Dars kunlari</label><select id="grp-days"><option value="">— Tanlanmagan —</option><option value="odd">Toq kunlar (Dush·Chor·Jum)</option><option value="even">Juft kunlar (Sesh·Pay·Shan)</option></select><label class="modal-label">Dars vaqti</label><div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="time" id="grp-start" style="margin-bottom:0"><span style="color:var(--text-3)">–</span><input type="time" id="grp-end" style="margin-bottom:0"></div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="save-grp-btn" onclick="saveGroup()">Saqlash</button></div></div></div>
+<div class="modal-overlay" id="modal-group"><div class="modal"><div class="modal-title" id="group-modal-title">Yangi guruh</div><label class="modal-label">Guruh nomi</label><input type="text" id="grp-name" placeholder="301"><label class="modal-label">Daraja (test ball tizimi shunga qarab tanlanadi)</label><select id="grp-level"><option value="">— Tanlanmagan —</option><option value="beginner">Beginner</option><option value="elementary">Elementary</option><option value="pre_intermediate">Pre-intermediate</option></select><label class="modal-label">Ustoz ism familiyasi</label><input type="text" id="grp-teacher-name" placeholder="Asilbek Yusupov"><label class="modal-label">Ustoz emaili (shu email bilan kirsa — o'qituvchi)</label><input type="email" id="grp-teacher-email" placeholder="asilbek@gmail.com"><label class="modal-label">Dars kunlari</label><select id="grp-days"><option value="">— Tanlanmagan —</option><option value="odd">Toq kunlar (Dush·Chor·Jum)</option><option value="even">Juft kunlar (Sesh·Pay·Shan)</option></select><label class="modal-label">Dars vaqti</label><div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="time" id="grp-start" style="margin-bottom:0"><span style="color:var(--text-3)">–</span><input type="time" id="grp-end" style="margin-bottom:0"></div><label class="modal-label">Oylik to'lov (so'm)</label><input type="number" id="grp-fee" min="0" step="10000" placeholder="masalan 500000"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="save-grp-btn" onclick="saveGroup()">Saqlash</button></div></div></div>
 
 <div class="modal-overlay" id="modal-homework"><div class="modal"><div class="modal-title">Yangi uy ishi</div><label class="modal-label">Guruh</label><select id="hw-new-group"></select><label class="modal-label">Dars sanasi</label><input type="date" id="hw-new-date"><label class="modal-label">Vocabulary — unit</label><select id="hw-new-vocab" onchange="hwFill('vocab')"></select><input type="text" id="hw-new-vocab-text" placeholder="izoh (o'zgartirish mumkin)" style="margin-top:6px"><label class="modal-label">Grammar / Workbook — unit</label><select id="hw-new-grammar" onchange="hwFill('grammar')"></select><input type="text" id="hw-new-grammar-text" placeholder="izoh (o'zgartirish mumkin)" style="margin-top:6px"><label class="modal-label">Qo'shimcha (speaking / writing)</label><input type="text" id="hw-new-extra" placeholder="masalan: yarim sahifa essay"><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" onclick="addHomework()">Qo'shish</button></div></div></div>
 
@@ -1355,6 +1361,7 @@ function buildNav(){
   if(pendingList.length)items.push(['approve',"Ro'yxat so'rovlari",I.clock]);
   if(!isAdmin)items.push(['assignments','Testlar',I.book]);
   items.push(['report','Umumiy report',I.chart]);
+  items.push(['payments',"To'lovlar",I.card]);
   items.push(['chat','Xabarlar',CHAT_ICON]);
   items.push(['notifs','Bildirishnomalar',I.bell]);
   const nav=document.getElementById('nav');
@@ -1367,7 +1374,8 @@ function fillGroupSelect(el,withAll,allLabel){
   el.innerHTML=html||'<option value="">Guruh yo\'q</option>';
 }
 function refillAllGroupSelects(){
-  [['cl-group',true],['st-group',true],['rep-group',true],['hw-group',true],['test-group',true],['new-student-group',false],['hw-new-group',false]].forEach(([id,wa])=>{const el=document.getElementById(id);if(el)fillGroupSelect(el,wa)});
+  [['cl-group',true],['st-group',true],['rep-group',true],['hw-group',true],['test-group',true],['pay-group',true],['new-student-group',false],['hw-new-group',false]].forEach(([id,wa])=>{const el=document.getElementById(id);if(el)fillGroupSelect(el,wa)});
+  try{const pm=document.getElementById('pay-month');if(pm&&!pm.value)pm.value=new Date().toISOString().slice(0,7);}catch(e){}
 }
 
 async function startApp(){
@@ -1514,6 +1522,7 @@ function showView(name){
   if(name==='report')renderReport();
   if(name==='notifs')renderNotifsAdmin();
   if(name==='chat')renderChatAdmin();
+  if(name==='payments')renderPayments();
   if(name==='homework')renderHomework();
   if(name==='dashboard')renderDashboard();
   if(name==='group'&&curGroup)renderGroupDetail(curGroup);
@@ -1807,13 +1816,14 @@ function nextLessonInfo(g){
   return null;
 }
 function truncate(s,n){s=String(s||'');return s.length>n?s.slice(0,n).replace(/\s+\S*$/,'')+'…':s}
-function openAddGroup(){editGroupId=null;document.getElementById('group-modal-title').textContent='Yangi guruh';document.getElementById('grp-name').value='';document.getElementById('grp-teacher-name').value='';document.getElementById('grp-teacher-email').value='';document.getElementById('grp-level').value='';document.getElementById('grp-days').value='';document.getElementById('grp-start').value='';document.getElementById('grp-end').value='';document.getElementById('modal-group').classList.add('open')}
-function openEditGroup(id){const g=allGroups.find(x=>x.id===id);if(!g)return;editGroupId=id;document.getElementById('group-modal-title').textContent='Guruhni tahrirlash';document.getElementById('grp-name').value=g.name||'';document.getElementById('grp-level').value=g.level||'';document.getElementById('grp-teacher-name').value=g.teacher_name||'';document.getElementById('grp-teacher-email').value=g.teacher_email||'';document.getElementById('grp-days').value=g.lesson_days||'';document.getElementById('grp-start').value=g.lesson_start||'';document.getElementById('grp-end').value=g.lesson_end||'';document.getElementById('modal-group').classList.add('open')}
+function openAddGroup(){editGroupId=null;document.getElementById('group-modal-title').textContent='Yangi guruh';document.getElementById('grp-name').value='';document.getElementById('grp-teacher-name').value='';document.getElementById('grp-teacher-email').value='';document.getElementById('grp-level').value='';document.getElementById('grp-days').value='';document.getElementById('grp-start').value='';document.getElementById('grp-end').value='';document.getElementById('grp-fee').value='';document.getElementById('modal-group').classList.add('open')}
+function openEditGroup(id){const g=allGroups.find(x=>x.id===id);if(!g)return;editGroupId=id;document.getElementById('group-modal-title').textContent='Guruhni tahrirlash';document.getElementById('grp-name').value=g.name||'';document.getElementById('grp-level').value=g.level||'';document.getElementById('grp-teacher-name').value=g.teacher_name||'';document.getElementById('grp-teacher-email').value=g.teacher_email||'';document.getElementById('grp-days').value=g.lesson_days||'';document.getElementById('grp-start').value=g.lesson_start||'';document.getElementById('grp-end').value=g.lesson_end||'';document.getElementById('grp-fee').value=g.monthly_fee||'';document.getElementById('modal-group').classList.add('open')}
 async function saveGroup(){
   const name=document.getElementById('grp-name').value.trim();
   const tn=document.getElementById('grp-teacher-name').value.trim();
   const te=document.getElementById('grp-teacher-email').value.trim().toLowerCase();
   const lv=document.getElementById('grp-level').value||null;
+  const fee=parseInt(document.getElementById('grp-fee').value)||null;
   const ld=document.getElementById('grp-days').value;
   const ls=document.getElementById('grp-start').value;
   const le=document.getElementById('grp-end').value;
@@ -1823,10 +1833,10 @@ async function saveGroup(){
   let error;
   if(editGroupId){
     const oldName=gidToName[editGroupId];
-    ({error}=await sb.from('groups').update({name,level:lv,teacher_name:tn,teacher_email:te,lesson_days:ld,lesson_start:ls,lesson_end:le}).eq('id',editGroupId));
+    ({error}=await sb.from('groups').update({name,level:lv,monthly_fee:fee,teacher_name:tn,teacher_email:te,lesson_days:ld,lesson_start:ls,lesson_end:le}).eq('id',editGroupId));
     if(!error&&oldName!==name){await sb.from('students').update({group_name:name}).eq('group_id',editGroupId);}
   }else{
-    ({error}=await sb.from('groups').insert({name,level:lv,teacher_name:tn,teacher_email:te,lesson_days:ld,lesson_start:ls,lesson_end:le}));
+    ({error}=await sb.from('groups').insert({name,level:lv,monthly_fee:fee,teacher_name:tn,teacher_email:te,lesson_days:ld,lesson_start:ls,lesson_end:le}));
   }
   if(btn){btn.disabled=false;btn.textContent='Saqlash';}
   if(error){showToast('Xato: '+error.message);return}
@@ -1999,7 +2009,7 @@ async function startViewer(childId){
   let checks={};
   if(sid){const{data}=await sb.from('daily_checks').select('*').eq('student_id',sid);(data||[]).forEach(r=>{checks[r.date]={hw:r.hw,words:r.words,extra:r.extra,absent:!!r.absent}})}
   let vTeacher='';
-  if(myProfile.group_id){try{const{data:gr}=await sb.from('groups').select('name,teacher_name,lesson_days,lesson_start,lesson_end').eq('id',myProfile.group_id).maybeSingle();if(gr){gidToName[myProfile.group_id]=gr.name;vTeacher=gr.teacher_name||'';vGroup=gr}}catch(e){}}
+  if(myProfile.group_id){try{const{data:gr}=await sb.from('groups').select('id,name,teacher_name,lesson_days,lesson_start,lesson_end,monthly_fee').eq('id',myProfile.group_id).maybeSingle();if(gr){gidToName[myProfile.group_id]=gr.name;vTeacher=gr.teacher_name||'';vGroup=gr}}catch(e){}}
   showLoading(false);
   showScreen('viewer-app');
   try{
@@ -2021,6 +2031,7 @@ async function startViewer(childId){
   await loadViewerNotifs();updateNotifBadge();
   await loadViewerMaterials();
   await loadChatUnread();subscribeFamilyChat();
+  await loadViewerPayments();
   buildViewerNav();
   renderViewerHomework();
   renderViewerGrades(vg);
@@ -2044,7 +2055,7 @@ async function startViewer(childId){
 /* ---------- OTA-ONA PANELI ---------- */
 function buildParentNav(){
   const I=ICONS;
-  const items=[['home','Bosh sahifa',I.home],['lessons','Davomat',I.cal],['homework','Vazifalar',I.clip],['tests','Testlar',I.chart],['chat','Suhbat',CHAT_ICON],['comments',"O'qituvchi izohlari",I.book],['settings','Sozlamalar',I.gear]];
+  const items=[['home','Bosh sahifa',I.home],['lessons','Davomat',I.cal],['homework','Vazifalar',I.clip],['tests','Testlar',I.chart],['chat','Suhbat',CHAT_ICON],['comments',"O'qituvchi izohlari",I.book],['payments',"To'lovlar",I.card],['settings','Sozlamalar',I.gear]];
   const nav=document.getElementById('v-nav');if(!nav)return;
   const _cu=window.vChatUnread||0;
   nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='chat'&&_cu?`<span class="nav-badge">${_cu}</span>`:''}</button>`).join('');
@@ -2436,7 +2447,7 @@ function buildViewerNav(){
   nav.innerHTML=items.map(it=>`<button class="nav-item${it[0]===vView?' active':''}" data-vview="${it[0]}" onclick="showVView('${it[0]}')">${it[2]||''}<span>${esc(it[1])}</span>${it[0]==='homework'&&pending?`<span class="nav-badge">${pending}</span>`:''}${it[0]==='chat'&&_cu?`<span class="nav-badge">${_cu}</span>`:''}</button>`).join('');
 }
 function showVView(name){
-  const soonMap={payments:"To'lovlar"};
+  const soonMap={};
   vView=name;let target=name;const soonTitle=soonMap[name];
   if(soonTitle)target='soon';
   document.querySelectorAll('#viewer-app .vview').forEach(v=>v.classList.remove('active'));
@@ -2448,6 +2459,7 @@ function showVView(name){
   if(name==='materials'){renderViewerMaterials();}
   if(name==='comments'){renderComments();}
   if(name==='chat'){openFamilyChat();}
+  if(name==='payments'){renderViewerPayments();}
   if(name==='home'&&isParent){renderParentHome();}
   const sb2=document.getElementById('v-sidebar');if(sb2)sb2.classList.remove('open');
   const sc=document.getElementById('v-scrim');if(sc)sc.classList.remove('open');
@@ -2604,6 +2616,55 @@ async function toggleHwDone(hid){
   if(vDone.has(hid)){vDone.delete(hid);await sb.from('homework_done').delete().eq('homework_id',hid).eq('student_id',vSid)}
   else{vDone.add(hid);await sb.from('homework_done').upsert({homework_id:hid,student_id:vSid,done:true},{onConflict:'homework_id,student_id'})}
   renderViewerHomework();buildViewerNav();renderStudentHome();
+}
+/* ====================== TO'LOVLAR ====================== */
+let payData={};
+function curPayMonth(){const pm=document.getElementById('pay-month');return (pm&&pm.value)||new Date().toISOString().slice(0,7);}
+function payGroupId(){const g=document.getElementById('pay-group');return g?g.value:'all';}
+function groupFee(gid){const g=allGroups.find(x=>x.id===gid);return (g&&g.monthly_fee)||0;}
+async function renderPayments(){
+  const el=document.getElementById('payments-admin');if(!el)return;
+  const g=payGroupId();const month=curPayMonth();
+  const slist=students.filter(s=>(g==='all'||gidOf(s)===g)&&!s.frozen);
+  if(!slist.length){el.innerHTML='<div class="empty"><div class="empty-icon">💳</div><p>O\'quvchi yo\'q</p></div>';return}
+  const sids=slist.map(s=>s.id);
+  const{data}=await sb.from('payments').select('*').eq('month',month).in('student_id',sids);
+  payData={};(data||[]).forEach(p=>payData[p.student_id]=p);
+  const rows=slist.map(s=>{
+    const fee=groupFee(gidOf(s));const p=payData[s.id];const amt=p?p.amount:0;
+    const status=fee>0&&amt>=fee?'paid':(amt>0?'partial':'unpaid');
+    const stxt=status==='paid'?'<span class="tag" style="color:var(--good)">✓ To\'landi</span>':(status==='partial'?'<span class="tag" style="color:var(--warn)">Qisman</span>':'<span class="tag" style="color:var(--bad)">Qarz</span>');
+    return `<tr><td>${esc(s.name)}</td><td class="center" style="color:var(--text-3);font-family:var(--mono)">${fee?fee.toLocaleString():'—'}</td><td class="center"><input class="grade-input" type="number" min="0" step="10000" style="width:120px" value="${amt||''}" placeholder="0" onchange="savePayment('${s.id}','${gidOf(s)}',this.value)"></td><td class="center">${stxt}</td><td class="center"><button class="btn btn-sm" onclick="savePayment('${s.id}','${gidOf(s)}',${fee})" title="To'liq to'landi deb belgilash">To'liq</button></td></tr>`;
+  }).join('');
+  const fee0=g!=='all'?groupFee(g):0;
+  el.innerHTML=`<div style="font-size:13px;color:var(--text-2);margin-bottom:10px">Oy: <b>${month}</b>${g!=='all'?(fee0?` · Guruh narxi: <b>${fee0.toLocaleString()} so'm</b>`:' · <span style="color:var(--bad)">narx belgilanmagan (guruhni tahrirlab kiriting)</span>'):''}</div><table class="data"><thead><tr><th>O'quvchi</th><th class="center">Narx</th><th class="center">To'langan (so'm)</th><th class="center">Holat</th><th class="center"></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+async function savePayment(sid,gid,val){
+  const month=curPayMonth();const amount=parseInt(val)||0;
+  const name=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
+  const{error}=await sb.from('payments').upsert({student_id:sid,group_id:gid||null,month,amount,paid_at:amount>0?new Date().toISOString():null,recorded_by:currentUser.id,recorded_by_name:name},{onConflict:'student_id,month'});
+  if(error){showToast('Xato: '+error.message);return}
+  renderPayments();
+}
+async function remindDebtors(){
+  const g=payGroupId();const month=curPayMonth();
+  const slist=students.filter(s=>(g==='all'||gidOf(s)===g)&&!s.frozen);
+  const{data}=await sb.from('payments').select('student_id,amount').eq('month',month).in('student_id',slist.map(s=>s.id));
+  const paid={};(data||[]).forEach(p=>paid[p.student_id]=p.amount);
+  let n=0;
+  for(const s of slist){const fee=groupFee(gidOf(s));const amt=paid[s.id]||0;if(fee>0&&amt<fee){const txt=`💳 Hurmatli ota-ona, ${s.name} uchun ${month} oyiga to'lov ${amt>0?'qisman ('+amt.toLocaleString()+" so'm) ":''}qoldi. Qoldiq: ${(fee-amt).toLocaleString()} so'm. Iltimos, to'lovni yakunlang.`;callTgSend(s.id,'debt',txt);n++;}}
+  showToast(n?(n+' ta qarzdorga eslatma yuborildi'):"Qarzdor yo'q");
+}
+async function loadViewerPayments(){try{const{data}=await sb.from('payments').select('*').eq('student_id',vSid).order('month',{ascending:false});window.vPayments=data||[];}catch(e){window.vPayments=[];}}
+function renderViewerPayments(){
+  const el=document.getElementById('viewer-payments');if(!el)return;
+  const fee=(vGroup&&vGroup.monthly_fee)||0;const month=new Date().toISOString().slice(0,7);
+  const list=window.vPayments||[];const cur=list.find(p=>p.month===month);const amt=cur?cur.amount:0;
+  const status=fee>0&&amt>=fee?'paid':(amt>0?'partial':'unpaid');
+  const badge=status==='paid'?'<span style="color:var(--good)">✅ To\'landi</span>':(status==='partial'?'<span style="color:var(--warn)">Qisman to\'langan</span>':'<span style="color:var(--bad)">⚠️ To\'lov kutilmoqda</span>');
+  const head=`<div class="sd-card"><div class="card-title">Joriy oy — ${month}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px"><div><div style="font-size:12px;color:var(--text-3)">Holat</div><div style="font-size:18px;font-weight:700">${badge}</div></div><div style="text-align:right"><div style="font-size:12px;color:var(--text-3)">To'langan / Narx</div><div style="font-size:18px;font-weight:700;font-family:var(--mono)">${amt.toLocaleString()} / ${fee?fee.toLocaleString():'—'}</div></div></div>${status!=='paid'&&fee>0?'<div style="margin-top:12px;font-size:12px;color:var(--text-2);line-height:1.5">To\'lovni markazga (naqd yoki o\'tkazma) topshiring — qabul qilingach bu yerda yangilanadi.</div>':''}</div>`;
+  const hist=list.length?`<div class="sd-card" style="margin-top:14px"><div class="card-title">Tarix</div>${list.map(p=>{const st=fee>0&&p.amount>=fee?'var(--good)':(p.amount>0?'var(--warn)':'var(--bad)');return `<div class="hist-row"><span class="hist-detail" style="flex:1">${esc(p.month)}</span><span class="hist-date">${p.paid_at?(fmtDate(p.paid_at.slice(0,10))||''):''}</span><span class="pct-pill" style="color:${st}">${(p.amount||0).toLocaleString()} so'm</span></div>`}).join('')}</div>`:'<div class="empty" style="margin-top:14px"><div class="empty-icon">💳</div><p>To\'lov tarixi yo\'q</p></div>';
+  el.innerHTML=head+hist;
 }
 function renderViewerGrades(list){
   const el=document.getElementById('viewer-grades');if(!el)return;
