@@ -805,6 +805,9 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .sd-tip-b{font-size:13px;color:var(--text-2);line-height:1.55;max-width:560px}
 .sd-tip-x{position:absolute;top:10px;right:10px;width:28px;height:28px;border:none;background:transparent;color:var(--text-3);cursor:pointer;font-size:14px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .sd-tip-x:hover{background:var(--bg);color:var(--text)}
+/* Ishlab chiquvchi attributsiyasi */
+.dev-credit{font-size:10px;color:var(--text-3);font-family:var(--mono);letter-spacing:.03em;opacity:.7;margin-top:8px}
+.auth-credit{text-align:center;font-size:11px;color:var(--text-3);font-family:var(--mono);letter-spacing:.03em;opacity:.7;margin-top:10px}
 </style>
 </head>
 <body>
@@ -879,6 +882,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
           <div class="auth-err" id="login-err"></div>
           <button class="btn btn-primary btn-block" id="login-btn" onclick="doLogin()">Kirish</button>
           <div class="auth-foot-note">Kirishda muammo bo'lsa — <span class="forgot-link" onclick="toggleForgotNote(event)">admin bilan bog'laning</span></div>
+          <div class="auth-credit">Ishlab chiquvchi — Karimov Islom</div>
         </div>
       </div>
     </div>
@@ -932,7 +936,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div><div class="brand-name">TOMMY</div><div class="brand-sub">LEARNING CENTRE</div></div>
     </div>
     <nav class="nav" id="nav"></nav>
-    <div class="sidebar-footer"><div class="role-badge" id="role-badge"></div><div class="user-info" id="user-name"></div></div>
+    <div class="sidebar-footer"><div class="role-badge" id="role-badge"></div><div class="user-info" id="user-name"></div><div class="dev-credit">Ishlab chiquvchi — Karimov Islom</div></div>
   </aside>
   <div class="main">
     <div id="view-dashboard" class="view active">
@@ -1024,6 +1028,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
           <div class="sd-support-ic">🎧</div>
           <div><div class="sd-support-title">Yordam kerakmi?</div><div class="sd-support-sub">Admin bilan bog'lanish</div></div>
         </button>
+        <div class="dev-credit" style="text-align:center">Ishlab chiquvchi — Karimov Islom</div>
       </div>
     </aside>
     <div class="sd-scrim" id="v-scrim" onclick="toggleVSidebar()"></div>
@@ -1991,6 +1996,7 @@ function renderParentHome(){
   const el=document.getElementById('v-home');if(!el)return;
   const child=vStudent||{};const childName=child.name||'Farzandingiz';
   let keldi=0,kelmadi=0;Object.values(vChecks||{}).forEach(e=>{if(e.absent)kelmadi++;else keldi++});
+  const _hwT=Object.values(vChecks||{}).filter(e=>!e.absent).map(e=>e.hw||0);const hwTeacherPct=_hwT.length?Math.round(100*_hwT.reduce((a,b)=>a+b,0)/_hwT.length):0;
   const dow=new Date().getDay();
   const isLessonToday=vGroup&&vGroup.lesson_days?((vGroup.lesson_days==='odd'?[1,3,5]:[2,4,6]).includes(dow)):false;
   const tc=vChecks[todayStr()];
@@ -2013,7 +2019,7 @@ function renderParentHome(){
   const mid=`<div class="sd-row3" style="grid-template-columns:2fr 1fr">${renderAttCalendar()}${sum}</div>`;
   const cmp=vCompare||{};const tch=cmp.test_child||0,tgr=cmp.test_group||0;
   const hwTotal=cmp.hw_total||0,hwChild=cmp.hw_child||0,hwChildPct=hwTotal?Math.round(100*hwChild/hwTotal):0,hwGr=cmp.hw_group_pct||0;
-  const cmpBlock=`<div class="sd-card"><div class="card-title" style="margin-bottom:12px">Farzandimning natijalari</div><div style="font-weight:600;margin-bottom:4px">Testlar bo'yicha</div><div class="pp-cmp"><div><div style="font-size:11px;color:var(--text-3)">Farzandingiz</div><div class="pp-cmp-val" style="color:var(--brand)">${tch}%</div></div><div style="color:var(--text-3)">vs</div><div style="text-align:right"><div style="font-size:11px;color:var(--text-3)">Guruh o'rtachasi</div><div class="pp-cmp-val" style="color:var(--text-2)">${tgr}%</div></div></div><div class="pp-bar"><div style="width:${tch}%;background:var(--brand)"></div></div><div style="font-weight:600;margin:16px 0 4px">Uy vazifalari bo'yicha</div><div class="pp-cmp"><div><div style="font-size:11px;color:var(--text-3)">Farzandingiz</div><div class="pp-cmp-val" style="color:var(--good)">${hwChildPct}%</div><div style="font-size:11px;color:var(--text-3)">${hwChild}/${hwTotal} bajarilgan</div></div><div style="color:var(--text-3)">vs</div><div style="text-align:right"><div style="font-size:11px;color:var(--text-3)">Guruh o'rtachasi</div><div class="pp-cmp-val" style="color:var(--text-2)">${hwGr}%</div></div></div><div class="pp-bar"><div style="width:${hwChildPct}%;background:var(--good)"></div></div></div>`;
+  const cmpBlock=`<div class="sd-card"><div class="card-title" style="margin-bottom:12px">Farzandimning natijalari</div><div style="font-weight:600;margin-bottom:4px">Testlar bo'yicha</div><div class="pp-cmp"><div><div style="font-size:11px;color:var(--text-3)">Farzandingiz</div><div class="pp-cmp-val" style="color:var(--brand)">${tch}%</div></div><div style="color:var(--text-3)">vs</div><div style="text-align:right"><div style="font-size:11px;color:var(--text-3)">Guruh o'rtachasi</div><div class="pp-cmp-val" style="color:var(--text-2)">${tgr}%</div></div></div><div class="pp-bar"><div style="width:${tch}%;background:var(--brand)"></div></div><div style="font-weight:600;margin:16px 0 4px">Uy vazifalari bo'yicha</div><div class="pp-cmp"><div><div style="font-size:11px;color:var(--text-3)">O'qituvchi bahosi</div><div class="pp-cmp-val" style="color:var(--good)">${hwTeacherPct}%</div><div style="font-size:11px;color:var(--text-3)">O'quvchi belgilagani: ${hwChildPct}% (${hwChild}/${hwTotal})</div></div><div style="color:var(--text-3)">vs</div><div style="text-align:right"><div style="font-size:11px;color:var(--text-3)">Guruh o'rtachasi</div><div class="pp-cmp-val" style="color:var(--text-2)">${hwGr}%</div></div></div><div class="pp-bar"><div style="width:${hwTeacherPct}%;background:var(--good)"></div></div></div>`;
   const cprev=`<div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">O'qituvchi izohlari</div></div>${vComments.length?vComments.slice(0,3).map(c=>`<div style="padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;line-height:1.4">${esc(truncate(c.body,80))}</div><div style="font-size:11px;color:var(--text-3);margin-top:3px">${fmtNotifDate(c.created_at)}</div></div>`).join(''):'<div class="no-history">Izoh yo\'q</div>'}</div>`;
   const hwList=`<div class="sd-card"><div class="sd-act-head"><div class="sd-chart-title">Bugungi vazifalar</div></div>${curHw.length?curHw.map(it=>{const dn=vDone.has(it.id);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:13px">${esc(it.title)}</div><div style="font-size:11px;color:var(--text-3)">${esc(hwTypeLabel(it.type))}</div></div><span class="tag" style="color:${dn?'var(--good)':'var(--bad)'}">${dn?'Topshirilgan':'Topshirmagan'}</span></div>`}).join(''):'<div class="no-history">Vazifa yo\'q</div>'}</div>`;
   const switcher=(vChildren.length>1)?`<div style="margin-bottom:14px"><select onchange="switchChild(this.value)" class="form-select" style="max-width:280px">${vChildren.map(c=>`<option value="${c.id}"${c.id===vSid?' selected':''}>${esc(c.name)}</option>`).join('')}</select></div>`:'';
