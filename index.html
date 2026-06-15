@@ -2085,7 +2085,7 @@ function renderStudentHome(){
   const totalLessons=Object.keys(checks).length, att=totalLessons?Math.round(cnt/totalLessons*100):0;
   const avg=k=>cnt?en.reduce((a,e)=>a+(e[k]||0),0)/cnt:0;
   const hw=Math.round(avg('hw')*100);
-  const pending=(vHw||[]).filter(x=>!vDone.has(x.id)).length;
+  const pending=activePending();
   const grades=(vGrades||[]).slice().sort((a,b)=>(b.a.due_date||'').localeCompare(a.a.due_date||''));
   const lastTest=grades.find(x=>x.grade!=null);
   const vtrend=Object.keys(checks).sort().filter(d=>!checks[d].absent).map(d=>dayPct(checks[d]));
@@ -2410,7 +2410,7 @@ function toggleAdminSidebar(){const sb2=document.querySelector('#app-shell .side
 function closeAdminSidebar(){const sb2=document.querySelector('#app-shell .sidebar');if(sb2)sb2.classList.remove('open');const sc=document.getElementById('app-scrim');if(sc)sc.classList.remove('open');}
 function toggleVProfile(e){if(e)e.stopPropagation();const pm=document.getElementById('v-profile-menu');if(pm)pm.classList.toggle('open');}
 function buildViewerNav(){
-  const pending=(vHw||[]).filter(x=>!vDone.has(x.id)).length;
+  const pending=activePending();
   const items=[['home','Bosh sahifa',ICONS.home],['lessons','Darslar',ICONS.book],['homework','Vazifalar',ICONS.clip],['tests','Testlar',ICONS.chart],['chat','Suhbat',CHAT_ICON],['rank','Reyting',ICONS.trophy],['materials','Materiallar',ICONS.folder],['payments',"To'lovlar",ICONS.card],['notifications','Bildirishnomalar',ICONS.bell],['settings','Sozlamalar',ICONS.gear]];
   const nav=document.getElementById('v-nav');if(!nav)return;
   const _cu=window.vChatUnread||0;
@@ -2501,6 +2501,16 @@ const MOTIV=["Zo'r! Shu tempda davom et 🚀","TOMMY senga ishonadi! 🤝","Jara
 const MOTIV_HERO=["🔥 Qoyil! Darsga kelmaslik senga bahona emas!","🔥 Mana bu — chempion ruhi!","🔥 Hech narsa seni to'xtata olmaydi!","🔥 Kelmasang ham bajarding — tan berdik!"];
 function lessonDatesDesc(){return [...new Set((vHw||[]).map(x=>x.lesson_date))].sort().reverse();}
 function lessonAllDone(date){const items=(vHw||[]).filter(x=>x.lesson_date===date);return items.length>0&&items.every(x=>vDone.has(x.id));}
+// Uy ishi muddati = shu darsdan KEYINGI dars boshlanish vaqti. O'sha vaqt kelsa — muddati tugaydi (arxiv + qulf).
+function lessonDeadline(dateStr){
+  if(!vGroup||!vGroup.lesson_days)return null;
+  const set=vGroup.lesson_days==='odd'?[1,3,5]:[2,4,6];
+  const d=new Date(dateStr+'T00:00:00');
+  for(let i=1;i<=14;i++){const x=new Date(d);x.setDate(d.getDate()+i);if(set.includes(x.getDay())){if(vGroup.lesson_start){const p=vGroup.lesson_start.split(':');x.setHours(+p[0]||0,+p[1]||0,0,0);}else{x.setHours(23,59,0,0);}return x;}}
+  return null;
+}
+function isHwExpired(dateStr){const dl=lessonDeadline(dateStr);return dl?(new Date()>=dl):false;}
+function activePending(){return (vHw||[]).filter(x=>!vDone.has(x.id)&&!vConfirms.has(x.lesson_date)&&!isHwExpired(x.lesson_date)).length;}
 function isAbsentDate(date){return !!(vChecks[date]&&vChecks[date].absent);}
 function computeStreak(){
   const dates=lessonDatesDesc();let streak=0,started=false;
@@ -2541,22 +2551,27 @@ function renderViewerHomework(){
   if(!vHw.length){el.innerHTML='<div class="empty"><div class="empty-icon">📒</div><p>Hozircha uy ishi yo\'q</p><p style="font-size:12px;color:var(--text-3);margin-top:6px">Keyingi darsdan so\'ng vazifalaring shu yerda chiqadi 🎯</p></div>';return}
   const isStudent=!(myProfile&&myProfile.role==='parent');
   const dates=lessonDatesDesc();
-  const block=date=>{
+  const block=(date,expired)=>{
     const items=(vHw||[]).filter(x=>x.lesson_date===date).sort((a,b)=>(vDone.has(a.id)?1:0)-(vDone.has(b.id)?1:0));
     const allDone=items.every(x=>vDone.has(x.id));
     const confirmed=vConfirms.has(date);
     const absent=isAbsentDate(date);
-    const itemsHtml=items.map(it=>{const dn=vDone.has(it.id);return `<div class="todo ${dn?'done':''}"${confirmed?' style="opacity:.65;cursor:default"':` onclick="toggleHwDone('${it.id}')"`}><span class="todo-circle">${dn?'✓':''}</span><span class="todo-text"><span class="tag" style="margin-right:8px">${esc(hwTypeLabel(it.type))}</span>${esc(it.title)}</span></div>`}).join('');
+    const locked=confirmed||expired;
+    const itemsHtml=items.map(it=>{const dn=vDone.has(it.id);return `<div class="todo ${dn?'done':''}"${locked?' style="opacity:.65;cursor:default"':` onclick="toggleHwDone('${it.id}')"`}><span class="todo-circle">${dn?'✓':''}</span><span class="todo-text"><span class="tag" style="margin-right:8px">${esc(hwTypeLabel(it.type))}</span>${esc(it.title)}</span></div>`}).join('');
     const note=absent?`<div style="background:rgba(232,49,42,.08);color:var(--bad);font-size:12px;padding:10px 12px;border-radius:9px;margin:8px 0;line-height:1.5">⚠️ Siz bu darsga <b>kelmadingiz</b>. Darsni <b>support</b> orqali tushunib, uy ishini yetkazib bajaring — seriyangiz uzilmaydi.</div>`:'';
     let foot='';
     if(confirmed)foot=`<div style="text-align:center;color:var(--good);font-weight:600;font-size:13px;margin-top:10px">✓ Bajarildi va tasdiqlangan</div>`;
+    else if(expired)foot=`<div style="text-align:center;color:var(--text-3);font-size:12px;margin-top:10px">⏳ Muddati tugagan — keyingi dars boshlandi</div>`;
     else if(isStudent&&allDone)foot=`<button class="btn btn-primary btn-block" style="margin-top:10px" onclick="confirmLesson('${date}')">✅ Bajardim — tasdiqlash</button>`;
     else if(isStudent)foot=`<div style="text-align:center;color:var(--text-3);font-size:12px;margin-top:10px">Hammasini belgilab, tasdiqlang</div>`;
-    return `<div class="dash-history" style="margin-bottom:14px"><div class="card-title">Uy ishi — ${fmtDate(date)}${absent?' <span class="tag" style="color:var(--bad)">Kelmadingiz</span>':''}${confirmed?' <span class="tag" style="color:var(--good)">✓</span>':''}</div>${note}${itemsHtml}${foot}</div>`;
+    const stag=absent?' <span class="tag" style="color:var(--bad)">Kelmadingiz</span>':'';
+    const ctag=confirmed?' <span class="tag" style="color:var(--good)">✓</span>':(expired?' <span class="tag" style="color:var(--text-3)">Muddati tugagan</span>':'');
+    return `<div class="dash-history" style="margin-bottom:14px"><div class="card-title">Uy ishi — ${fmtDate(date)}${stag}${ctag}</div>${note}${itemsHtml}${foot}</div>`;
   };
-  let html=block(dates[0]);
-  const older=dates.slice(1);
-  if(older.length)html+=`<details class="hw-arch"><summary>Arxiv (${older.length} ta oldingi dars)</summary>${older.map(block).join('')}</details>`;
+  const activeDates=dates.filter(d=>!isHwExpired(d));
+  const archiveDates=dates.filter(d=>isHwExpired(d));
+  let html=activeDates.length?activeDates.map(d=>block(d,false)).join(''):'<div class="empty"><div class="empty-icon">✅</div><p>Faol uy ishi yo\'q</p><p style="font-size:12px;color:var(--text-3);margin-top:6px">Keyingi darsdan so\'ng yangi vazifa shu yerda chiqadi</p></div>';
+  if(archiveDates.length)html+=`<details class="hw-arch"><summary>Arxiv (${archiveDates.length} ta — muddati tugagan)</summary>${archiveDates.map(d=>block(d,true)).join('')}</details>`;
   el.innerHTML=html;
 }
 async function toggleHwDone(hid){
@@ -2564,6 +2579,7 @@ async function toggleHwDone(hid){
   if(!vSid){showToast("Natijalar biriktirilmagan");return}
   const _it=(vHw||[]).find(x=>x.id===hid);
   if(_it&&vConfirms.has(_it.lesson_date)){showToast("Bu dars tasdiqlangan — o'zgartirib bo'lmaydi");return}
+  if(_it&&isHwExpired(_it.lesson_date)){showToast("Muddati tugagan — keyingi dars boshlandi");return}
   if(vDone.has(hid)){vDone.delete(hid);await sb.from('homework_done').delete().eq('homework_id',hid).eq('student_id',vSid)}
   else{vDone.add(hid);await sb.from('homework_done').upsert({homework_id:hid,student_id:vSid,done:true},{onConflict:'homework_id,student_id'})}
   renderViewerHomework();buildViewerNav();renderStudentHome();
