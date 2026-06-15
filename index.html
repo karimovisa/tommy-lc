@@ -1187,11 +1187,11 @@ async function routeUser(){
     // 3) STUDENT / PARENT
     const{data:prof}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
     myProfile=prof;
-    if(!prof){level=null;showScreen('auth-screen');showToast('Profil topilmadi');return}
+    if(!prof){level=null;showScreen('auth-screen');const le=document.getElementById('login-err');if(le)le.textContent='Profil topilmadi — administrator bilan bog\'laning';showToast('Profil topilmadi');return}
     level=(prof.role==='parent')?'parent':'student';
     if(prof.approved===true||prof.approved==='true'){await startViewer()}
     else{showScreen('pending-screen')}
-  }catch(e){console.error('routeUser xato:',e);showScreen('auth-screen');showToast('Xato: '+(e.message||e))}
+  }catch(e){console.error('routeUser xato:',e);showScreen('auth-screen');const le=document.getElementById('login-err');if(le)le.textContent='Xato: '+(e.message||e);showToast('Xato: '+(e.message||e))}
   finally{showLoading(false)}
 }
 
@@ -1927,6 +1927,7 @@ async function startViewer(childId){
   if(myProfile.group_id){try{const{data:gr}=await sb.from('groups').select('name,teacher_name,lesson_days,lesson_start,lesson_end').eq('id',myProfile.group_id).maybeSingle();if(gr){gidToName[myProfile.group_id]=gr.name;vTeacher=gr.teacher_name||'';vGroup=gr}}catch(e){}}
   showLoading(false);
   showScreen('viewer-app');
+  try{
   const dispName=myProfile.role==='parent'?(myProfile.child_name||myProfile.full_name||currentUser.email):(myProfile.full_name||currentUser.email);
   document.getElementById('v-pname').textContent=(dispName||'').split(' ')[0]||dispName;
   document.getElementById('v-pid').textContent='ID: '+(sid?('TOM'+String(sid).replace(/[^a-zA-Z0-9]/g,'').slice(-4).toUpperCase()):'—');
@@ -1962,6 +1963,7 @@ async function startViewer(childId){
   }
   renderStudentHome();
   showVView('home');
+  }catch(_e){console.error('viewer render xato:',_e);showLoading(false);showToast('Panel yuklashda xato: '+((_e&&_e.message)||_e));}
 }
 /* ---------- OTA-ONA PANELI ---------- */
 function buildParentNav(){
