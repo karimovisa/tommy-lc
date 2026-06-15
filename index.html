@@ -2311,7 +2311,7 @@ async function deleteNotif(id){
 }
 // --- O'quvchi tomoni ---
 async function loadViewerNotifs(){
-  try{const{data}=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(80);vNotifs=(data||[]).filter(n=>!n.student_id||n.student_id===vSid)}catch(e){vNotifs=[]}
+  try{const vGid=(vStudent&&vStudent.group_id)||(myProfile&&myProfile.group_id)||null;const{data}=await sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(80);vNotifs=(data||[]).filter(n=>n.student_id===vSid||(!n.student_id&&(!n.group_id||n.group_id===vGid)))}catch(e){vNotifs=[]}
 }
 function notifSeenKey(){return 'notif-seen-'+(vSid||(myProfile&&myProfile.id)||'x')}
 function updateNotifBadge(){
@@ -2511,6 +2511,8 @@ async function addHomework(){
   if(!rows.length){showToast("Kamida bittasini to'ldiring");return}
   const{error}=await sb.from('homework').insert(rows);
   if(error){showToast('Xato: '+error.message);return}
+  // Saytda notification: guruh o'quvchilariga yangi uy ishi
+  try{const _gn=gidToName[gid]||'';const _sender=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);await sb.from('notifications').insert({title:'📚 Yangi uy ishi',body:(_gn?_gn+' — ':'')+(fmtDate(date)||date)+' darsiga yangi uy ishi qo\'shildi. Bajarib, belgilab qo\'ying!',group_id:gid,created_by:currentUser.id,created_by_name:_sender});}catch(e){}
   closeModals();['hw-new-vocab','hw-new-grammar','hw-new-extra','hw-new-vocab-text','hw-new-grammar-text'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
   await loadHomework();renderHomework();showToast("Uy ishi qo'shildi");
 }
