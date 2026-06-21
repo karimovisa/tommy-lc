@@ -872,6 +872,36 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 @keyframes lsBg{to{opacity:0;visibility:hidden}}
 @media(max-width:767px){@keyframes lsFly{0%{transform:translate(0,0) scale(1)}100%{transform:translate(calc(-50vw + 40px),calc(-50vh + 36px)) scale(.24)}}}
 @media(prefers-reduced-motion:reduce){#logo-splash{display:none}}
+
+/* ========== DIZAYN SAYQAL v2 (2026-06-21) — button + banner + rang uyg'unligi ========== */
+/* — Button'lar: premium gradient, yumshoq porlash, bosilganda javob — */
+.btn-primary{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-dark) 100%);border:1px solid var(--brand-dark);box-shadow:0 1px 2px rgba(229,36,43,.25),inset 0 1px 0 rgba(255,255,255,.20);transition:transform .15s,box-shadow .2s,filter .15s}
+.btn-primary:hover:not(:disabled){box-shadow:0 7px 20px rgba(229,36,43,.34),inset 0 1px 0 rgba(255,255,255,.22);transform:translateY(-1.5px);filter:saturate(1.06) brightness(1.04)}
+.btn-primary:active:not(:disabled){transform:translateY(0);box-shadow:0 2px 6px rgba(229,36,43,.3)}
+.btn-primary:disabled{opacity:.6;box-shadow:none}
+.btn{transition:transform .15s,box-shadow .2s,background .15s,border-color .15s}
+.btn:not(.btn-primary):hover:not(:disabled){border-color:var(--border-strong);background:var(--surface-2);transform:translateY(-1px)}
+.btn:not(.btn-primary):active:not(:disabled){transform:translateY(0)}
+:root[data-theme="dark"] .btn-primary{box-shadow:0 1px 2px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12)}
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled){box-shadow:0 8px 22px rgba(255,77,84,.28),inset 0 1px 0 rgba(255,255,255,.14)}
+/* — Kirish CTA tugmasi: yorqin yumshoq halo — */
+.auth-box .btn-primary.btn-block{background:linear-gradient(135deg,#ff5a5f 0%,var(--brand) 45%,var(--brand-dark) 100%);box-shadow:0 6px 18px rgba(229,36,43,.30),inset 0 1px 0 rgba(255,255,255,.25)}
+.auth-box .btn-primary.btn-block:hover:not(:disabled){box-shadow:0 10px 28px rgba(229,36,43,.40),inset 0 1px 0 rgba(255,255,255,.28)}
+
+/* — Rang uyg'unligi: tab/pill brendga moslandi — */
+.auth-tab.active{border-bottom-width:2.5px}
+.role-pill{transition:all .18s}
+.role-pill:hover{border-color:var(--brand);color:var(--brand-dark)}
+.role-pill.selected{box-shadow:0 0 0 3px var(--brand-light)}
+
+/* — Login banner: chuqurroq jило + nozik to'r naqsh — */
+.auth-banner{background:radial-gradient(120% 80% at 12% 6%,#ff5a5f 0%,transparent 44%),radial-gradient(100% 70% at 94% 16%,#ff9a4d 0%,transparent 40%),radial-gradient(130% 95% at 84% 100%,#8a0f16 0%,transparent 54%),linear-gradient(155deg,#e5242b 0%,#b3121b 55%,#7d0d14 100%)}
+@media(min-width:821px){.auth-banner::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:34px 34px;-webkit-mask-image:radial-gradient(120% 90% at 30% 20%,#000 0%,transparent 75%);mask-image:radial-gradient(120% 90% at 30% 20%,#000 0%,transparent 75%)}}
+.ab-head{background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.78) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 1px 24px rgba(0,0,0,.12)}
+/* — Banner feature kartalari: shisha (glass) ko'rinish — */
+.ab-feats li{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);border-radius:13px;padding:12px 14px}
+.ab-feats li:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.28);transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.28)}
+.ab-feat-ic{background:rgba(255,255,255,.22)}
 </style>
 </head>
 <body>
