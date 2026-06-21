@@ -940,6 +940,46 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .sd-hero{transition:transform .2s,box-shadow .2s}
 .sd-hero:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
 @media(prefers-reduced-motion:reduce){.spark-line{stroke-dashoffset:0}.sd-dot,.dash-card-ic .badge{animation:none}#v-home>*,.sd-hero-grid .sd-hero,.sd-hero-ic{animation:none}}
+
+/* ========== DETAL UPGRADE v5 (2026-06-21) ========== */
+/* 1) Skeleton (shimmer) yuklash */
+.skel{position:relative;overflow:hidden;background:var(--surface-2);border-radius:12px}
+.skel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);animation:shimmer 1.3s infinite}
+:root[data-theme="dark"] .skel::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent)}
+@keyframes shimmer{to{transform:translateX(100%)}}
+.skel-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:var(--s5)}
+.skel-line{height:12px;border-radius:7px;margin-bottom:10px}
+.skel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+@media(max-width:1023px){.skel-grid{grid-template-columns:repeat(2,1fr)}}
+/* 2) Faol menyu — siljiydigan accent bar */
+.sd-nav .nav-item{position:relative}
+.sd-nav .nav-item::before{content:"";position:absolute;left:2px;top:50%;height:62%;width:3px;border-radius:3px;background:var(--brand);transform:translateY(-50%) scaleY(0);transform-origin:center;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.sd-nav .nav-item.active::before{transform:translateY(-50%) scaleY(1)}
+/* 3) Header soyasi (scroll'da) */
+.sd-header{transition:box-shadow .25s}
+.sd-header.scrolled{box-shadow:0 6px 20px rgba(0,0,0,.10)}
+:root[data-theme="dark"] .sd-header.scrolled{box-shadow:0 6px 22px rgba(0,0,0,.45)}
+/* 4) Theme tugmasi aylanishi */
+@keyframes themeSpin{0%{transform:rotate(-150deg) scale(.5);opacity:.4}100%{transform:rotate(0) scale(1);opacity:1}}
+/* 5) Avatar gradient halqa + logo hover */
+.sd-avatar{box-shadow:0 0 0 2px var(--surface),0 0 0 4px rgba(229,36,43,.38)}
+.sd-logo .tommy-logo,.brand .tommy-logo{transition:transform .3s}
+.sd-logo:hover .tommy-logo,.brand:hover .tommy-logo{animation:logoPulse .6s ease}
+@keyframes logoPulse{0%,100%{transform:scale(1)}40%{transform:scale(1.12) rotate(-6deg)}70%{transform:rotate(4deg)}}
+/* 6) Bell tezkor dropdown */
+.sd-bell-wrap{position:relative}
+.sd-bell-pop{position:absolute;top:calc(100% + 10px);right:0;width:300px;max-width:86vw;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;opacity:0;visibility:hidden;transform:translateY(-8px) scale(.98);transform-origin:top right;transition:all .2s;z-index:60}
+.sd-bell-pop.open{opacity:1;visibility:visible;transform:none}
+.bell-pop-head{font-size:13px;font-weight:700;padding:8px 10px 6px}
+.bell-pop-item{padding:9px 10px;border-radius:10px;cursor:pointer;transition:background .15s}
+.bell-pop-item:hover{background:var(--bg)}
+.bell-pop-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bell-pop-sub{font-size:12px;color:var(--text-3);margin-top:2px;line-height:1.4}
+.bell-pop-time{font-size:10.5px;color:var(--text-3);font-family:var(--mono);margin-top:3px}
+.bell-pop-empty{padding:20px;text-align:center;color:var(--text-3);font-size:13px}
+.bell-pop-all{width:100%;text-align:center;padding:9px;margin-top:4px;border:none;border-top:1px solid var(--border);background:none;color:var(--brand);font-weight:600;font-size:13px;cursor:pointer;font-family:var(--sans);border-radius:0 0 12px 12px}
+.bell-pop-all:hover{background:var(--brand-light)}
+@media(prefers-reduced-motion:reduce){.skel::after{animation:none}.sd-logo:hover .tommy-logo,.brand:hover .tommy-logo{animation:none}}
 </style>
 </head>
 <body>
@@ -1155,7 +1195,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
     <button class="sd-burger" onclick="toggleVSidebar()" aria-label="Menyu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
     <div class="sd-logo" onclick="showVView('home')" style="cursor:pointer" title="Bosh sahifa"><div class="logo-sm tommy-logo" role="img" aria-label="TOMMY"></div><div class="sd-logo-txt"><div class="brand-name">TOMMY</div><div class="brand-sub">LEARNING CENTRE</div></div></div>
     <div class="sd-header-right">
-      <button class="sd-iconbtn" onclick="showVView('notifications')" aria-label="Bildirishnomalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="sd-dot" id="v-bell-dot" style="display:none">0</span></button>
+      <div class="sd-bell-wrap"><button class="sd-iconbtn" onclick="toggleBellPop(event)" aria-label="Bildirishnomalar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="sd-dot" id="v-bell-dot" style="display:none">0</span></button><div class="sd-bell-pop" id="v-bell-pop"></div></div>
       <button class="sd-iconbtn" onclick="toggleTheme()" aria-label="Rejim"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
       <div class="sd-profile" onclick="toggleVProfile(event)">
         <div class="sd-avatar" id="v-avatar"></div>
@@ -2155,6 +2195,7 @@ async function startViewer(childId){
   if(myProfile.group_id){try{const{data:gr}=await sb.from('groups').select('id,name,teacher_name,lesson_days,lesson_start,lesson_end,monthly_fee').eq('id',myProfile.group_id).maybeSingle();if(gr){gidToName[myProfile.group_id]=gr.name;vTeacher=gr.teacher_name||'';vGroup=gr}}catch(e){}}
   showLoading(false);
   showScreen('viewer-app');
+  {const _vh=document.getElementById('v-home');if(_vh)_vh.innerHTML=skeletonHome();}
   try{
   const dispName=myProfile.role==='parent'?(myProfile.child_name||myProfile.full_name||currentUser.email):(myProfile.full_name||currentUser.email);
   document.getElementById('v-pname').textContent=(dispName||'').split(' ')[0]||dispName;
@@ -2314,6 +2355,29 @@ function animateCounts(scope){
   });
 }
 function dismissTip(){try{localStorage.setItem('tommy-tip-seen','1')}catch(e){}const t=document.getElementById('sd-tip');if(t){t.style.opacity='0';t.style.transform='translateY(-6px)';setTimeout(()=>{if(t)t.remove()},250);}}
+/* Skeleton (shimmer) — ma'lumot yuklanayotganda bosh sahifa o'rni */
+function skeletonHome(){
+  const c='<div class="skel-card"><div class="skel skel-line" style="width:42%"></div><div class="skel skel-line" style="width:68%;height:26px"></div><div class="skel skel-line" style="width:54%;margin-bottom:0"></div></div>';
+  return '<div class="skel skel-line" style="width:230px;height:26px;margin-bottom:8px"></div><div class="skel skel-line" style="width:120px;margin-bottom:18px"></div>'
+    +'<div class="skel-grid">'+c+c+c+c+'</div>'
+    +'<div class="skel-card" style="margin-bottom:16px"><div class="skel skel-line" style="width:28%"></div><div class="skel skel-line" style="width:92%;margin-bottom:0"></div></div>'
+    +'<div class="skel-grid" style="grid-template-columns:1.6fr 1fr">'+c+c+'</div>';
+}
+/* Bell — tezkor dropdown (oxirgi bildirishnomalar) */
+function toggleBellPop(e){
+  if(e)e.stopPropagation();
+  const p=document.getElementById('v-bell-pop');if(!p)return;
+  if(p.classList.contains('open')){p.classList.remove('open');return;}
+  const list=(vNotifs||[]).slice(0,5);
+  p.innerHTML='<div class="bell-pop-head">Bildirishnomalar</div>'
+    +(list.length?list.map(n=>`<div class="bell-pop-item" onclick="showVView('notifications');toggleBellPop()"><div class="bell-pop-title">${esc(n.title||'')}</div>${n.body?`<div class="bell-pop-sub">${esc(truncate(n.body,70))}</div>`:''}<div class="bell-pop-time">${fmtNotifDate(n.created_at)}</div></div>`).join(''):'<div class="bell-pop-empty">Hozircha xabar yo\'q 🔔</div>')
+    +'<button class="bell-pop-all" onclick="showVView(\'notifications\');toggleBellPop()">Hammasini ko\'rish →</button>';
+  p.classList.add('open');
+  try{markNotifsSeen();}catch(e2){}
+}
+document.addEventListener('click',function(e){if(!e.target.closest('.sd-bell-wrap')){const p=document.getElementById('v-bell-pop');if(p)p.classList.remove('open');}});
+/* Header soyasi — scroll'da */
+(function(){function onScroll(){const sc=window.scrollY||document.documentElement.scrollTop||0;document.querySelectorAll('.sd-header').forEach(h=>h.classList.toggle('scrolled',sc>4));}window.addEventListener('scroll',onScroll,{passive:true});document.addEventListener('DOMContentLoaded',onScroll);})();
 function heroCard(icon,color,bg,title,big,sub,target,soon){
   return `<div class="sd-card sd-hero"><div class="sd-hero-head"><span class="sd-hero-ic" style="color:${color};background:${bg}">${icon}</span><span class="sd-hero-title">${title}</span></div><div class="sd-hero-big">${big}</div><div class="sd-hero-sub">${sub}</div><a class="sd-hero-link" onclick="vGo('${target}')">${soon?'Tez orada':"Ko'rish"} →</a></div>`;
 }
@@ -2907,6 +2971,7 @@ function applyTheme(t){
 function toggleTheme(){
   const cur=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   applyTheme(cur);
+  try{document.querySelectorAll('.ic-moon,.ic-sun').forEach(s=>{s.style.animation='none';void s.offsetWidth;s.style.animation='themeSpin .5s ease';});}catch(e){}
 }
 (function(){let t='dark';try{t=localStorage.getItem('tommy-theme')||'dark'}catch(e){}applyTheme(t)})();
 (function(){try{const lid=localStorage.getItem('tommy-last-id');const lmode=localStorage.getItem('tommy-last-mode');if(lmode&&typeof setLoginMode==='function')setLoginMode(lmode);if(lid){const el=document.getElementById(lmode==='staff'?'login-email':'login-id');if(el)el.value=lid;const pw=document.getElementById('login-password');if(pw)setTimeout(()=>{try{pw.focus()}catch(e){}},60);}}catch(e){}})();
