@@ -245,8 +245,14 @@ td.center,.center{text-align:center}
 .student-card.frozen{opacity:.55;background:var(--bg)}
 @media(max-width:640px){.dash-cards{grid-template-columns:1fr 1fr}}
 .absent-row .mark{opacity:.3;pointer-events:none}
+.absent-row .hwi{opacity:.3;pointer-events:none}
 .abs-chk{width:16px;height:16px;cursor:pointer;accent-color:var(--bad)}
 .pct-pill.p-absent{background:var(--bg);color:var(--text-3)}
+.hwi-wrap{display:inline-flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:160px}
+.hwi{min-width:26px;height:24px;padding:0 6px;border-radius:7px;border:2px solid var(--border-strong);background:var(--surface);color:var(--text-3);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--mono);display:inline-flex;align-items:center;justify-content:center;transition:.12s}
+.hwi.on{border-color:var(--good);background:var(--good);color:#fff}
+.hw-na{color:var(--text-3);font-size:13px;font-family:var(--mono)}
+@media(max-width:640px){.hwi{min-width:32px;height:32px}}
 
 /* ---------- MOBIL / RESPONSIVE (#1) ---------- */
 @media(max-width:640px){
@@ -1147,7 +1153,7 @@ function initials(n){n=(n||'?').trim();return n.split(' ').slice(0,2).map(w=>w[0
 function pctClass(p){return p>=75?'p-high':p>=50?'p-mid':'p-low'}
 function barColor(p){return p>=75?'var(--good)':p>=50?'#c8900a':'var(--bad)'}
 function valColor(p){return p>=75?'good':p>=50?'warn':'bad'}
-function dayPct(e){if(!e)return 0;return Math.round((e.words||0)*30+(e.hw||0)*40+(e.extra||0)*30)}
+function dayPct(e){if(!e)return 0;const w=e.words||0,x=e.extra||0;if(e.hw==null)return Math.round(w*50+x*50);return Math.round(w*30+(e.hw||0)*40+x*30)}
 function markCls(v){return v>=1?'m1':v>=0.5?'mh':'m0'}
 function markCell(sid,key,v){return `<td class="center"><button class="mark ${markCls(v)}" onclick="cycleMark(this,'${sid}','${key}')">${v>=1?'<span class="ck">\u2713</span>':''}</button></td>`}
 function sym(v){return v>=1?'\u2713':v>=0.5?'\u25d0':'\u2717'}
@@ -1414,7 +1420,7 @@ async function loadStudents(){
 }
 async function loadAllChecks(){
   const{data}=await sb.from('daily_checks').select('*');
-  const num=x=>x===true?1:(x===false?0:(+x||0));allChecks={};(data||[]).forEach(r=>{if(!allChecks[r.date])allChecks[r.date]={};allChecks[r.date][r.student_id]={hw:num(r.hw),words:num(r.words),extra:num(r.extra),absent:!!r.absent}});
+  const num=x=>x===true?1:(x===false?0:(+x||0));allChecks={};(data||[]).forEach(r=>{if(!allChecks[r.date])allChecks[r.date]={};allChecks[r.date][r.student_id]={hw:(r.hw==null?null:num(r.hw)),words:num(r.words),extra:num(r.extra),absent:!!r.absent,hw_done:Array.isArray(r.hw_done)?r.hw_done:[]}});
 }
 async function loadAssignments(){
   const{data:a}=await sb.from('assignments').select('*').order('created_at',{ascending:false});
@@ -1536,12 +1542,46 @@ function renderChecklist(){
   const list=clVisibleStudents();
   if(!list.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👋</div><p>Bu guruhda o\'quvchi yo\'q</p></div></td></tr>';document.getElementById('avg-label').textContent='—';return}
   list.forEach(s=>{
-    const e=allChecks[date]&&allChecks[date][s.id]||{hw:0,words:0,extra:0};
-    const ab=!!e.absent;const pct=dayPct(e);
+    if(!allChecks[date])allChecks[date]={};
+    if(!allChecks[date][s.id])allChecks[date][s.id]={hw:0,words:0,extra:0,hw_done:[]};
+    const e=allChecks[date][s.id];
+    const ab=!!e.absent;
+    const gid=gidOf(s);const hwList=hwForDate(date,gid);
+    const naHw=!ab&&prevCheckAbsent(s.id,date);
+    if(naHw)e.hw=null; else if(hwList.length){const done=(e.hw_done||[]).filter(id=>hwList.some(h=>h.id===id));e.hw=done.length/hwList.length;}
+    const pct=dayPct(e);
+    const hwCell=ab?markCell(s.id,'hw',e.hw==null?0:e.hw)
+      :naHw?'<td class="center"><span class="hw-na" title="O\'tgan darsda kelmagan — uy ishi hisobga olinmaydi">—</span></td>'
+      :hwList.length?hwItemsCell(s.id,hwList,e)
+      :markCell(s.id,'hw',e.hw==null?0:e.hw);
     const tr=document.createElement('tr');if(ab)tr.className='absent-row';
-    tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div><div class="student-name-text">${esc(s.name)}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div></div></td>${markCell(s.id,'words',e.words)}${markCell(s.id,'hw',e.hw)}${markCell(s.id,'extra',e.extra)}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${ab?'p-absent':pctClass(pct)}" id="pct-${s.id}">${ab?'Kelmadi':pct+'%'}</span></td>`;
+    tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div><div class="student-name-text">${esc(s.name)}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div></div></td>${markCell(s.id,'words',e.words)}${hwCell}${markCell(s.id,'extra',e.extra)}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${ab?'p-absent':pctClass(pct)}" id="pct-${s.id}">${ab?'Kelmadi':pct+'%'}</span></td>`;
     tbody.appendChild(tr);
   });
+  updateAvg();
+}
+/* Uy ishi bog'lash: shu kun+guruhga berilgan vazifalar */
+function hwForDate(date,gid){return (homework||[]).filter(h=>h.lesson_date===date&&h.group_id===gid)}
+function hwShort(h){return h.type==='vocab'?'V':h.type==='grammar'?'G':h.type==='extra'?'Q':'•'}
+/* O'tgan (eng yaqin oldingi) yozuvda kelmaganmi? — keyingi darsda uy ishi N/A bo'lishi uchun */
+function prevCheckAbsent(sid,date){const ds=Object.keys(allChecks).filter(d=>d<date&&allChecks[d][sid]).sort();if(!ds.length)return false;return !!allChecks[ds[ds.length-1]][sid].absent}
+function hwItemsCell(sid,hwList,e){
+  const done=new Set(e.hw_done||[]);
+  const btns=hwList.map(h=>`<button class="hwi ${done.has(h.id)?'on':''}" title="${esc(hwTypeLabel(h.type))}: ${esc(h.title)}" onclick="toggleHwItem(this,'${sid}','${h.id}')">${hwShort(h)}</button>`).join('');
+  return `<td class="center"><div class="hwi-wrap">${btns}</div></td>`;
+}
+function toggleHwItem(btn,sid,hid){
+  const date=currentDate;
+  if(!allChecks[date])allChecks[date]={};
+  if(!allChecks[date][sid])allChecks[date][sid]={hw:0,words:0,extra:0,hw_done:[]};
+  const e=allChecks[date][sid];const set=new Set(e.hw_done||[]);
+  if(set.has(hid))set.delete(hid);else set.add(hid);
+  e.hw_done=[...set];
+  const gid=gidOf(studentsById[sid]);const list=hwForDate(date,gid);
+  e.hw=list.length?list.filter(h=>set.has(h.id)).length/list.length:e.hw;
+  btn.classList.toggle('on');
+  const pct=dayPct(e),pill=document.getElementById('pct-'+sid);
+  if(pill){pill.textContent=pct+'%';pill.className='pct-pill '+pctClass(pct)}
   updateAvg();
 }
 function cycleMark(btn,sid,key){
@@ -1571,7 +1611,7 @@ function toggleAbsent(sid,val){
 async function saveChecklist(){
   const btn=document.getElementById('save-cl-btn');btn.disabled=true;btn.textContent='Saqlanmoqda...';
   const date=currentDate,list=clVisibleStudents();
-  const ups=list.map(s=>{const e=(allChecks[date]&&allChecks[date][s.id])||{};return {student_id:s.id,date,hw:e.hw||0,words:e.words||0,extra:e.extra||0,absent:!!e.absent}});
+  const ups=list.map(s=>{const e=(allChecks[date]&&allChecks[date][s.id])||{};return {student_id:s.id,date,hw:(e.hw==null?null:e.hw),words:e.words||0,extra:e.extra||0,absent:!!e.absent,hw_done:e.hw_done||[]}});
   const{error}=await sb.from('daily_checks').upsert(ups,{onConflict:'student_id,date'});
   btn.disabled=false;btn.textContent='Saqlash';
   if(error){showToast('Xato: '+error.message);return}
@@ -1587,7 +1627,7 @@ async function saveChecklist(){
   }catch(e){}
   // Telegram: kelgan, lekin uy ishini bajarmagan/yarim qilganlar (takrorlanmaydi — tg_hw_notified)
   try{
-    const hwSids=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e&&!e.absent&&(e.hw||0)<1}).map(s=>s.id);
+    const hwSids=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e&&!e.absent&&e.hw!=null&&(e.hw||0)<1}).map(s=>s.id);
     if(hwSids.length){
       const{data:rows}=await sb.from('daily_checks').select('student_id,hw,tg_hw_notified').eq('date',date).in('student_id',hwSids);
       const toNotify=(rows||[]).filter(r=>!r.tg_hw_notified);
@@ -1604,8 +1644,9 @@ function studentStats(sid){
   const en=[];for(const d in allChecks){const e=allChecks[d][sid];if(e&&!e.absent&&(!since||d>=since))en.push(e)}
   if(!en.length)return{overall:0,hw:0,words:0,extra:0,count:0};
   const avg=k=>en.reduce((a,e)=>a+(e[k]||0),0)/en.length;
-  const words=Math.round(avg('words')*100),hw=Math.round(avg('hw')*100),extra=Math.round(avg('extra')*100);
-  const overall=Math.round(avg('words')*30+avg('hw')*40+avg('extra')*30);
+  const hwEn=en.filter(e=>e.hw!=null);const hwAvg=hwEn.length?hwEn.reduce((a,e)=>a+(e.hw||0),0)/hwEn.length:0;
+  const words=Math.round(avg('words')*100),hw=Math.round(hwAvg*100),extra=Math.round(avg('extra')*100);
+  const overall=Math.round(en.reduce((a,e)=>a+dayPct(e),0)/en.length);
   return{overall,hw,words,extra,count:en.length};
 }
 
@@ -1714,7 +1755,7 @@ function openProfile(sid){
   document.getElementById('profile-page-title').textContent=s.name;
   const so=studentsById[sid];const since=so&&so.stats_since?so.stats_since:null;
   const dates=Object.keys(allChecks).filter(d=>!since||d>=since).sort().reverse().slice(0,12);let h='';
-  dates.forEach(d=>{const e=allChecks[d]&&allChecks[d][sid];if(!e)return;if(e.absent){h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><span class="hist-detail" style="flex:1;color:var(--text-3)">Kelmadi</span></div>`;return}const pct=dayPct(e);const det=['Vocab '+sym(e.words),'Workbook '+sym(e.hw),"Qo'shimcha "+sym(e.extra)].join(' · ');h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><div class="hist-dots"><div class="hdot" style="background:${dotCol(e.words)}"></div><div class="hdot" style="background:${dotCol(e.hw)}"></div><div class="hdot" style="background:${dotCol(e.extra)}"></div></div><span class="hist-detail">${det}</span><span class="pct-pill ${pctClass(pct)}">${pct}%</span></div>`});
+  dates.forEach(d=>{const e=allChecks[d]&&allChecks[d][sid];if(!e)return;if(e.absent){h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><span class="hist-detail" style="flex:1;color:var(--text-3)">Kelmadi</span></div>`;return}const pct=dayPct(e);const det=['Vocab '+sym(e.words),'Workbook '+(e.hw==null?'N/A':sym(e.hw)),"Qo'shimcha "+sym(e.extra)].join(' · ');h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><div class="hist-dots"><div class="hdot" style="background:${dotCol(e.words)}"></div><div class="hdot" style="background:${e.hw==null?'var(--border)':dotCol(e.hw)}"></div><div class="hdot" style="background:${dotCol(e.extra)}"></div></div><span class="hist-detail">${det}</span><span class="pct-pill ${pctClass(pct)}">${pct}%</span></div>`});
   if(!h)h='<div class="no-history">Hali ma\'lumot yo\'q</div>';
   let arch='';try{if(so&&Array.isArray(so.archive)&&so.archive.length){arch='<div class="history-card"><div class="card-title">Arxiv (oldingi guruhlar)</div>'+so.archive.map(a=>`<div class="hist-row"><span class="hist-detail" style="flex:1">${esc(a.group||'\u2014')}</span><span class="hist-date">${a.until?fmtDate(a.until):''}</span><span class="pct-pill ${pctClass(a.overall||0)}">${a.overall||0}%</span></div>`).join('')+'</div>'}}catch(e){}
   const ptr=studentTrend(sid);const ptrend=ptr.length>1?`<div class="bars-card"><div class="card-title">O'zlashtirish dinamikasi</div>${sparkline(ptr.slice(-14),'100%',60)}</div>`:'';
@@ -1960,13 +2001,18 @@ async function saveCrit(aid,sid,crit,val){
   renderTests();
 }
 async function notifyResult(a,s,tot,passed){
-  const key=a.id+'|'+s.id;if(_testNotified.has(key))return;_testNotified.add(key);
   const pct=a.max_score?Math.round(tot/a.max_score*100):0;
   const title=a.title+' — natija';
   const body=`Natijangiz: ${tot}/${a.max_score} (${pct}%).\n${passed?"✅ Tabriklaymiz — testdan o'tdingiz!":"❌ Afsuski, bu safar o'ta olmadingiz. O'qituvchingiz bilan zaif mavzularni qaytaring."}`;
   const sender=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
+  // Eski shu test natijasi xabarini almashtiramiz — o'qituvchi ballni tuzatsa, Ustoz xabari ham yangilanadi
+  try{await sb.from('notifications').delete().eq('student_id',s.id).eq('title',title);}catch(e){}
   await sb.from('notifications').insert({title,body,group_id:a.group_id,student_id:s.id,created_by:currentUser.id,created_by_name:sender});
-  try{const tgText=`📊 Farzandingiz ${s.name}: «${a.title}» — ${tot}/${a.max_score} (${pct}%).\n${passed?"✅ Testdan o'tdi.":"❌ Testdan o'ta olmadi — zaif mavzularni qaytarish tavsiya etiladi."}`;callTgSend(s.id,'test',tgText);}catch(e){}
+  // Telegram faqat bir marta (har tuzatishda spam bo'lmasin)
+  const key=a.id+'|'+s.id;
+  if(!_testNotified.has(key)){_testNotified.add(key);
+    try{const tgText=`📊 Farzandingiz ${s.name}: «${a.title}» — ${tot}/${a.max_score} (${pct}%).\n${passed?"✅ Testdan o'tdi.":"❌ Testdan o'ta olmadi — zaif mavzularni qaytarish tavsiya etiladi."}`;callTgSend(s.id,'test',tgText);}catch(e){}
+  }
 }
 
 /* ---------- REPORT ---------- */
@@ -2079,7 +2125,7 @@ function renderParentHome(){
   const el=document.getElementById('v-home');if(!el)return;
   const child=vStudent||{};const childName=child.name||'Farzandingiz';
   let keldi=0,kelmadi=0;Object.values(vChecks||{}).forEach(e=>{if(e.absent)kelmadi++;else keldi++});
-  const _hwT=Object.values(vChecks||{}).filter(e=>!e.absent).map(e=>e.hw||0);const hwTeacherPct=_hwT.length?Math.round(100*_hwT.reduce((a,b)=>a+b,0)/_hwT.length):0;
+  const _hwT=Object.values(vChecks||{}).filter(e=>!e.absent&&e.hw!=null).map(e=>e.hw||0);const hwTeacherPct=_hwT.length?Math.round(100*_hwT.reduce((a,b)=>a+b,0)/_hwT.length):0;
   const dow=new Date().getDay();
   const isLessonToday=vGroup&&vGroup.lesson_days?((vGroup.lesson_days==='odd'?[1,3,5]:[2,4,6]).includes(dow)):false;
   const tc=vChecks[todayStr()];
@@ -2114,7 +2160,7 @@ function renderStudentHome(){
   const en=Object.values(checks).filter(e=>!e.absent), cnt=en.length;
   const totalLessons=Object.keys(checks).length, att=totalLessons?Math.round(cnt/totalLessons*100):0;
   const avg=k=>cnt?en.reduce((a,e)=>a+(e[k]||0),0)/cnt:0;
-  const hw=Math.round(avg('hw')*100);
+  const _hwEn=en.filter(e=>e.hw!=null);const hw=_hwEn.length?Math.round(100*_hwEn.reduce((a,e)=>a+(e.hw||0),0)/_hwEn.length):0;
   const pending=activePending();
   const grades=(vGrades||[]).slice().sort((a,b)=>(b.a.due_date||'').localeCompare(a.a.due_date||''));
   const lastTest=grades.find(x=>x.grade!=null);
@@ -2167,7 +2213,7 @@ function renderActivities(){
 function renderLessonHistory(){
   const el=document.getElementById('viewer-history');if(!el)return;
   const checks=vChecks||{};const dates=Object.keys(checks).sort().reverse().slice(0,20);let h='';
-  dates.forEach(d=>{const e=checks[d];if(e.absent){h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><span class="hist-detail" style="flex:1;color:var(--text-3)">Kelmadi</span></div>`;return}const pct=dayPct(e);const det=['Vocab '+sym(e.words),'Workbook '+sym(e.hw),"Qo'shimcha "+sym(e.extra)].join(' · ');h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><div class="hist-dots"><div class="hdot" style="background:${dotCol(e.words)}"></div><div class="hdot" style="background:${dotCol(e.hw)}"></div><div class="hdot" style="background:${dotCol(e.extra)}"></div></div><span class="hist-detail">${det}</span><span class="pct-pill ${pctClass(pct)}">${pct}%</span></div>`});
+  dates.forEach(d=>{const e=checks[d];if(e.absent){h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><span class="hist-detail" style="flex:1;color:var(--text-3)">Kelmadi</span></div>`;return}const pct=dayPct(e);const det=['Vocab '+sym(e.words),'Workbook '+(e.hw==null?'N/A':sym(e.hw)),"Qo'shimcha "+sym(e.extra)].join(' · ');h+=`<div class="hist-row"><span class="hist-date">${fmtDate(d)}</span><div class="hist-dots"><div class="hdot" style="background:${dotCol(e.words)}"></div><div class="hdot" style="background:${e.hw==null?'var(--border)':dotCol(e.hw)}"></div><div class="hdot" style="background:${dotCol(e.extra)}"></div></div><span class="hist-detail">${det}</span><span class="pct-pill ${pctClass(pct)}">${pct}%</span></div>`});
   if(!h)h='<div class="no-history">Hali ma\'lumot yo\'q</div>';
   el.innerHTML=`<div class="dash-history">${h}</div>`;
 }
