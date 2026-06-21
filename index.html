@@ -33,7 +33,10 @@
   --shadow-lg:0 12px 40px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{max-width:100%;overflow-x:hidden}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+#viewer-app,#app-shell{overflow-x:hidden}
+img,svg,canvas{max-width:100%}
 .hidden{display:none!important}
 #loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:999}
 .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite}
@@ -854,20 +857,19 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .chat-pane-head{padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px}
 @media(max-width:767px){.chat-admin-wrap{flex-direction:column;height:auto}.chat-threads{width:100%;max-height:34vh}.chat-pane{height:60vh}}
 
-/* ========== LOGO SPLASH (har refresh'da animatsiya — haqiqiy logo) ========== */
-#logo-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg);animation:lsBg .6s 2.0s forwards}
-#logo-splash .ls-mark{position:relative;width:152px;height:152px;transform-origin:center;animation:lsPop .55s cubic-bezier(.2,.9,.25,1.2) both, lsFly 1s 1.9s cubic-bezier(.5,0,.2,1) forwards}
-.ls-logo{position:absolute;inset:7px;border-radius:50%;box-shadow:0 12px 36px rgba(229,36,43,.42),0 2px 12px rgba(0,0,0,.28)}
-.ls-ring-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg)}
-.ls-ring{fill:none;stroke:var(--brand);stroke-width:4;stroke-linecap:round;stroke-dasharray:56 320;stroke-dashoffset:0;filter:drop-shadow(0 0 7px var(--brand));animation:lsTrace 1.75s .15s cubic-bezier(.4,0,.2,1) forwards}
-.ls-sheen{position:absolute;inset:7px;border-radius:50%;overflow:hidden;pointer-events:none}
-.ls-sheen::before{content:"";position:absolute;top:-30%;left:-70%;width:55%;height:160%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-18deg);animation:lsSheen 1.05s .6s ease-in-out both}
-@keyframes lsPop{0%{transform:scale(.55);opacity:0}60%{opacity:1}100%{transform:scale(1);opacity:1}}
-@keyframes lsTrace{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-376}}
-@keyframes lsSheen{0%{left:-70%}100%{left:120%}}
-@keyframes lsFly{0%{transform:translate(0,0) scale(1)}100%{transform:translate(calc(-50vw + 46px),calc(-50vh + 40px)) scale(.26)}}
+/* ========== LOGO SPLASH — xira doira → T qo'lda chiziladi → 0.5s turadi → ochiladi ========== */
+#logo-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:var(--bg);animation:lsBg .35s 1.95s forwards}
+#logo-splash svg{width:150px;height:150px;overflow:visible;animation:lsPop .5s cubic-bezier(.2,.9,.25,1.2) both}
+/* doira — xira paydo bo'lib chiziladi */
+.ls-ring{fill:none;stroke:var(--brand);stroke-width:6.5;stroke-linecap:round;stroke-dasharray:566;stroke-dashoffset:566;opacity:.18;animation:lsDraw .65s .05s ease-out forwards, lsDim .65s .05s ease-out forwards}
+/* T — qalam bilan chizilgandek */
+.ls-t{fill:none;stroke:var(--brand);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:480;stroke-dashoffset:480;animation:lsDraw .72s .5s cubic-bezier(.55,0,.3,1) forwards}
+/* alanga — oxirida chiziladi */
+.ls-flame{fill:none;stroke:var(--brand);stroke-width:4.5;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;animation:lsDraw .35s 1.12s ease-out forwards}
+@keyframes lsDraw{to{stroke-dashoffset:0}}
+@keyframes lsDim{to{opacity:.42}}
+@keyframes lsPop{0%{transform:scale(.78);opacity:0}100%{transform:scale(1);opacity:1}}
 @keyframes lsBg{to{opacity:0;visibility:hidden}}
-@media(max-width:767px){@keyframes lsFly{0%{transform:translate(0,0) scale(1)}100%{transform:translate(calc(-50vw + 40px),calc(-50vh + 36px)) scale(.24)}}}
 @media(prefers-reduced-motion:reduce){#logo-splash{display:none}}
 
 /* ========== DIZAYN SAYQAL v2 (2026-06-21) — button + banner + rang uyg'unligi ========== */
@@ -903,13 +905,14 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 </head>
 <body>
 <div id="logo-splash" aria-hidden="true">
-  <div class="ls-mark">
-    <div class="ls-logo tommy-logo" role="img" aria-label="TOMMY"></div>
-    <svg class="ls-ring-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle class="ls-ring" cx="60" cy="60" r="58"/></svg>
-    <span class="ls-sheen"></span>
-  </div>
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TOMMY">
+    <circle class="ls-ring" cx="100" cy="100" r="90"/>
+    <path class="ls-t" d="M58 68 H142 V104 H126 V96 H112 V150 Q112 156 106 156 H94 Q88 156 88 150 V96 H74 V104 H58 Z"/>
+    <path class="ls-flame" d="M103 108 C97 120 107 127 100 142"/>
+    <path class="ls-flame" d="M96 116 C92 124 98 130 95 140"/>
+  </svg>
 </div>
-<script>(function(){var s=document.getElementById('logo-splash');if(!s)return;var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s);},rm?0:2900);})();</script>
+<script>(function(){var s=document.getElementById('logo-splash');if(!s)return;var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s);},rm?0:2350);})();</script>
 
 <div id="loading-screen"><div class="spinner"></div><span style="font-size:13px;color:var(--text-3);font-family:var(--mono)">Yuklanmoqda...</span></div>
 
@@ -1441,7 +1444,7 @@ function refillAllGroupSelects(){
 async function startApp(){
   showLoading(true);
   await loadAllGroups();
-  await loadStudents();await loadAllChecks();await loadAssignments();await loadPending();await loadHomework();
+  await Promise.all([loadStudents(),loadAllChecks(),loadAssignments(),loadPending(),loadHomework()]);
   showLoading(false);
   showScreen('app-shell');
   buildNav();
@@ -2120,18 +2123,26 @@ async function startViewer(childId){
   { const _am=document.getElementById('acct-menu'); if(_am) _am.classList.add('hidden'); }  // viewer: \u22ee menyu ko'rsatilmaydi (rejim header'da, parol kerak emas, chiqish sozlamalarda)
   vSid=sid;vDone=new Set();vHw=[];vConfirms=new Set();
   const _gid=(sData&&sData.group_id)||myProfile.group_id;
-  if(_gid){const r=await sb.from('homework').select('*').eq('group_id',_gid).order('lesson_date',{ascending:false});vHw=r.data||[]}
-  if(sid){const r=await sb.from('homework_done').select('*').eq('student_id',sid);(r.data||[]).forEach(x=>{if(x.done)vDone.add(x.homework_id)})}
-  if(sid){try{const r=await sb.from('lesson_confirms').select('lesson_date').eq('student_id',sid);(r.data||[]).forEach(x=>vConfirms.add(x.lesson_date))}catch(e){}}
-  vRank=null;
-  try{const rr=await sb.rpc('my_group_rank');if(rr&&rr.data&&rr.data.length)vRank=rr.data[0];}catch(e){}
-  let vg=[];
-  if(sid){const r1=await sb.from('assignment_grades').select('*').eq('student_id',sid);const grades=r1.data||[];if(grades.length){const ids=grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=grades.map(g=>({grade:g.grade,score:g.score,breakdown:g.breakdown,status:g.status,a:amap[g.assignment_id]})).filter(x=>x.a)}}
-  vChecks=checks;vGrades=vg;vStudent=sData;vTeacherName=vTeacher;
-  await loadViewerNotifs();updateNotifBadge();
-  await loadViewerMaterials();
-  await loadChatUnread();subscribeFamilyChat();
-  await loadViewerPayments();
+  // Globallarni oldindan o'rnatamiz — parallel yuklovchilar shularga tayanadi
+  vChecks=checks;vStudent=sData;vTeacherName=vTeacher;
+  const _PR=v=>Promise.resolve(v);
+  // Barcha mustaqil so'rovlarni PARALLEL yuklaymiz (avval ketma-ket edi → sekin)
+  const [hwR,hdR,lcR,rankR,agR]=await Promise.all([
+    _gid?sb.from('homework').select('*').eq('group_id',_gid).order('lesson_date',{ascending:false}):_PR({data:[]}),
+    sid?sb.from('homework_done').select('*').eq('student_id',sid):_PR({data:[]}),
+    sid?sb.from('lesson_confirms').select('lesson_date').eq('student_id',sid).then(r=>r,()=>({data:[]})):_PR({data:[]}),
+    sb.rpc('my_group_rank').then(r=>r,()=>({data:[]})),
+    sid?sb.from('assignment_grades').select('*').eq('student_id',sid):_PR({data:[]}),
+    loadViewerNotifs(),loadViewerMaterials(),loadChatUnread(),loadViewerPayments()
+  ]);
+  vHw=hwR.data||[];
+  (hdR.data||[]).forEach(x=>{if(x.done)vDone.add(x.homework_id)});
+  (lcR.data||[]).forEach(x=>vConfirms.add(x.lesson_date));
+  vRank=(rankR&&rankR.data&&rankR.data.length)?rankR.data[0]:null;
+  let vg=[];const _grades=agR.data||[];
+  if(_grades.length){const ids=_grades.map(g=>g.assignment_id);const r2=await sb.from('assignments').select('*').in('id',ids);const amap={};(r2.data||[]).forEach(a=>amap[a.id]=a);vg=_grades.map(g=>({grade:g.grade,score:g.score,breakdown:g.breakdown,status:g.status,a:amap[g.assignment_id]})).filter(x=>x.a)}
+  vGrades=vg;
+  updateNotifBadge();subscribeFamilyChat();
   buildViewerNav();
   renderViewerHomework();
   renderViewerGrades(vg);
