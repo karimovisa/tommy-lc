@@ -898,6 +898,36 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .ab-feats li{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);border-radius:13px;padding:12px 14px}
 .ab-feats li:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.28);transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.28)}
 .ab-feat-ic{background:rgba(255,255,255,.22)}
+
+/* ========== MOTION v4 (2026-06-21) — sayt bo'ylab jonli animatsiyalar ========== */
+/* 2) Grafik chizig'i chapdan o'ngga chiziladi (logo bilan bir uslub) */
+.spark-line{stroke-dasharray:100;stroke-dashoffset:100;animation:sparkDraw 1.2s .15s cubic-bezier(.45,0,.2,1) forwards}
+@keyframes sparkDraw{to{stroke-dashoffset:0}}
+.spark path:first-child{animation:sparkArea .8s .5s ease-out both}
+@keyframes sparkArea{from{opacity:0}to{opacity:.10}}
+/* 4) Kartalar bosqichma-bosqich (stagger) kirishi */
+@keyframes sdUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+#v-home>*,.vview.active>.student-dash,.vview.active>.sd-card{animation:sdUp .5s both}
+#v-home>*:nth-child(1){animation-delay:.02s}
+#v-home>*:nth-child(2){animation-delay:.06s}
+#v-home>*:nth-child(3){animation-delay:.12s}
+#v-home>*:nth-child(4){animation-delay:.18s}
+#v-home>*:nth-child(5){animation-delay:.24s}
+#v-home>*:nth-child(6){animation-delay:.30s}
+#v-home>*:nth-child(7){animation-delay:.36s}
+.sd-hero-grid .sd-hero{animation:sdUp .5s both}
+.sd-hero-grid .sd-hero:nth-child(2){animation-delay:.06s}
+.sd-hero-grid .sd-hero:nth-child(3){animation-delay:.12s}
+.sd-hero-grid .sd-hero:nth-child(4){animation-delay:.18s}
+/* 5) Mayda micro-motion */
+.sd-dot,.dash-card-ic .badge{animation:badgePulse 2.2s ease-in-out infinite}
+@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.sd-nav .nav-item,.sd-quick-item,.sd-act{transition:transform .18s,background .18s,color .18s}
+.sd-nav .nav-item:hover{transform:translateX(3px)}
+.sd-act:hover{transform:translateX(2px)}
+.sd-hero{transition:transform .2s,box-shadow .2s}
+.sd-hero:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+@media(prefers-reduced-motion:reduce){.spark-line{stroke-dashoffset:0}.sd-dot,.dash-card-ic .badge{animation:none}#v-home>*,.sd-hero-grid .sd-hero{animation:none}}
 </style>
 </head>
 <body>
@@ -1848,7 +1878,7 @@ function ring(pct,size,stroke){
   const col=pct>=75?'var(--good)':pct>=50?'var(--warn)':'var(--bad)';
   return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`
     +`<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}" style="stroke:var(--border)"/>`
-    +`<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${size/2} ${size/2})" style="stroke:${col};transition:stroke-dashoffset .7s ease"/>`
+    +`<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${size/2} ${size/2})" style="stroke:${col}"><animate attributeName="stroke-dashoffset" from="${c.toFixed(1)}" to="${off.toFixed(1)}" dur="0.9s" begin="0s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.25 0 0 1"/></circle>`
     +`<text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" style="fill:var(--text);font-family:var(--mono);font-size:${Math.round(size*0.26)}px;font-weight:600">${pct}%</text>`
     +`</svg>`;
 }
@@ -1860,7 +1890,7 @@ function sparkline(vals,w,h){
   const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
   const area=`M0 ${h} `+pts.map(p=>'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+` L${vbW} ${h} Z`;
   const last=vals[vals.length-1],col=last>=75?'var(--good)':last>=50?'var(--warn)':'var(--bad)';
-  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${vbW} ${h}" preserveAspectRatio="none"><path d="${area}" style="fill:${col};opacity:.10"/><path d="${line}" fill="none" style="stroke:${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${vbW} ${h}" preserveAspectRatio="none"><path d="${area}" style="fill:${col};opacity:.10"/><path class="spark-line" d="${line}" fill="none" style="stroke:${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pathLength="100"/></svg>`;
 }
 function studentTrend(sid){
   const so=studentsById[sid];const since=so&&so.stats_since?so.stats_since:null;const out=[];
@@ -2255,6 +2285,21 @@ function renderStudentHome(){
   const tipSeen=(()=>{try{return localStorage.getItem('tommy-tip-seen')==='1'}catch(e){return false}})();
   const tipBanner=(!tipSeen&&myProfile.role!=='parent')?`<div class="sd-tip" id="sd-tip"><button class="sd-tip-x" onclick="dismissTip()" aria-label="Yopish">✕</button><div class="sd-tip-h">👋 Boshlash juda oson</div><div class="sd-tip-b">Har darsdan keyin <b>Uy ishi</b> bo'limida vazifalarni belgilab <b>tasdiqlang</b> — shunda har kuni <b>🔥 seriya</b> yig'asiz. Darsga kelolmasangiz ham bajarib qo'ysangiz, seriyangiz <b>uzilmaydi</b>.</div><button class="btn btn-primary btn-sm" onclick="showVView('homework')" style="margin-top:12px">Uy ishini ochish →</button></div>`:'';
   el.innerHTML=`<div class="sd-greet">${greet}</div><div class="sd-greet-sub">${grp?esc(grp):''}</div>${tipBanner}${warnBanner}${heroes}${teacher}${stats}${quick}`;
+  animateCounts(el);
+}
+/* Raqamlarni 0 dan haqiqiy qiymatgacha "sanab" chiqaradi (count-up) */
+function prefersReduced(){try{return window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches}catch(e){return false}}
+function animateCounts(scope){
+  if(!scope||prefersReduced())return;
+  scope.querySelectorAll('.sd-hero-big,.sd-sum-val').forEach(el=>{
+    const html=el.innerHTML;if(html.indexOf(':')>=0)return;const m=html.match(/\d[\d.,]*/);if(!m)return;
+    const raw=m[0],target=parseFloat(raw.replace(/,/g,''));if(!isFinite(target)||target<=0)return;
+    const isFloat=raw.indexOf('.')>=0,dur=850,t0=performance.now();
+    (function tick(now){const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);
+      const cur=isFloat?(target*e).toFixed(1):Math.round(target*e);
+      el.innerHTML=html.replace(raw,String(cur));
+      if(p<1)requestAnimationFrame(tick);})(t0);
+  });
 }
 function dismissTip(){try{localStorage.setItem('tommy-tip-seen','1')}catch(e){}const t=document.getElementById('sd-tip');if(t){t.style.opacity='0';t.style.transform='translateY(-6px)';setTimeout(()=>{if(t)t.remove()},250);}}
 function heroCard(icon,color,bg,title,big,sub,target,soon){
