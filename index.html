@@ -1386,11 +1386,16 @@ function initials(n){n=(n||'?').trim();return n.split(' ').slice(0,2).map(w=>w[0
 function pctClass(p){return p>=75?'p-high':p>=50?'p-mid':'p-low'}
 function barColor(p){return p>=75?'var(--good)':p>=50?'#c8900a':'var(--bad)'}
 function valColor(p){return p>=75?'good':p>=50?'warn':'bad'}
-function dayPct(e){if(!e)return 0;const w=e.words||0,x=e.extra||0;if(e.hw==null)return Math.round(w*50+x*50);return Math.round(w*30+(e.hw||0)*40+x*30)}
+/* Adolatli vazn: qaysi turlar berilgan bo'lsa shularga bo'linadi. Grammar(workbook) doim ko'proq. */
+function weightsFor(av,ag,ae){const n=(av?1:0)+(ag?1:0)+(ae?1:0);if(n===0)return{v:0,g:0,e:0};if(n===1)return{v:av?100:0,g:ag?100:0,e:ae?100:0};if(n===3)return{v:30,g:40,e:30};if(ag&&av)return{v:40,g:60,e:0};if(ag&&ae)return{v:0,g:60,e:40};return{v:50,g:0,e:50}}
+function dayHasData(e){return !!e&&!e.absent&&(e.words!=null||e.hw!=null||e.extra!=null)}
+function dayPct(e){if(!e)return 0;const av=e.words!=null,ag=e.hw!=null,ae=e.extra!=null;if(!av&&!ag&&!ae)return 0;const w=weightsFor(av,ag,ae);return Math.round((e.words||0)*w.v+(e.hw||0)*w.g+(e.extra||0)*w.e)}
+/* Shu kun+guruhga berilgan uy ishi turlari (vocab/grammar/extra). Uy ishi yo'q bo'lsa — hammasi (eski holat). */
+function partsForLesson(date,gid){const hw=hwForDate(date,gid);if(!hw.length)return{v:true,g:true,e:true};return{v:hw.some(h=>h.type==='vocab'),g:hw.some(h=>h.type==='grammar'),e:hw.some(h=>h.type==='extra')}}
 function markCls(v){return v>=1?'m1':v>=0.5?'mh':'m0'}
 function markCell(sid,key,v){return `<td class="center"><button class="mark ${markCls(v)}" onclick="cycleMark(this,'${sid}','${key}')">${v>=1?'<span class="ck">\u2713</span>':''}</button></td>`}
-function sym(v){return v>=1?'\u2713':v>=0.5?'\u25d0':'\u2717'}
-function dotCol(v){return v>=1?'var(--good)':v>=0.5?'#9fd4a6':'var(--border-strong)'}
+function sym(v){return v==null?'\u2014':v>=1?'\u2713':v>=0.5?'\u25d0':'\u2717'}
+function dotCol(v){return v==null?'var(--border)':v>=1?'var(--good)':v>=0.5?'#9fd4a6':'var(--border-strong)'}
 const HW_VARIANTS=(function(){const a=[];let p=0;for(let u=1;u<=12;u++){['a','b','c'].forEach(t=>a.push(u+t));if(u%2===0){p++;a.push('Practical '+p)}}return a})();
 /* ---------- TEST KONFIGURATSIYASI ---------- */
 const LEVELS=[['beginner','Beginner'],['elementary','Elementary'],['pre_intermediate','Pre-intermediate']];
@@ -1657,7 +1662,7 @@ async function loadStudents(){
 }
 async function loadAllChecks(){
   const{data}=await sb.from('daily_checks').select('*');
-  const num=x=>x===true?1:(x===false?0:(+x||0));allChecks={};(data||[]).forEach(r=>{if(!allChecks[r.date])allChecks[r.date]={};allChecks[r.date][r.student_id]={hw:(r.hw==null?null:num(r.hw)),words:num(r.words),extra:num(r.extra),absent:!!r.absent,hw_done:Array.isArray(r.hw_done)?r.hw_done:[]}});
+  const num=x=>x===true?1:(x===false?0:(+x||0));allChecks={};(data||[]).forEach(r=>{if(!allChecks[r.date])allChecks[r.date]={};allChecks[r.date][r.student_id]={words:(r.words==null?null:num(r.words)),hw:(r.hw==null?null:num(r.hw)),extra:(r.extra==null?null:num(r.extra)),absent:!!r.absent}});
 }
 async function loadAssignments(){
   const{data:a}=await sb.from('assignments').select('*').order('created_at',{ascending:false});
@@ -1727,7 +1732,7 @@ function renderDashboard(){
     +(pendingList.length?kpiCard(ICONS.clock,pendingList.length,'Kutilmoqda','var(--brand)','var(--brand-light)','var(--brand)'):'')
     +`</div>`;
   // Sinf o'zlashtirish dinamikasi (sparkline)
-  const trend=[];Object.keys(allChecks).sort().forEach(d=>{const day=allChecks[d];let sum=0,n=0;studs.forEach(x=>{const e=day[x.s.id];if(e&&!e.absent){sum+=dayPct(e);n++}});if(n)trend.push(Math.round(sum/n))});
+  const trend=[];Object.keys(allChecks).sort().forEach(d=>{const day=allChecks[d];let sum=0,n=0;studs.forEach(x=>{const e=day[x.s.id];if(dayHasData(e)){sum+=dayPct(e);n++}});if(n)trend.push(Math.round(sum/n))});
   if(trend.length>1){const tv=trend.slice(-14),diff=tv[tv.length-1]-tv[0];
     html+=`<div class="trend-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="card-title" style="margin:0">Sinf o'zlashtirish dinamikasi</div><div style="font-family:var(--mono);font-size:12px;color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'▲ +':'▼ '}${Math.abs(diff)}%</div></div>${sparkline(tv,'100%',56)}</div>`;
   }
@@ -1778,21 +1783,30 @@ function renderChecklist(){
   const date=currentDate,tbody=document.getElementById('cl-tbody');tbody.innerHTML='';
   const list=clVisibleStudents();
   if(!list.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👋</div><p>Bu guruhda o\'quvchi yo\'q</p></div></td></tr>';document.getElementById('avg-label').textContent='—';return}
+  const naTd='<td class="center"><span class="hw-na" title="Bu turda uy ishi berilmagan — hisobga olinmaydi">—</span></td>';
   list.forEach(s=>{
     if(!allChecks[date])allChecks[date]={};
-    if(!allChecks[date][s.id])allChecks[date][s.id]={hw:0,words:0,extra:0,hw_done:[]};
+    if(!allChecks[date][s.id])allChecks[date][s.id]={hw:0,words:0,extra:0};
     const e=allChecks[date][s.id];
     const ab=!!e.absent;
-    const gid=gidOf(s);const hwList=hwForDate(date,gid);
-    const naHw=!ab&&prevCheckAbsent(s.id,date);
-    if(naHw)e.hw=null; else if(hwList.length){const done=(e.hw_done||[]).filter(id=>hwList.some(h=>h.id===id));e.hw=done.length/hwList.length;}
+    const gid=gidOf(s);
+    const parts=partsForLesson(date,gid);
+    const naAll=!ab&&prevCheckAbsent(s.id,date);   // o'tgan darsda kelmagan -> uy ishi yo'q
+    const actV=!ab&&parts.v&&!naAll, actG=!ab&&parts.g&&!naAll, actE=!ab&&parts.e&&!naAll;
+    if(!ab){
+      e.words=actV?(e.words==null?0:e.words):null;
+      e.hw=actG?(e.hw==null?0:e.hw):null;
+      e.extra=actE?(e.extra==null?0:e.extra):null;
+    }
+    const noData=!ab&&!actV&&!actG&&!actE;
     const pct=dayPct(e);
-    const hwCell=ab?markCell(s.id,'hw',e.hw==null?0:e.hw)
-      :naHw?'<td class="center"><span class="hw-na" title="O\'tgan darsda kelmagan — uy ishi hisobga olinmaydi">—</span></td>'
-      :hwList.length?hwItemsCell(s.id,hwList,e)
-      :markCell(s.id,'hw',e.hw==null?0:e.hw);
+    const wCell=ab?markCell(s.id,'words',e.words==null?0:e.words):(actV?markCell(s.id,'words',e.words):naTd);
+    const gCell=ab?markCell(s.id,'hw',e.hw==null?0:e.hw):(actG?markCell(s.id,'hw',e.hw):naTd);
+    const xCell=ab?markCell(s.id,'extra',e.extra==null?0:e.extra):(actE?markCell(s.id,'extra',e.extra):naTd);
+    const pctTxt=ab?'Kelmadi':(noData?'—':pct+'%');
+    const pctCls=(ab||noData)?'p-absent':pctClass(pct);
     const tr=document.createElement('tr');if(ab)tr.className='absent-row';
-    tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div><div class="student-name-text">${esc(s.name)}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div></div></td>${markCell(s.id,'words',e.words)}${hwCell}${markCell(s.id,'extra',e.extra)}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${ab?'p-absent':pctClass(pct)}" id="pct-${s.id}">${ab?'Kelmadi':pct+'%'}</span></td>`;
+    tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div><div class="student-name-text">${esc(s.name)}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div></div></td>${wCell}${gCell}${xCell}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${pctCls}" id="pct-${s.id}">${pctTxt}</span></td>`;
     tbody.appendChild(tr);
   });
   updateAvg();
@@ -1834,7 +1848,7 @@ function cycleMark(btn,sid,key){
 }
 function updateAvg(){
   const date=currentDate,list=clVisibleStudents();
-  const present=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return !(e&&e.absent)});
+  const present=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return dayHasData(e)});
   const vals=present.map(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e?dayPct(e):0});
   document.getElementById('avg-label').textContent=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length||1))+'%';
 }
@@ -1848,7 +1862,7 @@ function toggleAbsent(sid,val){
 async function saveChecklist(){
   const btn=document.getElementById('save-cl-btn');btn.disabled=true;btn.textContent='Saqlanmoqda...';
   const date=currentDate,list=clVisibleStudents();
-  const ups=list.map(s=>{const e=(allChecks[date]&&allChecks[date][s.id])||{};return {student_id:s.id,date,hw:(e.hw==null?null:e.hw),words:e.words||0,extra:e.extra||0,absent:!!e.absent,hw_done:e.hw_done||[]}});
+  const ups=list.map(s=>{const e=(allChecks[date]&&allChecks[date][s.id])||{};return {student_id:s.id,date,words:(e.words==null?null:e.words),hw:(e.hw==null?null:e.hw),extra:(e.extra==null?null:e.extra),absent:!!e.absent}});
   const{error}=await sb.from('daily_checks').upsert(ups,{onConflict:'student_id,date'});
   btn.disabled=false;btn.textContent='Saqlash';
   if(error){showToast('Xato: '+error.message);return}
@@ -1878,7 +1892,7 @@ async function saveChecklist(){
 /* ---------- STATS ---------- */
 function studentStats(sid){
   const so=studentsById[sid];const since=so&&so.stats_since?so.stats_since:null;
-  const en=[];for(const d in allChecks){const e=allChecks[d][sid];if(e&&!e.absent&&(!since||d>=since))en.push(e)}
+  const en=[];for(const d in allChecks){const e=allChecks[d][sid];if(dayHasData(e)&&(!since||d>=since))en.push(e)}
   if(!en.length)return{overall:0,hw:0,words:0,extra:0,count:0};
   const avg=k=>en.reduce((a,e)=>a+(e[k]||0),0)/en.length;
   const hwEn=en.filter(e=>e.hw!=null);const hwAvg=hwEn.length?hwEn.reduce((a,e)=>a+(e.hw||0),0)/hwEn.length:0;
@@ -2046,7 +2060,7 @@ function sparkline(vals,w,h){
 }
 function studentTrend(sid){
   const so=studentsById[sid];const since=so&&so.stats_since?so.stats_since:null;const out=[];
-  Object.keys(allChecks).sort().forEach(d=>{if(since&&d<since)return;const e=allChecks[d][sid];if(e&&!e.absent)out.push(dayPct(e))});
+  Object.keys(allChecks).sort().forEach(d=>{if(since&&d<since)return;const e=allChecks[d][sid];if(dayHasData(e))out.push(dayPct(e))});
   return out;
 }
 
@@ -2410,7 +2424,7 @@ function renderStudentHome(){
   const pending=activePending();
   const grades=(vGrades||[]).slice().sort((a,b)=>(b.a.due_date||'').localeCompare(a.a.due_date||''));
   const lastTest=grades.find(x=>x.grade!=null);
-  const vtrend=Object.keys(checks).sort().filter(d=>!checks[d].absent).map(d=>dayPct(checks[d]));
+  const vtrend=Object.keys(checks).sort().filter(d=>dayHasData(checks[d])).map(d=>dayPct(checks[d]));
   const tdiff=vtrend.length>1?vtrend[vtrend.length-1]-vtrend[0]:0;
   const dispName=myProfile.role==='parent'?(myProfile.child_name||''):(myProfile.full_name||'');
   const greet=myProfile.role==='parent'?`${esc(dispName)}ning natijalari`:`Salom, ${esc((dispName||'').split(' ')[0]||'')}! 👋`;
