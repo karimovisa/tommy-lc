@@ -1106,6 +1106,14 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .ab-oxford{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.30)!important;color:#fff;box-shadow:0 8px 26px rgba(120,10,15,.24)}
 .ab-oxford svg{color:#fff}
 .ab-oxford b{color:#fff}
+
+/* ===== BANNER v10 — suzuvchi ranglar (floating aurora) ===== */
+@keyframes floatA{0%{transform:translate(0,0) scale(1)}33%{transform:translate(80px,55px) scale(1.16)}66%{transform:translate(35px,95px) scale(1.06)}100%{transform:translate(0,0) scale(1)}}
+@keyframes floatB{0%{transform:translate(0,0) scale(1)}33%{transform:translate(-75px,-45px) scale(1.22)}66%{transform:translate(-30px,45px) scale(1.1)}100%{transform:translate(0,0) scale(1)}}
+@keyframes floatC{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-35%,-65%) scale(1.28)}100%{transform:translate(-50%,-50%) scale(1)}}
+.ab-bg::before{width:440px!important;height:440px!important;opacity:.58!important;animation:floatA 23s ease-in-out infinite!important}
+.ab-bg::after{width:400px!important;height:400px!important;opacity:.52!important;animation:floatB 27s ease-in-out infinite!important}
+@media(min-width:821px){.auth-banner::before{content:""!important;position:absolute!important;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,#ffd2d1,transparent 70%)!important;filter:blur(85px);opacity:.42!important;top:50%;left:42%;z-index:0;-webkit-mask:none!important;mask:none!important;animation:floatC 31s ease-in-out infinite!important}}
 </style>
 </head>
 <body>
