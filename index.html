@@ -1077,6 +1077,10 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .ab-oxford b{font-weight:800;color:#fff}
 /* To'r naqsh chiziqlarini olib tashlash (charcoal fonda ko'rinib qolardi) */
 @media(min-width:821px){.auth-banner::before{background:none!important;opacity:0!important}}
+/* Kunlik belgilash — ishonchli o'quvchi belgisi + tezkor ✓ tugma */
+.rel-dot{color:var(--good);font-size:9px;vertical-align:middle;margin-left:3px}
+.qdone{margin-left:auto;width:30px;height:30px;border-radius:8px;border:1px solid var(--warn);background:var(--warn-light);color:var(--warn);cursor:pointer;font-size:15px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+.qdone:hover{background:var(--warn);color:#fff;transform:scale(1.08)}
 /* Uy ishi — tayyor pack qutisi */
 .hw-pack-box{background:var(--brand-light);border:1px solid var(--brand);border-radius:12px;padding:12px 14px;margin:6px 0 14px}
 .hw-pack-box select{margin-top:2px}
@@ -1232,7 +1236,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div class="page-header"><div><div class="page-title">Kunlik belgilash</div><div class="page-sub">Har dars uchun to'ldiring</div></div><div class="header-actions"><select class="flt" id="cl-group" onchange="onClGroup()"></select><input type="date" id="cl-date"><div class="avg-badge">O'rtacha: <strong id="avg-label">—</strong></div></div></div>
       <div class="wrap">
         <table class="data"><thead><tr><th>O'quvchi</th><th class="center">Vocabulary</th><th class="center" title="Workbook / Grammarbank">Workbook</th><th class="center" title="speaking / writing">Qo'shimcha</th><th class="center">Kelmadi</th><th class="center">Natija</th></tr></thead><tbody id="cl-tbody"></tbody></table>
-        <div class="save-row"><button class="btn btn-primary" onclick="saveChecklist()" id="save-cl-btn">Saqlash</button><span class="saved-msg" id="saved-msg">✓ Saqlandi</span></div>
+        <div class="save-row"><button class="btn btn-primary" onclick="saveChecklist()" id="save-cl-btn">Saqlash</button><button class="btn btn-sm" onclick="markReliable()" title="O'tmishda doimiy bajaradigan o'quvchilarni avtomatik ✓ qiladi (tekshirib chiqasiz)">⚡ Doimiylarni belgilash</button><span class="saved-msg" id="saved-msg">✓ Saqlandi</span></div>
       </div>
     </div>
 
@@ -1785,6 +1789,12 @@ function showView(name){
 /* ---------- CHECKLIST ---------- */
 function clVisibleStudents(){const g=document.getElementById('cl-group').value;return students.filter(s=>g==='all'||gidOf(s)===g)}
 function onClGroup(){renderChecklist()}
+/* Doimiy bajaradigan o'quvchi? (o'tmish tahlili: o'rtacha >=85%, kamida 3 kun) */
+function isReliable(sid){const st=studentStats(sid);return !!st&&st.count>=3&&st.overall>=85}
+/* Bitta o'quvchining barcha FAOL turlarini ✓ qilish */
+function markAllDone(sid){const date=currentDate;const e=allChecks[date]&&allChecks[date][sid];if(!e||e.absent)return;if(e.words!=null)e.words=1;if(e.hw!=null)e.hw=1;if(e.extra!=null)e.extra=1;renderChecklist();}
+/* Faqat doimiy bajaradigan (ishonchli) o'quvchilarni bir bosishda belgilash */
+function markReliable(){const date=currentDate;let n=0;clVisibleStudents().forEach(s=>{const e=allChecks[date]&&allChecks[date][s.id];if(!e||e.absent||!isReliable(s.id))return;if(e.words!=null)e.words=1;if(e.hw!=null)e.hw=1;if(e.extra!=null)e.extra=1;n++;});renderChecklist();showToast(n?(n+" ta ishonchli o'quvchi belgilandi — tekshirib chiqing"):"Ishonchli o'quvchi topilmadi");}
 function renderChecklist(){
   const date=currentDate,tbody=document.getElementById('cl-tbody');tbody.innerHTML='';
   const list=clVisibleStudents();
@@ -1799,6 +1809,7 @@ function renderChecklist(){
     const parts=partsForLesson(date,gid);
     const naAll=!ab&&prevCheckAbsent(s.id,date);   // o'tgan darsda kelmagan -> uy ishi yo'q
     const actV=!ab&&parts.v&&!naAll, actG=!ab&&parts.g&&!naAll, actE=!ab&&parts.e&&!naAll;
+    const rel=!ab&&isReliable(s.id);
     if(!ab){
       e.words=actV?(e.words==null?0:e.words):null;
       e.hw=actG?(e.hw==null?0:e.hw):null;
@@ -1812,7 +1823,7 @@ function renderChecklist(){
     const pctTxt=ab?'Kelmadi':(noData?'—':pct+'%');
     const pctCls=(ab||noData)?'p-absent':pctClass(pct);
     const tr=document.createElement('tr');if(ab)tr.className='absent-row';
-    tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div><div class="student-name-text">${esc(s.name)}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div></div></td>${wCell}${gCell}${xCell}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${pctCls}" id="pct-${s.id}">${pctTxt}</span></td>`;
+    tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div style="flex:1;min-width:0"><div class="student-name-text">${esc(s.name)}${rel?' <span class="rel-dot" title="Doimiy bajaradi">●</span>':''}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div>${(rel&&(actV||actG||actE))?`<button class="qdone" title="Doimiy bajaradi — hammasini ✓" onclick="markAllDone('${s.id}')">⚡</button>`:''}</div></td>${wCell}${gCell}${xCell}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${pctCls}" id="pct-${s.id}">${pctTxt}</span></td>`;
     tbody.appendChild(tr);
   });
   updateAvg();
