@@ -1512,8 +1512,10 @@ function onTeacherPick(){
 /* ---------- THEME ENGINE (center_branding -> CSS) ---------- */
 async function loadBranding(){
   try{
-    const{data}=await sb.from('center_branding').select('theme').limit(1).maybeSingle();
-    const t=data&&data.theme; if(!t||!t.light||!t.dark)return;
+    const{data}=await sb.from('center_branding').select('theme,login_email_domain').limit(1).maybeSingle();
+    if(!data)return;
+    if(data.login_email_domain)window.__emailDomain=data.login_email_domain;
+    const t=data.theme; if(!t||!t.light||!t.dark)return;
     const css=`:root{--brand:${t.light.brand};--brand-dark:${t.light.brandDark};--brand-light:${t.light.brandLight}}`+
               `:root[data-theme="dark"]{--brand:${t.dark.brand};--brand-dark:${t.dark.brandDark};--brand-light:${t.dark.brandLight}}`;
     let el=document.getElementById('center-theme');
@@ -1554,7 +1556,7 @@ async function routeUser(){
 
 /* ---------- LOGIN / REGISTER ---------- */
 let loginMode='student';
-function idToEmail(id){return id.trim().toLowerCase().replace(/\s+/g,'')+'@students.tommy.uz'}
+function idToEmail(id){return id.trim().toLowerCase().replace(/\s+/g,'')+'@'+(window.__emailDomain||'students.tommy.uz')}
 function setLoginMode(m){
   loginMode=m;
   document.querySelectorAll('.role-tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===m));
