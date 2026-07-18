@@ -46,6 +46,7 @@ create table if not exists public.centers (
   updated_at        timestamptz not null default now()
 );
 
+drop trigger if exists trg_centers_updated_at on public.centers;
 create trigger trg_centers_updated_at
   before update on public.centers
   for each row execute function public.set_updated_at();
