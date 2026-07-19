@@ -8,3 +8,6 @@ Thumbs.db
 .env.*
 *service_role*
 *secret*
+
+# ISA LC OS backup sirlari (parol) — hech qachon commit qilinmasin
+backups/.dbconn.txt
