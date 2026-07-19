@@ -1686,7 +1686,7 @@ function refillAllGroupSelects(){
 async function startApp(){
   showLoading(true);
   await loadAllGroups();
-  await Promise.all([loadStudents(),loadAllChecks(),loadAssignments(),loadPending(),loadHomework()]);
+  await Promise.all([loadStudents(),loadAllChecks(),loadAssignments(),loadPending(),loadHomework(),loadDashIncome()]);
   showLoading(false);
   showScreen('app-shell');
   buildNav();
@@ -1774,7 +1774,68 @@ function weakAreas(st){
   const w=arr.filter(a=>a[1]<60).slice(0,2).map(a=>`${a[0]} (${a[1]}%)`).join(', ');
   return w||'—';
 }
+// ===== ACTION DASHBOARD =====
+function _adInjectCss(){
+  if(document.getElementById('ad-css'))return;
+  const s=document.createElement('style');s.id='ad-css';
+  s.textContent=".ad-hero{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;border-radius:16px;padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow-sm)}.ad-hero.live{box-shadow:0 8px 30px rgba(229,36,43,.25)}.ad-hero-tag{font-size:12px;font-weight:700;letter-spacing:.08em;opacity:.92;display:flex;align-items:center;gap:7px;margin-bottom:8px}.ad-live-dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:adpulse 1.6s infinite}@keyframes adpulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.5)}70%{box-shadow:0 0 0 10px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}.ad-hero-title{font-size:24px;font-weight:800;line-height:1.15}.ad-hero-meta{font-size:14px;opacity:.92;margin-top:5px}.ad-hero-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.ad-hero-actions .btn{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.28)}.ad-hero-actions .btn-primary{background:#fff;color:var(--brand);border:none;font-weight:700}.ad-sec-title{font-size:15px;font-weight:700;margin:16px 0 10px}.ad-tasks{display:flex;flex-direction:column;gap:8px}.ad-task{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}.ad-task-dot{width:9px;height:9px;border-radius:50%;flex:none}.ad-task-dot.bad{background:var(--bad)}.ad-task-dot.warn{background:var(--warn)}.ad-task-txt{flex:1;font-size:14px}.ad-allgood{background:var(--good-light);color:var(--good);border-radius:12px;padding:14px;text-align:center;font-weight:600}.ad-qa{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.ad-qa-btn{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;font-weight:600;font-size:14px;cursor:pointer;color:var(--text);transition:.15s}.ad-qa-btn:hover{border-color:var(--brand);color:var(--brand)}.ad-sched{display:flex;flex-direction:column;gap:10px}.ad-lesson{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--border-strong);border-radius:14px;padding:14px 16px;flex-wrap:wrap}.ad-lesson.now{border-left-color:var(--brand);background:var(--brand-light)}.ad-lesson.done{opacity:.72}.ad-lesson.next{border-left-color:var(--warn)}.ad-lesson-time{font-family:var(--mono);font-size:13px;font-weight:600;min-width:96px;display:flex;flex-direction:column;gap:4px}.ad-lesson-st{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:20px;width:fit-content;background:var(--surface-2);color:var(--text-2)}.ad-lesson-st.now{background:var(--brand);color:#fff}.ad-lesson-st.done{background:var(--good-light);color:var(--good)}.ad-lesson-st.next{background:var(--warn-light);color:var(--warn)}.ad-lesson-main{flex:1;min-width:140px}.ad-lesson-name{font-weight:700;font-size:15px}.ad-lesson-sub{font-size:13px;color:var(--text-2);margin-top:2px}.ad-lesson-actions{display:flex;gap:6px;flex-wrap:wrap}.ad-empty{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:22px;text-align:center;color:var(--text-2)}.ad-caret{font-size:13px;color:var(--text-2)}@media(max-width:600px){.ad-lesson-time{min-width:100%;flex-direction:row;justify-content:space-between}.ad-lesson-actions{width:100%}.ad-lesson-actions .btn{flex:1}}";
+  document.head.appendChild(s);
+}
+function _adDays(g){return g&&g.lesson_days?(g.lesson_days==='odd'?[1,3,5]:[2,4,6]):null;}
+function _adToday(g){const s=_adDays(g);return s?s.includes(new Date().getDay()):false;}
+function _adMin(t){if(!t)return null;const p=(''+t).split(':');return (+p[0]||0)*60+(+p[1]||0);}
+function _adLessons(){
+  const gs=(level==='admin'?allGroups:myGroups);const now=new Date();const nm=now.getHours()*60+now.getMinutes();
+  return gs.filter(_adToday).map(g=>{const sM=_adMin(g.lesson_start),eM=_adMin(g.lesson_end);let status='upcoming';if(sM!=null){if(eM!=null){status=nm<sM?'next':(nm<=eM?'now':'done');}else{status=nm<sM?'next':(nm<sM+90?'now':'done');}}return {g,sM:(sM==null?9999:sM),eM,status};}).sort((a,b)=>a.sM-b.sM);
+}
+function _adMarked(gid){const day=allChecks[todayStr()]||{};const list=students.filter(s=>gidOf(s)===gid&&!s.frozen);let n=0;list.forEach(s=>{const e=day[s.id];if(e&&(e.absent||e.words!=null||e.hw!=null||e.extra!=null))n++;});return {marked:n,total:list.length};}
+function _adMoney(n){return (n||0).toLocaleString('ru-RU');}
+function openAttendance(gid){showView('checklist');const sel=document.getElementById('cl-group');if(sel)sel.value=gid;const dt=document.getElementById('cl-date');if(dt){dt.value=todayStr();currentDate=todayStr();}if(typeof onClGroup==='function')onClGroup();else renderChecklist();}
+function openHomeworkFor(gid){showView('homework');const sel=document.getElementById('hw-group');if(sel)sel.value=gid;renderHomework();}
+async function loadDashIncome(){try{const month=new Date().toISOString().slice(0,7);const{data}=await sb.from('payments').select('amount').eq('month',month);window.__monthIncome=(data||[]).reduce((a,p)=>a+(+p.amount||0),0);}catch(e){window.__monthIncome=null;}}
+function toggleAnalytics(){const el=document.getElementById('ad-analytics'),c=document.getElementById('ad-an-caret');if(!el)return;const o=el.style.display!=='none';el.style.display=o?'none':'block';if(c)c.textContent=o?'▾':'▴';}
 function renderDashboard(){
+  const el=document.getElementById('dashboard-content');_adInjectCss();
+  const isAdmin=level==='admin';const gs=(isAdmin?allGroups:myGroups);
+  const lessons=_adLessons();const nowL=lessons.find(l=>l.status==='now');const nextL=lessons.find(l=>l.status==='next');
+  const nm=new Date().getHours()*60+new Date().getMinutes();
+  const studs=students.filter(s=>!s.frozen).map(s=>({s,st:studentStats(s.id)}));
+  const col=v=>v>=75?'var(--good)':v>=50?'var(--warn)':'var(--bad)';
+  const day=allChecks[todayStr()]||{};let present=0,absent=0;Object.values(day).forEach(e=>{if(!e)return;if(e.absent)absent++;else if(e.words!=null||e.hw!=null||e.extra!=null)present++;});
+  const attPct=(present+absent)?Math.round(present*100/(present+absent)):0;const income=window.__monthIncome;
+  let html='';
+  html+=`<div class="ad-hero ${nowL?'live':''}">`;
+  if(nowL){const g=nowL.g;const rem=nowL.eM!=null?Math.max(0,nowL.eM-nm):null;const mk=_adMarked(g.id);
+    html+=`<div class="ad-hero-tag"><span class="ad-live-dot"></span>HOZIR DARS</div><div class="ad-hero-title">${esc(g.name)}</div><div class="ad-hero-meta">${esc(g.teacher_name||'')}${g.lesson_start?' · '+g.lesson_start+(g.lesson_end?'–'+g.lesson_end:''):''}${rem!=null?' · '+rem+' daq qoldi':''}</div><div class="ad-hero-actions"><button class="btn btn-primary" onclick="openAttendance('${g.id}')">${(mk.total&&mk.marked>=mk.total)?'Davomat ✓':'Davomat olish'}</button><button class="btn" onclick="openGroup('${g.id}')">Guruh</button></div>`;
+  }else if(nextL){const g=nextL.g;const inMin=Math.max(0,nextL.sM-nm);
+    html+=`<div class="ad-hero-tag">KEYINGI DARS</div><div class="ad-hero-title">${esc(g.name)}</div><div class="ad-hero-meta">${esc(g.teacher_name||'')}${g.lesson_start?' · '+g.lesson_start+(g.lesson_end?'–'+g.lesson_end:''):''} · ${inMin} daqiqadan keyin</div><div class="ad-hero-actions"><button class="btn" onclick="openGroup('${g.id}')">Guruh</button></div>`;
+  }else{html+=`<div class="ad-hero-tag">BUGUN</div><div class="ad-hero-title">Bugun boshqa dars yo'q</div><div class="ad-hero-meta">${lessons.length?lessons.length+" ta dars bo'lib o'tdi":'Bugun dars rejalashtirilmagan'}</div>`;}
+  html+=`</div>`;
+  const tasks=[];
+  lessons.forEach(l=>{if(l.status==='now'||l.status==='done'){const mk=_adMarked(l.g.id);if(mk.total&&mk.marked<mk.total)tasks.push({t:esc(l.g.name)+" — davomat to'liq emas ("+mk.marked+"/"+mk.total+")",btn:'Davomat',fn:"openAttendance('"+l.g.id+"')",cls:'bad'});}});
+  if(pendingList.length)tasks.push({t:pendingList.length+" ta ro'yxatdan o'tish tasdiq kutmoqda",btn:"Ko'rish",fn:"showView('approve')",cls:'warn'});
+  html+=`<div class="ad-sec-title">✅ Bugun kerak</div>`;
+  html+=tasks.length?(`<div class="ad-tasks">`+tasks.map(t=>`<div class="ad-task"><span class="ad-task-dot ${t.cls}"></span><div class="ad-task-txt">${t.t}</div><button class="btn btn-sm" onclick="${t.fn}">${t.btn}</button></div>`).join('')+`</div>`):`<div class="ad-allgood">✓ Bugun hammasi joyida</div>`;
+  html+=`<div class="ad-qa">`+(isAdmin?`<button class="ad-qa-btn" onclick="showView('students')">+ O'quvchi</button><button class="ad-qa-btn" onclick="openAddGroup()">+ Guruh</button>`:'')+`<button class="ad-qa-btn" onclick="showView('payments')">+ To'lov</button><button class="ad-qa-btn" onclick="showView('notifs')">+ Xabar</button></div>`;
+  html+=`<div class="ad-sec-title" style="margin-top:20px">📅 Bugungi jadval</div>`;
+  if(lessons.length){
+    html+=`<div class="ad-sched">`+lessons.map(l=>{const g=l.g;const mk=_adMarked(g.id);const stCls=l.status==='now'?'now':(l.status==='done'?'done':'next');const stTxt=l.status==='now'?'Hozir':(l.status==='done'?'Tugadi':'Keyingi');const attTxt=mk.total?(mk.marked>=mk.total?'Davomat ✓':(mk.marked>0?'Davomat '+mk.marked+'/'+mk.total:"Davomat yo'q")):'';const time=g.lesson_start?(g.lesson_start+(g.lesson_end?'–'+g.lesson_end:'')):'—';
+      return `<div class="ad-lesson ${stCls}"><div class="ad-lesson-time">${time}<span class="ad-lesson-st ${stCls}">${stTxt}</span></div><div class="ad-lesson-main"><div class="ad-lesson-name">${esc(g.name)}</div><div class="ad-lesson-sub">${esc(g.teacher_name||'')}${attTxt?' · '+attTxt:''}</div></div><div class="ad-lesson-actions"><button class="btn btn-sm" onclick="openAttendance('${g.id}')">Davomat</button><button class="btn btn-sm" onclick="openHomeworkFor('${g.id}')">Uy ishi</button><button class="btn btn-sm" onclick="openGroup('${g.id}')">Guruh</button></div></div>`;
+    }).join('')+`</div>`;
+  }else{html+=`<div class="ad-empty">Bugun dars rejalashtirilmagan</div>`;}
+  html+=`<div class="ad-sec-title" style="margin-top:20px">📊 Qisqa ko'rsatkich</div><div class="dash-cards">`+kpiCard(ICONS.users,students.length,"O'quvchi",'var(--brand)','var(--brand-light)')+kpiCard(ICONS.layers,gs.length,'Guruh','var(--good)','var(--good-light)')+kpiCard(ICONS.clock,attPct+'%',"Bugun davomat",'var(--warn)','var(--warn-light)',col(attPct))+kpiCard(ICONS.trend,(income==null?'—':_adMoney(income)),"Oylik daromad",'var(--good)','var(--good-light)')+`</div>`;
+  html+=`<div class="ad-sec-title" style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleAnalytics()">📈 Analitika <span id="ad-an-caret" class="ad-caret">▾</span></div><div id="ad-analytics" style="display:none">`;
+  const trend=[];Object.keys(allChecks).sort().forEach(d=>{const dd=allChecks[d];let sum=0,n=0;studs.forEach(x=>{const e=dd[x.s.id];if(dayHasData(e)){sum+=dayPct(e);n++}});if(n)trend.push(Math.round(sum/n))});
+  if(trend.length>1){const tv=trend.slice(-14),diff=tv[tv.length-1]-tv[0];html+=`<div class="trend-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="card-title" style="margin:0">Sinf o'zlashtirish dinamikasi</div><div style="font-family:var(--mono);font-size:12px;color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'▲ +':'▼ '}${Math.abs(diff)}%</div></div>${sparkline(tv,'100%',56)}</div>`;}
+  const ranked=studs.filter(x=>x.st.count>0).sort((a,b)=>b.st.overall-a.st.overall);
+  if(ranked.length){html+=`<div class="card-title" style="margin-top:16px">🏆 O'quvchilar reytingi</div>`;const t3=ranked.slice(0,3);html+=`<div class="podium">`+t3.map((x,i)=>{const r=i+1;return `<div class="podium-item podium-${r}" onclick="openProfile('${x.s.id}')"><div class="podium-medal medal-${r}">${r}</div><div class="ring-wrap">${ring(x.st.overall,r===1?66:54,r===1?7:6)}</div><div class="podium-name">${esc(x.s.name)}</div><div class="podium-grp">${esc(gidToName[gidOf(x.s)]||'')}</div></div>`}).join('')+`</div>`;const rest=ranked.slice(3);if(rest.length){html+=`<div id="lb-rest" style="display:none"><div class="lb-card">`+rest.map((x,i)=>`<div class="lb-row" onclick="openProfile('${x.s.id}')"><div class="lb-rank">${i+4}</div><div class="avatar-sm">${initials(x.s.name)}</div><div class="lb-name">${esc(x.s.name)} <span class="tag">${esc(gidToName[gidOf(x.s)]||'')}</span></div><div class="lb-pct" style="color:${col(x.st.overall)}">${x.st.overall}%</div></div>`).join('')+`</div></div>`;html+=`<div style="text-align:center;margin-top:10px"><button class="btn btn-sm" id="lb-toggle" onclick="toggleLbRest()">To'liq reytingni ko'rish (${rest.length})</button></div>`;}}
+  const attention=studs.filter(x=>x.st.count>0&&x.st.overall<50).sort((a,b)=>a.st.overall-b.st.overall);
+  if(attention.length){html+=`<div class="card-title" style="margin-top:16px;color:var(--bad)">E'tibor talab qiladi</div><table class="data"><thead><tr><th>O'quvchi</th><th class="center">Guruh</th><th class="center">Umumiy</th><th>Urg'u berish kerak</th></tr></thead><tbody>`+attention.map(x=>`<tr style="cursor:pointer" onclick="openProfile('${x.s.id}')"><td><div class="student-cell"><div class="avatar-sm">${initials(x.s.name)}</div><span style="font-weight:500">${esc(x.s.name)}</span></div></td><td class="center"><span class="tag">${esc(gidToName[gidOf(x.s)]||'—')}</span></td><td class="center"><span class="pct-pill ${pctClass(x.st.overall)}">${x.st.overall}%</span></td><td>${weakAreas(x.st)}</td></tr>`).join('')+`</tbody></table>`;}
+  html+=`</div>`;
+  el.innerHTML=html;
+  if(window.__monthIncome===undefined){loadDashIncome().then(()=>{try{renderDashboard()}catch(e){}});}
+}
+function _renderDashboardOld(){
   const el=document.getElementById('dashboard-content');
   const gs=(level==='admin'?allGroups:myGroups);
   const grpStats=gs.map(g=>{const sl=students.filter(s=>gidOf(s)===g.id&&!s.frozen);const avg=sl.length?Math.round(sl.reduce((a,s)=>a+studentStats(s.id).overall,0)/sl.length):0;return{g,avg,count:sl.length}}).sort((a,b)=>b.avg-a.avg);
