@@ -1512,10 +1512,12 @@ function onTeacherPick(){
 /* ---------- THEME ENGINE (center_branding -> CSS) ---------- */
 async function loadBranding(){
   try{
-    const{data}=await sb.from('center_branding').select('theme,login_email_domain').limit(1).maybeSingle();
-    if(!data)return;
-    if(data.login_email_domain)window.__emailDomain=data.login_email_domain;
-    const t=data.theme; if(!t||!t.light||!t.dark)return;
+    const{data}=await sb.rpc('get_center_theme',{p_host:location.hostname});
+    const row=Array.isArray(data)?data[0]:data;
+    if(!row)return;
+    window.__centerId=row.center_id;
+    if(row.login_email_domain)window.__emailDomain=row.login_email_domain;
+    const t=row.theme; if(!t||!t.light||!t.dark)return;
     const css=`:root{--brand:${t.light.brand};--brand-dark:${t.light.brandDark};--brand-light:${t.light.brandLight}}`+
               `:root[data-theme="dark"]{--brand:${t.dark.brand};--brand-dark:${t.dark.brandDark};--brand-light:${t.dark.brandLight}}`;
     let el=document.getElementById('center-theme');
