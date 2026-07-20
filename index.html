@@ -1720,6 +1720,65 @@ function refillAllGroupSelects(){
   try{const pm=document.getElementById('pay-month');if(pm&&!pm.value)pm.value=new Date().toISOString().slice(0,7);}catch(e){}
 }
 
+/* ============ PLATFORM CONSOLE (super-admin) ============ */
+function _pcHexRgb(h){h=(h||'').replace('#','');if(h.length!==6)return [43,82,136];return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function _pcHex(a){return '#'+a.map(x=>Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join('');}
+function _pcMix(rgb,t,a){return rgb.map((c,i)=>c+(t[i]-c)*a);}
+function _pcTheme(hex){const r=_pcHexRgb(hex);return {light:{brand:hex,brandDark:_pcHex(_pcMix(r,[0,0,0],.20)),brandLight:_pcHex(_pcMix(r,[255,255,255],.90))},dark:{brand:_pcHex(_pcMix(r,[255,255,255],.30)),brandDark:_pcHex(_pcMix(r,[255,255,255],.46)),brandLight:_pcHex(_pcMix(r,[0,0,0],.80))}};}
+function _pcCss(){
+  if(document.getElementById('pc-css'))return;
+  const s=document.createElement('style');s.id='pc-css';
+  s.textContent="#pc-fab{position:fixed;right:18px;bottom:18px;z-index:9000;background:#1e2430;color:#fff;border:none;border-radius:12px;padding:11px 16px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25)}#pc-fab:hover{background:#2a3140}#pc-overlay{display:none;position:fixed;inset:0;z-index:9001;background:rgba(15,18,24,.55);align-items:flex-start;justify-content:center;overflow:auto;padding:32px 16px}.pc-panel{background:#F4F1EC;color:#171a1e;width:100%;max-width:920px;border-radius:20px;padding:26px 28px;box-shadow:0 30px 80px rgba(0,0,0,.4)}.pc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.pc-title{font-size:22px;font-weight:800}.pc-sub{font-size:13px;color:#5a6472;margin-top:2px}.pc-x{background:none;border:none;font-size:26px;cursor:pointer;color:#5a6472;line-height:1}.pc-actions{display:flex;gap:10px;margin-bottom:18px}.pc-btn{background:#2B5288;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer}.pc-btn.ghost{background:#fff;color:#2B5288;border:1px solid #d9d3c9}.pc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}.pc-card{background:#fff;border:1px solid #e6e0d6;border-radius:14px;padding:16px}.pc-card-top{display:flex;align-items:center;gap:11px;margin-bottom:10px}.pc-dot{width:34px;height:34px;border-radius:9px;flex:none}.pc-cn{font-weight:700;font-size:15px}.pc-cs{font-size:12px;color:#7a8290;font-family:monospace}.pc-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-top:1px solid #f0ece4}.pc-row b{color:#171a1e}.pc-chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eef4ff;color:#2B5288}.pc-form{background:#fff;border:1px solid #e6e0d6;border-radius:14px;padding:18px;margin-bottom:18px}.pc-form label{display:block;font-size:12px;font-weight:600;color:#5a6472;margin:10px 0 4px}.pc-form input{width:100%;padding:9px 12px;border:1px solid #d9d3c9;border-radius:9px;font-size:14px;box-sizing:border-box}.pc-frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pc-err{color:#c0392b;font-size:13px;margin-top:8px;min-height:16px}@media(max-width:560px){.pc-frow{grid-template-columns:1fr}}";
+  document.head.appendChild(s);
+}
+async function checkPlatformAdmin(){
+  try{const r=await sb.rpc('is_platform_admin');window.__isPlatformAdmin=(r&&r.data===true);}catch(e){window.__isPlatformAdmin=false;}
+  if(window.__isPlatformAdmin){_pcCss();if(!document.getElementById('pc-fab')){const b=document.createElement('button');b.id='pc-fab';b.textContent='⚙ Platform';b.onclick=openPlatformConsole;document.body.appendChild(b);}}
+}
+function closePlatformConsole(){const ov=document.getElementById('pc-overlay');if(ov)ov.style.display='none';}
+async function openPlatformConsole(){
+  _pcCss();
+  let ov=document.getElementById('pc-overlay');
+  if(!ov){ov=document.createElement('div');ov.id='pc-overlay';ov.onclick=function(e){if(e.target===ov)closePlatformConsole();};document.body.appendChild(ov);}
+  ov.style.display='flex';ov.innerHTML='<div class="pc-panel"><div class="pc-head"><div><div class="pc-title">Platform Console</div><div class="pc-sub">Yuklanmoqda…</div></div><button class="pc-x" onclick="closePlatformConsole()">×</button></div></div>';
+  await renderPlatformConsole();
+}
+async function renderPlatformConsole(){
+  const ov=document.getElementById('pc-overlay');if(!ov)return;
+  let centers=[],brands=[],domains=[],subs=[],studs=[];
+  try{centers=(await sb.from('centers').select('*').order('created_at')).data||[];}catch(e){}
+  try{brands=(await sb.from('center_branding').select('center_id,display_name,brand_color,student_id_prefix')).data||[];}catch(e){}
+  try{domains=(await sb.from('center_domains').select('center_id,domain,verified')).data||[];}catch(e){}
+  try{subs=(await sb.from('subscriptions').select('center_id,plan_code,status')).data||[];}catch(e){}
+  try{studs=(await sb.from('students').select('center_id')).data||[];}catch(e){}
+  const bById={};brands.forEach(b=>bById[b.center_id]=b);
+  const sById={};subs.forEach(s=>sById[s.center_id]=s);
+  const dByC={};domains.forEach(d=>{(dByC[d.center_id]=dByC[d.center_id]||[]).push(d);});
+  const cntByC={};studs.forEach(s=>{cntByC[s.center_id]=(cntByC[s.center_id]||0)+1;});
+  const cards=centers.map(c=>{const b=bById[c.id]||{};const s=sById[c.id]||{};const ds=(dByC[c.id]||[]).map(d=>d.domain).join(', ')||'—';const col=b.brand_color||'#888';
+    return `<div class="pc-card"><div class="pc-card-top"><div class="pc-dot" style="background:${col}"></div><div><div class="pc-cn">${esc(b.display_name||c.name)}</div><div class="pc-cs">${esc(c.slug)}</div></div></div><div class="pc-row"><span>Holat</span><b>${esc(c.status||'—')}</b></div><div class="pc-row"><span>Tarif</span><span class="pc-chip">${esc(s.plan_code||c.subscription_plan||'—')}</span></div><div class="pc-row"><span>O'quvchi</span><b>${cntByC[c.id]||0}</b></div><div class="pc-row"><span>Prefiks</span><b>${esc(b.student_id_prefix||'—')}</b></div><div class="pc-row"><span>Domen</span><b style="font-size:11px">${esc(ds)}</b></div></div>`;
+  }).join('');
+  ov.innerHTML=`<div class="pc-panel"><div class="pc-head"><div><div class="pc-title">Platform Console</div><div class="pc-sub">${centers.length} ta markaz · ISA LC OS</div></div><button class="pc-x" onclick="closePlatformConsole()">×</button></div><div class="pc-actions"><button class="pc-btn" onclick="openCreateCenter()">+ Yangi markaz</button><button class="pc-btn ghost" onclick="renderPlatformConsole()">↻ Yangilash</button></div><div id="pc-form-slot"></div><div class="pc-grid">${cards||"<div>Markaz yo'q</div>"}</div></div>`;
+}
+function openCreateCenter(){
+  const slot=document.getElementById('pc-form-slot');if(!slot)return;
+  slot.innerHTML=`<div class="pc-form"><div style="font-weight:700;margin-bottom:6px">Yangi markaz</div><div class="pc-frow"><div><label>Nomi</label><input id="pc-name" placeholder="Oxford Learning Centre"></div><div><label>Slug (subdomen)</label><input id="pc-slug" placeholder="oxford"></div></div><div class="pc-frow"><div><label>Admin email</label><input id="pc-email" placeholder="admin@oxford.uz"></div><div><label>ID prefiks</label><input id="pc-prefix" placeholder="OLC"></div></div><div class="pc-frow"><div><label>Brend rang</label><input id="pc-color" type="color" value="#2B5288" style="height:40px;padding:3px"></div><div><label>Domen (ixtiyoriy)</label><input id="pc-domain" placeholder="oxford-edu.vercel.app"></div></div><div class="pc-err" id="pc-err"></div><div style="display:flex;gap:10px;margin-top:8px"><button class="pc-btn" onclick="submitCreateCenter()">Yaratish</button><button class="pc-btn ghost" onclick="document.getElementById('pc-form-slot').innerHTML=''">Bekor</button></div></div>`;
+}
+async function submitCreateCenter(){
+  const g=id=>(document.getElementById(id)||{}).value;
+  const name=(g('pc-name')||'').trim(),slug=(g('pc-slug')||'').trim().toLowerCase(),email=(g('pc-email')||'').trim().toLowerCase(),prefix=(g('pc-prefix')||'').trim().toUpperCase(),color=g('pc-color')||'#2B5288',domain=(g('pc-domain')||'').trim().toLowerCase();
+  const err=document.getElementById('pc-err');
+  if(!name||!slug){if(err)err.textContent='Nom va slug shart';return;}
+  try{
+    const{data:cid,error}=await sb.rpc('create_center',{p_slug:slug,p_name:name,p_admin_email:email||null,p_display_name:name,p_brand_color:color,p_student_id_prefix:prefix||null,p_email_domain:'students.'+slug+'.uz'});
+    if(error){if(err)err.textContent='Xato: '+error.message;return;}
+    try{await sb.from('center_branding').update({theme:_pcTheme(color)}).eq('center_id',cid);}catch(e){}
+    if(domain){try{await sb.from('center_domains').insert({center_id:cid,domain:domain,verified:true});}catch(e){}}
+    await renderPlatformConsole();
+    if(typeof showToast==='function')showToast('Markaz yaratildi: '+name);
+  }catch(e){if(err)err.textContent='Xato: '+(e.message||e);}
+}
+
 async function startApp(){
   showLoading(true);
   await loadAllGroups();
@@ -1737,6 +1796,7 @@ async function startApp(){
   document.getElementById('cl-date').onchange=function(){currentDate=this.value;renderChecklist()};
   updateBadges();
   showView('dashboard');
+  checkPlatformAdmin();
 }
 
 async function loadAllGroups(){
