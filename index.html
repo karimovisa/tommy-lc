@@ -1132,72 +1132,84 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 
 <!-- ============ LOGIN / REGISTER ============ -->
 <div id="auth-screen" class="hidden">
-  <button class="auth-theme-btn" onclick="toggleTheme()" aria-label="Rejimni almashtirish" title="Light / Dark">
-    <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
-    <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-  </button>
-  <div class="auth-split">
-    <aside class="auth-banner">
-      <div class="ab-bg" aria-hidden="true"><span class="tfloat t1">T</span><span class="tfloat t2">T</span><span class="tfloat t3">T</span><span class="tfloat t4">T</span><span class="tfloat t5">T</span><span class="tfloat t6">T</span></div>
-      <div class="ab-top"><div class="logo-sm tommy-logo" role="img" aria-label="TOMMY"></div><div><div class="ab-name">TOMMY</div><div class="ab-namesub">LEARNING CENTRE</div></div></div>
-      <div class="ab-mid">
-        <div class="ab-badge">🎓 Premium learning portal</div>
-        <h2 class="ab-head">Every lesson —<br>a step toward success.</h2>
-        <p class="ab-desc">Track your results and move steadily toward your goals.</p>
-        <div class="ab-stats">
-          <div class="ab-stat"><div class="ab-stat-num">1100<span>+</span></div><div class="ab-stat-lbl">Students</div></div>
-          <div class="ab-stat"><div class="ab-stat-num">300<span>+</span></div><div class="ab-stat-lbl">B2 Results</div></div>
-          <div class="ab-stat"><div class="ab-stat-num">6<span>+</span></div><div class="ab-stat-lbl">Years Experience</div></div>
-        </div>
-        <div class="ab-oxford"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M6 9.5V15c0 1.5 3 3 6 3s6-1.5 6-3V9.5"/></svg><span>Official <b>Oxford</b> Learning Materials</span></div>
+<style>
+#auth-screen{position:fixed;inset:0;z-index:998;overflow-y:auto;background:#E5E0D9}
+.lg-page{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:34px 20px;position:relative;font-family:var(--sans);color:#26303f;overflow:hidden}
+.lg-deco{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.lg-deco::before,.lg-deco::after{content:"";position:absolute;background:var(--brand);opacity:.06;filter:blur(6px)}
+.lg-deco::before{width:520px;height:520px;top:-190px;left:-160px;border-radius:38% 62% 55% 45%/48% 42% 58% 52%}
+.lg-deco::after{width:430px;height:430px;bottom:-200px;right:-150px;border-radius:60% 40% 45% 55%/55% 48% 52% 45%;opacity:.05}
+.lg-star{position:absolute;width:330px;height:330px;right:-80px;top:9%;opacity:.05;color:var(--brand);z-index:0}
+.lg-lang{position:absolute;top:22px;right:22px;display:flex;gap:2px;background:rgba(255,255,255,.72);backdrop-filter:blur(6px);padding:4px;border-radius:999px;z-index:3;box-shadow:0 2px 10px rgba(38,48,63,.06)}
+.lg-lang-btn{border:none;background:transparent;padding:7px 12px;border-radius:999px;font:600 12.5px var(--sans);color:#6b7686;cursor:pointer;transition:.18s;white-space:nowrap}
+.lg-lang-btn.active{background:var(--brand);color:#fff}
+.lg-lang-btn:not(.active):hover{color:var(--brand)}
+.lg-card{position:relative;z-index:2;width:100%;max-width:400px;background:#fff;border:1px solid rgba(38,48,63,.06);border-radius:24px;padding:44px 38px 30px;box-shadow:0 30px 70px -30px color-mix(in srgb,var(--brand) 42%,transparent),0 8px 24px rgba(38,48,63,.05);animation:lgUp .5s cubic-bezier(.2,.7,.3,1) both}
+@keyframes lgUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.lg-brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:24px}
+.lg-logo{width:60px;height:60px;border-radius:17px;background:var(--brand) var(--logo-url,none) center/cover no-repeat;box-shadow:0 10px 24px -8px color-mix(in srgb,var(--brand) 60%,transparent)}
+.lg-name{font:800 19px var(--sans);letter-spacing:-.015em;color:#1a2331;text-align:center}
+.lg-welcome{font:800 25px var(--sans);letter-spacing:-.02em;color:#161f2c;text-align:center;margin:0}
+.lg-sub{font:500 14px var(--sans);color:#79828f;text-align:center;margin:6px 0 26px}
+.lg-label{display:block;font:600 12.5px var(--sans);color:#6b7686;margin:0 0 7px 2px}
+.lg-field{position:relative;margin-bottom:15px}
+.lg-input{width:100%;box-sizing:border-box;padding:14px 15px;border:1.5px solid #e6e1d8;border-radius:13px;font:500 15px var(--sans);color:#1e2836;background:#fcfbf9;transition:border-color .16s,box-shadow .16s,background .16s;outline:none;-webkit-appearance:none}
+.lg-input::placeholder{color:#b3bac4}
+.lg-input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 14%,transparent)}
+.lg-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;display:grid;place-items:center;border:none;background:transparent;color:#a2abb6;cursor:pointer;border-radius:9px;transition:.15s}
+.lg-eye:hover{color:var(--brand)}
+.lg-eye svg{width:19px;height:19px}
+.lg-eye.on{color:var(--brand)}
+.lg-row{display:flex;align-items:center;justify-content:space-between;margin:4px 0;font-size:13px}
+.lg-remember{display:flex;align-items:center;gap:8px;color:#6b7686;cursor:pointer;user-select:none}
+.lg-remember input{width:16px;height:16px;accent-color:var(--brand);cursor:pointer}
+.lg-forgot{color:var(--brand);cursor:pointer;font-weight:600}
+.lg-forgot:hover{text-decoration:underline}
+.lg-fnote{max-height:0;overflow:hidden;transition:max-height .25s,margin .25s,opacity .2s;opacity:0;font-size:12.5px;color:#79828f;line-height:1.5}
+.lg-fnote.open{max-height:90px;opacity:1;margin:8px 2px 0}
+.lg-err{color:#dc2626;font-size:13px;min-height:18px;margin:8px 0 0;text-align:center;font-weight:500}
+.lg-btn{width:100%;margin-top:12px;padding:15px;border:none;border-radius:13px;background:var(--brand);color:#fff;font:700 15px var(--sans);cursor:pointer;transition:transform .14s,box-shadow .2s,filter .15s;box-shadow:0 12px 26px -12px color-mix(in srgb,var(--brand) 70%,transparent)}
+.lg-btn:hover:not(:disabled){transform:translateY(-1.5px);filter:brightness(1.05);box-shadow:0 18px 34px -14px color-mix(in srgb,var(--brand) 75%,transparent)}
+.lg-btn:active:not(:disabled){transform:translateY(0)}
+.lg-btn:disabled{opacity:.7;cursor:default}
+.lg-foot{text-align:center;margin-top:22px;font:600 10px var(--mono,monospace);letter-spacing:.2em;color:#c0c6cf}
+@media(max-width:480px){.lg-card{padding:36px 24px 26px;border-radius:20px}.lg-welcome{font-size:22px}.lg-lang{top:14px;right:14px}}
+@media(prefers-reduced-motion:reduce){.lg-card{animation:none}}
+</style>
+  <div class="lg-page">
+    <div class="lg-deco" aria-hidden="true"></div>
+    <svg class="lg-star" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><path d="M50 3 60 24 83 20 74 42 96 50 74 58 83 80 60 76 50 97 40 76 17 80 26 58 4 50 26 42 17 20 40 24Z"/></svg>
+    <div class="lg-lang" role="group" aria-label="Til">
+      <button class="lg-lang-btn active" data-l="uz" onclick="setLang('uz')">O'zbekcha</button>
+      <button class="lg-lang-btn" data-l="ru" onclick="setLang('ru')">Русский</button>
+      <button class="lg-lang-btn" data-l="en" onclick="setLang('en')">English</button>
+    </div>
+    <div class="lg-card">
+      <div class="lg-brand">
+        <div class="lg-logo" role="img" aria-label="logo"></div>
+        <div class="lg-name brand-name">TOMMY</div>
       </div>
-      <div class="ab-foot">© 2026 TOMMY Learning Centre</div>
-      <a class="ab-scroll" href="#auth-form-anchor" aria-label="Get started"><span>Get started</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></a>
-    </aside>
-    <div class="auth-formside" id="auth-form-anchor">
-      <span class="fs-t fs-t1" aria-hidden="true">T</span><span class="fs-t fs-t2" aria-hidden="true">T</span>
-      <div class="auth-wrap">
-        <div class="auth-box">
-          <div class="auth-card-brand"><div class="logo tommy-logo" role="img" aria-label="TOMMY"></div><div class="auth-card-brand-name">TOMMY</div><div class="auth-card-brand-sub">LEARNING CENTRE</div></div>
-          <div class="auth-greet">Xush kelibsiz! 👋</div>
-          <div class="auth-greet-sub">Hisobingizga kiring</div>
-          <div class="role-tabs">
-            <button class="role-tab active" data-mode="student" onclick="setLoginMode('student')">O'quvchi</button>
-            <button class="role-tab" data-mode="parent" onclick="setLoginMode('parent')">Ota-ona</button>
-            <button class="role-tab" data-mode="staff" onclick="setLoginMode('staff')">Ustoz</button>
-          </div>
-          <div id="login-id-wrap">
-            <label class="form-label">Student ID</label>
-            <div class="input-wrap">
-              <svg class="input-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M7 16.2c.4-1.3 1.2-1.9 2-1.9s1.6.6 2 1.9"/><line x1="14" y1="9.5" x2="18" y2="9.5"/><line x1="14" y1="13.5" x2="18" y2="13.5"/></svg>
-              <input class="form-input" type="text" id="login-id" placeholder="Student ID" autocomplete="username">
-            </div>
-            <div class="field-hint" id="parent-hint" style="display:none">Farzandingizning Student ID si bilan kiring.</div>
-          </div>
-          <div id="login-email-wrap" style="display:none">
-            <label class="form-label">Email</label>
-            <div class="input-wrap">
-              <svg class="input-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
-              <input class="form-input" type="email" id="login-email" placeholder="email@gmail.com" autocomplete="username">
-            </div>
-          </div>
-          <label class="form-label">Parol</label>
-          <div class="input-wrap">
-            <svg class="input-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-            <input class="form-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
-            <button class="pwd-toggle" type="button" onclick="togglePwdVisible('login-password',this)" aria-label="Parolni ko'rsatish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
-          </div>
-          <div class="auth-row">
-            <label class="remember"><input type="checkbox" id="remember-me" checked><span>Meni eslab qol</span></label>
-            <span class="forgot-link" onclick="toggleForgotNote(event)">Parolni unutdingizmi?</span>
-          </div>
-          <div class="forgot-note" id="forgot-note"><span>🔑 Parolni tiklash uchun <b>administrator</b> bilan bog'laning.</span></div>
-          <div class="auth-err" id="login-err"></div>
-          <button class="btn btn-primary btn-block" id="login-btn" onclick="doLogin()">Kirish</button>
-          <div class="auth-foot-note">Kirishda muammo bo'lsa — <span class="forgot-link" onclick="toggleForgotNote(event)">admin bilan bog'laning</span></div>
-          <div class="founder-credit"><span class="founder-label">Website Founder</span><span class="founder-name">Karimov Islom</span></div>
+      <h1 class="lg-welcome" id="lg-welcome">Xush kelibsiz</h1>
+      <div class="lg-sub" id="lg-sub">Hisobingizga kiring</div>
+      <form onsubmit="event.preventDefault();doLogin()" autocomplete="on">
+        <label class="lg-label" id="lg-idlabel" for="login-id">Student ID yoki Email</label>
+        <div class="lg-field">
+          <input class="lg-input" type="text" id="login-id" autocomplete="username" placeholder="Student ID / email">
         </div>
-      </div>
+        <label class="lg-label" id="lg-pwdlabel" for="login-password">Parol</label>
+        <div class="lg-field">
+          <input class="lg-input" type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" style="padding-right:46px">
+          <button class="lg-eye" type="button" onclick="togglePwdVisible('login-password',this)" aria-label="Parol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="lg-row">
+          <label class="lg-remember"><input type="checkbox" id="remember-me" checked><span id="lg-remember">Meni eslab qol</span></label>
+          <span class="lg-forgot" id="lg-forgot" onclick="toggleForgotNote(event)">Parolni unutdingizmi?</span>
+        </div>
+        <div class="lg-fnote" id="forgot-note"><span id="lg-fnote">Parolni tiklash uchun administrator bilan bog'laning.</span></div>
+        <div class="lg-err" id="login-err"></div>
+        <button class="lg-btn" id="login-btn" type="submit">Kirish</button>
+      </form>
+      <div class="lg-foot">ISA LEARNING CENTER OS</div>
     </div>
   </div>
 </div>
@@ -1570,14 +1582,22 @@ async function routeUser(){
 /* ---------- LOGIN / REGISTER ---------- */
 let loginMode='student';
 function idToEmail(id){return id.trim().toLowerCase().replace(/\s+/g,'')+'@'+(window.__emailDomain||'students.tommy.uz')}
-function setLoginMode(m){
-  loginMode=m;
-  document.querySelectorAll('.role-tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===m));
-  const staff=(m==='staff');
-  document.getElementById('login-id-wrap').style.display=staff?'none':'block';
-  document.getElementById('login-email-wrap').style.display=staff?'block':'none';
-  document.getElementById('parent-hint').style.display=(m==='parent')?'block':'none';
-  document.getElementById('login-err').textContent='';
+function setLoginMode(m){/* single login: role tabs removed */}
+/* ===== i18n (login) ===== */
+const I18N={
+  uz:{welcome:"Xush kelibsiz",subtitle:"Hisobingizga kiring",idlabel:"Student ID yoki Email",idph:"Student ID / email",pwd:"Parol",remember:"Meni eslab qol",forgot:"Parolni unutdingizmi?",fnote:"Parolni tiklash uchun administrator bilan bog'laning.",signin:"Kirish",loading:"Yuklanmoqda...",nocred:"Login kiriting",nopwd:"Parolni kiriting",badcreds:"Login yoki parol noto'g'ri"},
+  ru:{welcome:"Добро пожаловать",subtitle:"Войдите в свой аккаунт",idlabel:"Student ID или Email",idph:"Student ID / email",pwd:"Пароль",remember:"Запомнить меня",forgot:"Забыли пароль?",fnote:"Обратитесь к администратору для сброса пароля.",signin:"Войти",loading:"Загрузка...",nocred:"Введите логин",nopwd:"Введите пароль",badcreds:"Неверный логин или пароль"},
+  en:{welcome:"Welcome back",subtitle:"Sign in to your account",idlabel:"Student ID or Email",idph:"Student ID / email",pwd:"Password",remember:"Remember me",forgot:"Forgot password?",fnote:"Contact your administrator to reset your password.",signin:"Sign in",loading:"Loading...",nocred:"Enter your login",nopwd:"Enter your password",badcreds:"Invalid login or password"}
+};
+let LANG=(function(){try{return localStorage.getItem('isa-lang')||'uz'}catch(e){return 'uz'}})();
+function tr(k){return (I18N[LANG]&&I18N[LANG][k])||(I18N.uz&&I18N.uz[k])||k;}
+function setLang(l){LANG=l;try{localStorage.setItem('isa-lang',l)}catch(e){}applyLoginLang();}
+function applyLoginLang(){
+  const s=(id,k)=>{const e=document.getElementById(id);if(e)e.textContent=tr(k);};
+  s('lg-welcome','welcome');s('lg-sub','subtitle');s('lg-idlabel','idlabel');s('lg-pwdlabel','pwd');
+  s('lg-remember','remember');s('lg-forgot','forgot');s('lg-fnote','fnote');s('login-btn','signin');
+  const idi=document.getElementById('login-id');if(idi)idi.placeholder=tr('idph');
+  document.querySelectorAll('.lg-lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.l===LANG));
 }
 function togglePwdVisible(inputId,btn){
   const inp=document.getElementById(inputId);if(!inp)return;
@@ -1604,23 +1624,17 @@ function submitForgot(){
 document.addEventListener('click',e=>{const btn=e.target.closest('.btn-primary');if(!btn)return;const r=document.createElement('span');r.className='ripple';const d=Math.max(btn.offsetWidth,btn.offsetHeight);r.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-btn.getBoundingClientRect().left-d/2}px;top:${e.clientY-btn.getBoundingClientRect().top-d/2}px`;btn.appendChild(r);setTimeout(()=>r.remove(),600)});
 async function doLogin(){
   const err=document.getElementById('login-err'),btn=document.getElementById('login-btn');
+  const idv=document.getElementById('login-id').value.trim();
   const pass=document.getElementById('login-password').value;
-  let email,idVal='';
-  if(loginMode==='staff'){
-    email=document.getElementById('login-email').value.trim();
-    if(!email){err.textContent='Email kiriting';return}
-  }else{
-    idVal=document.getElementById('login-id').value.trim();
-    if(!idVal){err.textContent='Student ID kiriting';return}
-    email=idToEmail(idVal);
-  }
-  if(!pass){err.textContent='Parolni kiriting';return}
-  err.textContent='';btn.disabled=true;btn.textContent='Kirilmoqda...';
+  if(!idv){err.textContent=tr('nocred');return}
+  if(!pass){err.textContent=tr('nopwd');return}
+  const email=idv.includes('@')?idv.toLowerCase():idToEmail(idv);
+  err.textContent='';btn.disabled=true;btn.textContent=tr('loading');
   const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
-  btn.disabled=false;btn.textContent='Kirish';
-  if(error){err.textContent=(loginMode==='staff')?"Email yoki parol noto'g'ri":"Student ID yoki parol noto'g'ri";return}
-  try{const rm=document.getElementById('remember-me');const _v=(loginMode==='staff')?email:idVal;if(rm&&rm.checked&&_v){localStorage.setItem('tommy-last-id',_v);localStorage.setItem('tommy-last-mode',loginMode);}else{localStorage.removeItem('tommy-last-id');localStorage.removeItem('tommy-last-mode');}}catch(e){}
-  window.lastTempPw=pass;window.lastLoginId=idVal;
+  btn.disabled=false;btn.textContent=tr('signin');
+  if(error){err.textContent=tr('badcreds');return}
+  try{const rm=document.getElementById('remember-me');if(rm&&rm.checked){localStorage.setItem('tommy-last-id',idv);localStorage.setItem('tommy-last-mode','one');}else{localStorage.removeItem('tommy-last-id');localStorage.removeItem('tommy-last-mode');}}catch(e){}
+  window.lastTempPw=pass;window.lastLoginId=idv;
   currentUser=data.user;
   await routeUser();
 }
@@ -3232,7 +3246,7 @@ function toggleTheme(){
   try{document.querySelectorAll('.ic-moon,.ic-sun').forEach(s=>{s.style.animation='none';void s.offsetWidth;s.style.animation='themeSpin .5s ease';});}catch(e){}
 }
 (function(){let t='dark';try{t=localStorage.getItem('tommy-theme')||'dark'}catch(e){}applyTheme(t)})();
-(function(){try{const lid=localStorage.getItem('tommy-last-id');const lmode=localStorage.getItem('tommy-last-mode');if(lmode&&typeof setLoginMode==='function')setLoginMode(lmode);if(lid){const el=document.getElementById(lmode==='staff'?'login-email':'login-id');if(el)el.value=lid;const pw=document.getElementById('login-password');if(pw)setTimeout(()=>{try{pw.focus()}catch(e){}},60);}}catch(e){}})();
+(function(){try{if(typeof applyLoginLang==='function')applyLoginLang();const lid=localStorage.getItem('tommy-last-id');if(lid){const el=document.getElementById('login-id');if(el)el.value=lid;const pw=document.getElementById('login-password');if(pw)setTimeout(()=>{try{pw.focus()}catch(e){}},60);}}catch(e){}})();
 
 init();
 </script>
