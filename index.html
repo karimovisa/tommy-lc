@@ -1276,7 +1276,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
     <div id="view-checklist" class="view">
       <div class="page-header"><div><div class="page-title">Kunlik belgilash</div><div class="page-sub">Har dars uchun to'ldiring</div></div><div class="header-actions"><select class="flt" id="cl-group" onchange="onClGroup()"></select><input type="date" id="cl-date"><div class="avg-badge">O'rtacha: <strong id="avg-label">—</strong></div></div></div>
       <div class="wrap">
-        <table class="data"><thead><tr><th>O'quvchi</th><th class="center">Vocabulary</th><th class="center" title="Workbook / Grammarbank">Workbook</th><th class="center" title="speaking / writing">Qo'shimcha</th><th class="center">Kelmadi</th><th class="center">Natija</th></tr></thead><tbody id="cl-tbody"></tbody></table>
+        <table class="data" id="cl-table"><thead><tr><th>O'quvchi</th><th class="center cl-grade-col">Vocabulary</th><th class="center cl-grade-col" title="Workbook / Grammarbank">Workbook</th><th class="center cl-grade-col" title="speaking / writing">Qo'shimcha</th><th class="center">Kelmadi</th><th class="center">Natija</th></tr></thead><tbody id="cl-tbody"></tbody></table>
         <div class="save-row"><button class="btn btn-primary" onclick="saveChecklist()" id="save-cl-btn">Saqlash</button><button class="btn btn-sm" onclick="markReliable()" title="O'tmishda doimiy bajaradigan o'quvchilarni avtomatik ✓ qiladi (tekshirib chiqasiz)">⚡ Doimiylarni belgilash</button><span class="saved-msg" id="saved-msg">✓ Saqlandi</span></div>
       </div>
     </div>
@@ -2006,8 +2006,10 @@ function isReliable(sid){const st=studentStats(sid);return !!st&&st.count>=3&&st
 function markAllDone(sid){const date=currentDate;const e=allChecks[date]&&allChecks[date][sid];if(!e||e.absent)return;if(e.words!=null)e.words=1;if(e.hw!=null)e.hw=1;if(e.extra!=null)e.extra=1;renderChecklist();}
 /* Faqat doimiy bajaradigan (ishonchli) o'quvchilarni bir bosishda belgilash */
 function markReliable(){const date=currentDate;let n=0;clVisibleStudents().forEach(s=>{const e=allChecks[date]&&allChecks[date][s.id];if(!e||e.absent||!isReliable(s.id))return;if(e.words!=null)e.words=1;if(e.hw!=null)e.hw=1;if(e.extra!=null)e.extra=1;n++;});renderChecklist();showToast(n?(n+" ta ishonchli o'quvchi belgilandi — tekshirib chiqing"):"Ishonchli o'quvchi topilmadi");}
+function _clAttCss(){if(document.getElementById('cl-att-css'))return;const s=document.createElement('style');s.id='cl-att-css';s.textContent='.cl-att .cl-grade-col{display:none}';document.head.appendChild(s);}
 function renderChecklist(){
   const date=currentDate,tbody=document.getElementById('cl-tbody');tbody.innerHTML='';
+  const att=isAttendanceMode();const clt=document.getElementById('cl-table');if(clt)clt.classList.toggle('cl-att',att);_clAttCss();
   const list=clVisibleStudents();
   if(!list.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">👋</div><p>Bu guruhda o\'quvchi yo\'q</p></div></td></tr>';document.getElementById('avg-label').textContent='—';return}
   const naTd='<td class="center"><span class="hw-na" title="Bu turda uy ishi berilmagan — hisobga olinmaydi">—</span></td>';
@@ -2016,6 +2018,7 @@ function renderChecklist(){
     if(!allChecks[date][s.id])allChecks[date][s.id]={hw:0,words:0,extra:0};
     const e=allChecks[date][s.id];
     const ab=!!e.absent;
+    if(att){const ec='<td class="center cl-grade-col"></td>';const tr=document.createElement('tr');if(ab)tr.className='absent-row';tr.innerHTML=`<td><div class="student-cell"><div class="avatar-sm">${initials(s.name)}</div><div style="flex:1;min-width:0"><div class="student-name-text">${esc(s.name)}</div><div class="student-phone">${esc(s.phone||gidToName[gidOf(s)]||'')}</div></div></div></td>${ec}${ec}${ec}<td class="center"><input type="checkbox" class="abs-chk" ${ab?'checked':''} onchange="toggleAbsent('${s.id}',this.checked)"></td><td class="center"><span class="pct-pill ${ab?'p-absent':'pct-good'}">${ab?'Kelmadi':'Keldi'}</span></td>`;tbody.appendChild(tr);return;}
     const gid=gidOf(s);
     const parts=partsForLesson(date,gid);
     const naAll=!ab&&prevCheckAbsent(s.id,date);   // o'tgan darsda kelmagan -> uy ishi yo'q
@@ -2076,6 +2079,7 @@ function cycleMark(btn,sid,key){
 }
 function updateAvg(){
   const date=currentDate,list=clVisibleStudents();
+  if(isAttendanceMode()){const p=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e&&!e.absent}).length;const al=document.getElementById('avg-label');if(al)al.textContent=p+'/'+list.length;return;}
   const present=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return dayHasData(e)});
   const vals=present.map(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e?dayPct(e):0});
   document.getElementById('avg-label').textContent=Math.round(vals.reduce((a,b)=>a+b,0)/(vals.length||1))+'%';
