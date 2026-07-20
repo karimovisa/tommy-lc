@@ -1509,6 +1509,16 @@ function onTeacherPick(){
   sel.innerHTML='<option value="">— Guruhni tanlang —</option>'+gs.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
 }
 
+/* ---------- BRAND IDENTITY (logo/nom/favicon) ---------- */
+function applyBrandIdentity(row){
+  const TOMMY='00000000-0000-0000-0000-000000000001';
+  if(!row||row.center_id===TOMMY)return;   // Tommy default o'zgarmaydi
+  const name=row.display_name;
+  if(name){document.title=name;window.__centerName=name;document.querySelectorAll('.brand-name,.ab-name,.auth-card-brand-name').forEach(el=>{el.textContent=name});}
+  if(row.logo_url){document.documentElement.style.setProperty('--logo-url',"url('"+row.logo_url+"')");}
+  else{document.documentElement.style.setProperty('--logo-url','none');}   // logo yo'q -> toza rangli doira
+  if(row.favicon_url){let l=document.querySelector('link[rel~="icon"]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l);}l.href=row.favicon_url;}
+}
 /* ---------- THEME ENGINE (center_branding -> CSS) ---------- */
 async function loadBranding(){
   try{
@@ -1517,6 +1527,7 @@ async function loadBranding(){
     if(!row)return;
     window.__centerId=row.center_id;
     if(row.login_email_domain)window.__emailDomain=row.login_email_domain;
+    applyBrandIdentity(row);
     const t=row.theme; if(!t||!t.light||!t.dark)return;
     const css=`:root{--brand:${t.light.brand};--brand-dark:${t.light.brandDark};--brand-light:${t.light.brandLight}}`+
               `:root[data-theme="dark"]{--brand:${t.dark.brand};--brand-dark:${t.dark.brandDark};--brand-light:${t.dark.brandLight}}`;
