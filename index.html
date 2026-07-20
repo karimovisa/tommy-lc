@@ -1807,8 +1807,9 @@ async function loadCenterConfig(){
   try{document.body.classList.toggle('lc-att',isAttendanceMode());_lcAttCss();}catch(e){}
 }
 function isAttendanceMode(){return window.__gradingMode==='attendance';}
+function curCenter(){return window.__centerId||'00000000-0000-0000-0000-000000000001';}
 async function loadAllGroups(){
-  const{data}=await sb.from('groups').select('*').order('name');
+  const{data}=await sb.from('groups').select('*').eq('center_id',curCenter()).order('name');
   allGroups=data||[];
   nameToGid={};gidToName={};
   allGroups.forEach(g=>{nameToGid[g.name]=g.id;gidToName[g.id]=g.name});
@@ -1818,23 +1819,23 @@ function myGidSet(){return new Set((level==='admin'?allGroups:myGroups).map(g=>g
 function inScope(s){if(level==='admin')return true;return myGidSet().has(gidOf(s))}
 
 async function loadStudents(){
-  const{data}=await sb.from('students').select('*').order('name');
+  const{data}=await sb.from('students').select('*').eq('center_id',curCenter()).order('name');
   students=(data||[]).filter(inScope);
   studentsById={};students.forEach(s=>studentsById[s.id]=s);
 }
 async function loadAllChecks(){
-  const{data}=await sb.from('daily_checks').select('*');
+  const{data}=await sb.from('daily_checks').select('*').eq('center_id',curCenter());
   const num=x=>x===true?1:(x===false?0:(+x||0));allChecks={};(data||[]).forEach(r=>{if(!allChecks[r.date])allChecks[r.date]={};allChecks[r.date][r.student_id]={words:(r.words==null?null:num(r.words)),hw:(r.hw==null?null:num(r.hw)),extra:(r.extra==null?null:num(r.extra)),absent:!!r.absent}});
 }
 async function loadAssignments(){
-  const{data:a}=await sb.from('assignments').select('*').order('created_at',{ascending:false});
-  const{data:g}=await sb.from('assignment_grades').select('*');
+  const{data:a}=await sb.from('assignments').select('*').eq('center_id',curCenter()).order('created_at',{ascending:false});
+  const{data:g}=await sb.from('assignment_grades').select('*').eq('center_id',curCenter());
   let list=a||[];
   if(level!=='admin'){const set=myGidSet();list=list.filter(x=>!x.group_id||set.has(x.group_id))}
   assignments=list.map(x=>({...x,grades:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.grade])),scores:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id).map(gr=>[gr.student_id,gr.score])),breakdowns:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id&&gr.breakdown).map(gr=>[gr.student_id,gr.breakdown])),statuses:Object.fromEntries((g||[]).filter(gr=>gr.assignment_id===x.id&&gr.status).map(gr=>[gr.student_id,gr.status]))}));
 }
 async function loadPending(){
-  const{data}=await sb.from('profiles').select('*').eq('approved',false).in('role',['student','parent']);
+  const{data}=await sb.from('profiles').select('*').eq('center_id',curCenter()).eq('approved',false).in('role',['student','parent']);
   let list=data||[];
   if(level!=='admin'){const set=myGidSet();list=list.filter(p=>set.has(p.group_id))}
   pendingList=list;
