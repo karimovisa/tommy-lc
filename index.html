@@ -1563,8 +1563,20 @@ async function routeUser(){
   showLoading(true);
   try{
     const email=(currentUser.email||'').toLowerCase();
-    // 1) ADMIN
-    if(ADMIN_EMAILS.includes(email)){level='admin';await startApp();return}
+    // 0) MARKAZ MOSLIGI — foydalanuvchi shu URL markaziga tegishli bo'lishi shart
+    try{
+      const{data:uc}=await sb.rpc('current_center');
+      if(window.__centerId && uc && uc!==window.__centerId){
+        await sb.auth.signOut();
+        level=null;currentUser=null;
+        showScreen('auth-screen');
+        const le=document.getElementById('login-err');if(le)le.textContent='Bu akkaunt bu markazga tegishli emas';
+        return;
+      }
+    }catch(e){}
+    // 1) ADMIN — admins jadvali orqali (har markaz uchun), ADMIN_EMAILS fallback
+    let isAdm=false;try{const r=await sb.rpc('is_admin');isAdm=(r&&r.data===true);}catch(e){}
+    if(isAdm||ADMIN_EMAILS.includes(email)){level='admin';await startApp();return}
     // 2) TEACHER — groups.teacher_email
     const{data:tg}=await sb.from('groups').select('*').ilike('teacher_email',email);
     if(tg&&tg.length){level='teacher';myGroups=tg;await startApp();return}
