@@ -553,7 +553,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 #auth-screen{padding:0;align-items:stretch;overflow-x:hidden;scroll-behavior:smooth}
 .auth-split{display:flex;flex:1;min-height:100vh;width:100%}
 .auth-banner{flex:0 0 46%;position:relative;overflow:hidden;color:#fff;padding:52px 48px;display:flex;flex-direction:column;justify-content:space-between;z-index:1;
-  background:radial-gradient(120% 80% at 14% 8%,#ff4a4f 0%,transparent 46%),radial-gradient(100% 70% at 92% 18%,#ff8a4d 0%,transparent 42%),radial-gradient(130% 95% at 82% 98%,#9c0d18 0%,transparent 56%),linear-gradient(150deg,#e5242b,#8a0f16 92%)}
+  background:radial-gradient(120% 80% at 14% 8%,color-mix(in srgb,var(--brand) 68%,white) 0%,transparent 46%),radial-gradient(100% 70% at 92% 18%,color-mix(in srgb,var(--brand) 58%,white) 0%,transparent 42%),radial-gradient(130% 95% at 82% 98%,color-mix(in srgb,var(--brand) 45%,black) 0%,transparent 56%),linear-gradient(150deg,var(--brand),color-mix(in srgb,var(--brand) 52%,black) 92%)}
 .auth-banner::after{content:"";position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);top:-120px;right:-120px;pointer-events:none;z-index:0}
 .ab-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .ab-bg::before,.ab-bg::after{content:"";position:absolute;border-radius:50%;filter:blur(72px);opacity:.55}
@@ -642,7 +642,7 @@ table.data tbody tr:hover td{background:var(--surface-2)}
 .st-GRADUATED{background:var(--bg);color:var(--text-3);border:1px solid var(--border)}
 
 /* ========== PREMIUM LOGIN — FINAL ========== */
-:root{--accent2:#E8312A;--accent2b:#C41E1E}
+:root{--accent2:var(--brand);--accent2b:var(--brand-dark)}
 
 /* Tugma — qizil gradient + ripple */
 #auth-screen .btn-primary,#force-pw-screen .btn-primary{
@@ -881,7 +881,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 :root[data-theme="dark"] .btn-primary{box-shadow:0 1px 2px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12)}
 :root[data-theme="dark"] .btn-primary:hover:not(:disabled){box-shadow:0 8px 22px rgba(255,77,84,.28),inset 0 1px 0 rgba(255,255,255,.14)}
 /* — Kirish CTA tugmasi: yorqin yumshoq halo — */
-.auth-box .btn-primary.btn-block{background:linear-gradient(135deg,#ff5a5f 0%,var(--brand) 45%,var(--brand-dark) 100%);box-shadow:0 6px 18px rgba(229,36,43,.30),inset 0 1px 0 rgba(255,255,255,.25)}
+.auth-box .btn-primary.btn-block{background:linear-gradient(135deg,var(--brand) 0%,var(--brand) 45%,var(--brand-dark) 100%);box-shadow:0 6px 18px rgba(229,36,43,.30),inset 0 1px 0 rgba(255,255,255,.25)}
 .auth-box .btn-primary.btn-block:hover:not(:disabled){box-shadow:0 10px 28px rgba(229,36,43,.40),inset 0 1px 0 rgba(255,255,255,.28)}
 
 /* — Rang uyg'unligi: tab/pill brendga moslandi — */
@@ -891,7 +891,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 .role-pill.selected{box-shadow:0 0 0 3px var(--brand-light)}
 
 /* — Login banner: chuqurroq jило + nozik to'r naqsh — */
-.auth-banner{background:radial-gradient(120% 80% at 12% 6%,#ff6b66 0%,transparent 44%),radial-gradient(100% 70% at 92% 16%,#e5242b 0%,transparent 48%),radial-gradient(130% 95% at 84% 100%,#6e0a12 0%,transparent 56%),linear-gradient(160deg,#d61f27 0%,#9c0d18 55%,#6e0a12 100%)}
+.auth-banner{background:radial-gradient(120% 80% at 12% 6%,color-mix(in srgb,var(--brand) 62%,white) 0%,transparent 44%),radial-gradient(100% 70% at 92% 16%,var(--brand) 0%,transparent 48%),radial-gradient(130% 95% at 84% 100%,color-mix(in srgb,var(--brand) 45%,black) 0%,transparent 56%),linear-gradient(160deg,color-mix(in srgb,var(--brand) 82%,black) 0%,color-mix(in srgb,var(--brand) 55%,black) 55%,color-mix(in srgb,var(--brand) 42%,black) 100%)}
 @media(min-width:821px){.auth-banner::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:34px 34px;-webkit-mask-image:radial-gradient(120% 90% at 30% 20%,#000 0%,transparent 75%);mask-image:radial-gradient(120% 90% at 30% 20%,#000 0%,transparent 75%)}}
 .ab-head{background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.78) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 1px 24px rgba(0,0,0,.12)}
 /* — Banner feature kartalari: shisha (glass) ko'rinish — */
@@ -1091,7 +1091,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
   radial-gradient(110% 85% at 12% 8%,#ff9a9e 0%,transparent 46%),
   radial-gradient(95% 75% at 92% 16%,#ff6b70 0%,transparent 44%),
   radial-gradient(120% 95% at 85% 106%,#a8121b 0%,transparent 56%),
-  linear-gradient(155deg,#f23a42 0%,#e5242b 52%,#c2161f 100%)!important}
+  linear-gradient(155deg,color-mix(in srgb,var(--brand) 88%,white) 0%,var(--brand) 52%,var(--brand-dark) 100%)!important}
 .auth-banner::after{background:radial-gradient(circle,rgba(255,255,255,.20),transparent 70%)!important}
 .ab-bg::before{background:radial-gradient(circle,#ffb3b0,transparent 70%)!important;opacity:.5}
 .ab-bg::after{background:radial-gradient(circle,#ff8a8e,transparent 70%)!important;opacity:.45}
