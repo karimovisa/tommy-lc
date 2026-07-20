@@ -2069,7 +2069,7 @@ function _ogGrid(lessons){
     else if(nxt){dotCls='free';meta=_ogFmt(nxt.sM)+' da band';}
     else{dotCls='free';meta="Bo'sh";}
     const blocks=rl.map(l=>{const g=l.g;const left=(l.sM-rs)/span*100,w=(l.eM-l.sM)/span*100;const cls=_ogStatusCls(l);const _mk=_adMarked(g.id);const am=(l.status==='done'&&_mk.total&&_mk.marked<_mk.total);const conf=l._conf&&l._conf.length;const cnt=students.filter(s=>gidOf(s)===g.id&&!s.frozen).length;const title=conf?(' title="⚠ '+esc(l._conf.join('; '))+'"'):'';
-      return `<div class="og-lesson ${cls}${am?' attmiss':''}${conf?' conflict':''}" style="left:${left}%;width:${w}%"${title} onclick="openLessonDrawer('${g.id}')">${conf?'<span class="og-l-warn">⚠</span>':''}<div class="og-l-name">${esc(g.name)}</div><div class="og-l-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}</div><div class="og-l-time">${g.lesson_start||''}–${g.lesson_end||''}${cnt?(' · '+cnt+" o'q."):''}</div></div>`;
+      return `<div class="og-lesson ${cls}${am?' attmiss':''}${conf?' conflict':''}" style="left:${left}%;width:${w}%"${title} onclick="openLessonWorkspace('${g.id}')">${conf?'<span class="og-l-warn">⚠</span>':''}<div class="og-l-name">${esc(g.name)}</div><div class="og-l-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}</div><div class="og-l-time">${g.lesson_start||''}–${g.lesson_end||''}${cnt?(' · '+cnt+" o'q."):''}</div></div>`;
     }).join('');
     let empties='';
     if(isAdmin){let c=rs;const gaps=[];rl.forEach(l=>{if(l.sM>c)gaps.push([c,l.sM]);c=Math.max(c,l.eM);});if(c<re)gaps.push([c,re]);
@@ -2127,6 +2127,129 @@ async function ogSaveAttendance(gid){
   showToast('Davomat saqlandi');
 }
 function closeLessonDrawer(){const dr=document.getElementById('og-drawer');const bd=document.getElementById('og-backdrop');if(dr)dr.classList.remove('open');if(bd)bd.classList.remove('open');}
+/* ===== LESSON WORKSPACE (full-page attendance) ===== */
+function _lwCss(){if(document.getElementById('lw-css'))return;const s=document.createElement('style');s.id='lw-css';s.textContent=`
+@keyframes lwpulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
+.lw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9300;display:none;flex-direction:column;opacity:0;transition:opacity .18s}
+.lw-overlay.open{display:flex;opacity:1}
+.lw-header{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border)}
+.lw-hl{display:flex;align-items:center;gap:14px;min-width:0}
+.lw-back{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--border);border-radius:9px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--text-2);cursor:pointer;transition:.12s;flex:none}
+.lw-back:hover{border-color:var(--text-3);color:var(--text)}
+.lw-crumb{font-size:13px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lw-crumb b{color:var(--text);font-weight:700;font-size:15px}
+.lw-hr{display:flex;align-items:center;gap:16px;flex:none}
+.lw-status{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.lw-status.live{color:var(--good)}
+.lw-status.soon,.lw-status.done{color:var(--text-3)}
+.lw-status .d{width:8px;height:8px;border-radius:50%;background:currentColor}
+.lw-status.live .d{animation:lwpulse 1.6s infinite}
+.lw-time{font-size:13px;color:var(--text-2);font-family:var(--mono)}
+.lw-count{font-size:12px;color:var(--text-3)}
+.lw-info{flex:none;display:flex;align-items:center;gap:22px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.lw-info-i{display:flex;flex-direction:column;gap:1px}
+.lw-info-l{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+.lw-info-v{font-size:14px;font-weight:600;color:var(--text)}
+.lw-save{margin-left:auto;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:20px}
+.lw-save.saving{color:var(--text-2);background:var(--bg)}
+.lw-save.saved{color:var(--good);background:var(--good-light)}
+.lw-save .lw-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:lwpulse 1.2s infinite}
+.lw-body{flex:1;overflow:auto;padding:20px 24px 96px}
+.lw-inner{max-width:900px;margin:0 auto}
+.lw-prog{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.lw-prog-txt{font-size:14px;font-weight:700;color:var(--text);font-family:var(--mono);flex:none;min-width:64px}
+.lw-prog-bar{flex:1;height:8px;border-radius:20px;background:var(--border);overflow:hidden}
+.lw-prog-fill{height:100%;background:var(--brand);border-radius:20px;transition:width .25s}
+.lw-search{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:var(--sans);background:var(--surface);color:var(--text);margin-bottom:12px;outline:none}
+.lw-search:focus{border-color:var(--brand)}
+.lw-list{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.lw-row{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);min-height:64px;transition:background .1s}
+.lw-row:last-child{border-bottom:none}
+.lw-row:hover{background:var(--bg)}
+.lw-row.hidden{display:none}
+.lw-num{font-size:12px;color:var(--text-3);font-family:var(--mono);width:22px;flex:none;text-align:right}
+.lw-name{flex:1;min-width:0;font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lw-name .sub{font-size:12px;color:var(--text-3);font-weight:400;font-family:var(--mono)}
+.lw-ctrl{display:flex;gap:8px;flex:none}
+.lw-b{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--text-3);transition:.1s;padding:0}
+.lw-b:hover{border-color:var(--text-3)}
+.lw-b.none.on{background:var(--bg);border-color:var(--text-3);color:var(--text-2)}
+.lw-b.present.on{background:var(--good-light);border-color:var(--good);color:var(--good)}
+.lw-b.absent.on{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border-color:var(--bad);color:var(--bad)}
+.lw-more{width:36px;height:36px;border-radius:9px;border:none;background:none;cursor:pointer;color:var(--text-3);font-size:18px;flex:none}
+.lw-more:hover{background:var(--bg);color:var(--text)}
+.lw-foot{flex:none;display:flex;align-items:center;gap:10px;padding:12px 24px;background:var(--surface);border-top:1px solid var(--border)}
+.lw-foot .sp{flex:1}
+.lw-empty{text-align:center;color:var(--text-3);padding:40px;font-size:14px}
+@media(max-width:640px){.lw-info{gap:14px}.lw-b{width:44px;height:44px}.lw-foot{flex-wrap:wrap;padding:10px 16px}.lw-hr .btn{display:none}}`;document.head.appendChild(s);}
+function _lwState(sid){const d=allChecks[todayStr()];const e=d&&d[sid];if(!e)return 'none';return e.absent?'absent':'present';}
+function _lwStudents(){const g=window.__lwGid;return students.filter(s=>gidOf(s)===g&&!s.frozen);}
+function _lwCtrl(sid,st){return `<button class="lw-b none ${st==='none'?'on':''}" title="Belgilanmagan" aria-label="Belgilanmagan" onclick="lwMark('${sid}','none')">○</button><button class="lw-b present ${st==='present'?'on':''}" title="Keldi" aria-label="Keldi" onclick="lwMark('${sid}','present')">✓</button><button class="lw-b absent ${st==='absent'?'on':''}" title="Kelmadi" aria-label="Kelmadi" onclick="lwMark('${sid}','absent')">✕</button>`;}
+function _lwRow(s,i){const st=_lwState(s.id);return `<div class="lw-row" data-sid="${s.id}" data-name="${esc((s.name||'').toLowerCase())}"><div class="lw-num">${i+1}</div><div class="avatar-sm">${initials(s.name)}</div><div class="lw-name">${esc(s.name)}${s.phone?`<div class="sub">${esc(s.phone)}</div>`:''}</div><div class="lw-ctrl" id="lw-ctrl-${s.id}">${_lwCtrl(s.id,st)}</div><button class="lw-more" onclick="lwStudent('${s.id}')" title="Batafsil">⋮</button></div>`;}
+function _lwHTML(g){
+  const list=_lwStudents();
+  const sM=_adMin(g.lesson_start),eM=_adMin(g.lesson_end);const nm=new Date().getHours()*60+new Date().getMinutes();
+  let stCls='soon',stTxt='Kutilmoqda',cd='';
+  if(sM!=null){const end=eM!=null?eM:sM+90;if(nm<sM){stCls='soon';stTxt='Boshlanmadi';cd=(sM-nm)+' daq keyin';}else if(nm<=end){stCls='live';stTxt='Jonli';cd=(end-nm)+' daq qoldi';}else{stCls='done';stTxt='Tugadi';}}
+  const timeRange=(g.lesson_start||'—')+(g.lesson_end?' — '+g.lesson_end:'');
+  const rows=list.length?list.map((s,i)=>_lwRow(s,i)).join(''):`<div class="lw-empty">Bu guruhda o'quvchi yo'q</div>`;
+  return `<div class="lw-header"><div class="lw-hl"><button class="lw-back" onclick="closeLessonWorkspace()">← Dashboard</button><div class="lw-crumb">Guruhlar / <b>${esc(g.name)}</b></div></div><div class="lw-hr"><div class="lw-status ${stCls}"><span class="d"></span>${stTxt}</div><div class="lw-time">${timeRange}</div>${cd?`<div class="lw-count">${cd}</div>`:''}<button class="btn btn-primary" onclick="closeLessonWorkspace()">Yakunlash</button></div></div>`
+    +`<div class="lw-info">${g.subject?`<div class="lw-info-i"><span class="lw-info-l">Fan</span><span class="lw-info-v">${esc(g.subject)}</span></div>`:''}<div class="lw-info-i"><span class="lw-info-l">O'qituvchi</span><span class="lw-info-v">${esc(g.teacher_name||'—')}</span></div><div class="lw-info-i"><span class="lw-info-l">Xona</span><span class="lw-info-v">${esc(g.room||'—')}</span></div><div class="lw-info-i"><span class="lw-info-l">O'quvchi</span><span class="lw-info-v">${list.length}</span></div><div class="lw-save saved" id="lw-save">✓ Saqlandi</div></div>`
+    +`<div class="lw-body"><div class="lw-inner"><div class="lw-prog"><span class="lw-prog-txt" id="lw-prog-txt">0 / ${list.length}</span><div class="lw-prog-bar"><div class="lw-prog-fill" id="lw-prog-fill" style="width:0%"></div></div></div><input class="lw-search" id="lw-search" placeholder="O'quvchi qidirish..." oninput="lwFilter(this.value)"><div class="lw-list" id="lw-list">${rows}</div></div></div>`
+    +`<div class="lw-foot"><button class="btn btn-primary" onclick="lwSaveAll()">Davomatni saqlash</button><button class="btn" onclick="closeLessonWorkspace();openHomeworkFor('${g.id}')">Uy ishi</button><button class="btn" onclick="closeLessonWorkspace();showView('notifs')">Guruhga xabar</button><div class="sp"></div><button class="btn" onclick="closeLessonWorkspace()">Yakunlash</button></div>`;
+}
+function openLessonWorkspace(gid){
+  const g=(allGroups||[]).find(x=>x.id===gid)||(myGroups||[]).find(x=>x.id===gid);if(!g)return;_lwCss();
+  window.__lwGid=gid;window.__lwPending=0;
+  let ov=document.getElementById('lw-overlay');if(!ov){ov=document.createElement('div');ov.id='lw-overlay';ov.className='lw-overlay';document.body.appendChild(ov);}
+  ov.innerHTML=_lwHTML(g);ov.classList.add('open');document.body.style.overflow='hidden';
+  lwUpdateProgress();_lwInd();
+  const sr=document.getElementById('lw-search');if(sr)setTimeout(()=>{try{sr.focus();}catch(e){}},60);
+}
+function closeLessonWorkspace(){const ov=document.getElementById('lw-overlay');if(ov)ov.classList.remove('open');document.body.style.overflow='';try{if(document.getElementById('view-dashboard').classList.contains('active'))renderDashboard();}catch(e){}}
+function lwMark(sid,state){
+  const date=todayStr();
+  if(state==='none'){if(allChecks[date])delete allChecks[date][sid];}
+  else{if(!allChecks[date])allChecks[date]={};const ex=allChecks[date][sid]||{words:null,hw:null,extra:null};ex.absent=(state==='absent');allChecks[date][sid]=ex;}
+  const c=document.getElementById('lw-ctrl-'+sid);if(c)c.innerHTML=_lwCtrl(sid,state);
+  lwUpdateProgress();lwQueueSave(sid,state);
+}
+function lwUpdateProgress(){
+  const list=_lwStudents();const d=allChecks[todayStr()]||{};const marked=list.filter(s=>d[s.id]).length;
+  const t=document.getElementById('lw-prog-txt');if(t)t.textContent=marked+' / '+list.length;
+  const f=document.getElementById('lw-prog-fill');if(f)f.style.width=(list.length?Math.round(marked/list.length*100):0)+'%';
+}
+function _lwInd(){const el=document.getElementById('lw-save');if(!el)return;if((window.__lwPending||0)>0){el.className='lw-save saving';el.innerHTML='<span class="lw-dot"></span> Saqlanmoqda...';}else{el.className='lw-save saved';el.innerHTML="✓ Barcha o'zgarishlar saqlandi";}}
+async function lwQueueSave(sid,state){
+  window.__lwPending=(window.__lwPending||0)+1;_lwInd();
+  const date=todayStr();
+  try{
+    if(state==='none'){await sb.from('daily_checks').delete().eq('student_id',sid).eq('date',date);}
+    else{const ex=(allChecks[date]&&allChecks[date][sid])||{};const row={student_id:sid,date,words:(ex.words==null?null:ex.words),hw:(ex.hw==null?null:ex.hw),extra:(ex.extra==null?null:ex.extra),absent:(state==='absent')};await sb.from('daily_checks').upsert(row,{onConflict:'student_id,date'});}
+  }catch(e){try{showToast('Saqlashda xato');}catch(_){}}
+  window.__lwPending=Math.max(0,(window.__lwPending||1)-1);_lwInd();
+}
+async function lwSaveAll(){
+  const list=_lwStudents();const date=todayStr();const d=allChecks[date]||{};
+  window.__lwPending=(window.__lwPending||0)+1;_lwInd();
+  try{
+    const ups=[],del=[];
+    list.forEach(s=>{const e=d[s.id];if(!e)del.push(s.id);else ups.push({student_id:s.id,date,words:(e.words==null?null:e.words),hw:(e.hw==null?null:e.hw),extra:(e.extra==null?null:e.extra),absent:!!e.absent});});
+    if(ups.length)await sb.from('daily_checks').upsert(ups,{onConflict:'student_id,date'});
+    if(del.length)await sb.from('daily_checks').delete().eq('date',date).in('student_id',del);
+    try{showToast('Davomat saqlandi');}catch(_){}
+  }catch(e){try{showToast('Xato: '+(e&&e.message||''));}catch(_){}}
+  window.__lwPending=Math.max(0,(window.__lwPending||1)-1);_lwInd();
+}
+function lwFilter(q){q=(q||'').toLowerCase().trim();document.querySelectorAll('#lw-list .lw-row').forEach(r=>{const n=r.getAttribute('data-name')||'';r.classList.toggle('hidden',!!q&&n.indexOf(q)<0);});}
+function lwStudent(sid){
+  const s=students.find(x=>x.id===sid);if(!s)return;_ogCss();
+  const st=studentStats(sid);const cur=_lwState(sid);const curTxt=cur==='present'?'Keldi':(cur==='absent'?'Kelmadi':'Belgilanmagan');
+  let bd=document.getElementById('og-backdrop');if(!bd){bd=document.createElement('div');bd.id='og-backdrop';bd.className='og-backdrop';bd.onclick=closeLessonDrawer;document.body.appendChild(bd);}
+  let dr=document.getElementById('og-drawer');if(!dr){dr=document.createElement('div');dr.id='og-drawer';dr.className='og-drawer';document.body.appendChild(dr);}
+  dr.innerHTML=`<div class="og-dr-head"><div style="display:flex;gap:12px;align-items:center;min-width:0"><div class="avatar-md">${initials(s.name)}</div><div style="min-width:0"><div class="og-dr-title" style="font-size:18px">${esc(s.name)}</div><div class="og-dr-sub">${esc(gidToName[gidOf(s)]||'')}</div></div></div><button class="og-dr-x" onclick="closeLessonDrawer()">×</button></div><div class="og-dr-body"><div class="og-dr-row"><span>Bugungi holat</span><b>${curTxt}</b></div><div class="og-dr-row"><span>Telefon</span><b>${esc(s.phone||'—')}</b></div><div class="og-dr-row"><span>Guruh</span><b>${esc(gidToName[gidOf(s)]||'—')}</b></div><div class="og-dr-row"><span>O'zlashtirish</span><b>${st.count?st.overall+'%':'—'}</b></div><div class="og-dr-row"><span>Jami darslar</span><b>${st.count}</b></div><div class="og-dr-actions"><button class="btn btn-primary" onclick="closeLessonDrawer();closeLessonWorkspace();openProfile('${sid}')">To'liq profil</button></div></div>`;
+  bd.classList.add('open');requestAnimationFrame(()=>dr.classList.add('open'));
+}
 function renderDashboard(){
   const el=document.getElementById('dashboard-content');_adInjectCss();
   const isAdmin=level==='admin';const gs=(isAdmin?allGroups:myGroups);
@@ -2150,7 +2273,7 @@ function renderDashboard(){
   }else{html+=`<div class="mc-b now"><div class="mc-b-tag">Hozir</div><div class="mc-b-name muted">Faol dars yo'q</div><div class="mc-b-meta">Ayni vaqtda bo'sh</div></div>`;}
   html+=`<div class="mc-b status"><div class="mc-b-tag">Markaz holati</div><div class="mc-b-status"><span class="mc-live"><span class="ad-live-dot"></span>Faol</span> · ${freeCnt}/${allRooms.length||'—'} bo'sh · ${doneToday} o'tdi</div></div>`;
   html+=`<div class="mc-b clock"><div class="mc-b-tag">Vaqt</div><div class="mc-b-time" id="mc-clock">${nowHH}</div></div>`;
-  html+=`<div class="mc-b act"><button class="btn btn-primary" onclick="${nowL?`openLessonDrawer('${nowL.g.id}')`:`showView('checklist')`}">Tezkor davomat</button></div>`;
+  html+=`<div class="mc-b act"><button class="btn btn-primary" onclick="${nowL?`openLessonWorkspace('${nowL.g.id}')`:`showView('checklist')`}">Tezkor davomat</button></div>`;
   html+=`</div>`;
   const wtc=lessons.filter(l=>l.sM<9999&&l.eM!=null&&l.eM>l.sM);_ogConflicts(wtc);
   const conflicts=wtc.filter(l=>l._conf&&l._conf.length);
@@ -2161,16 +2284,16 @@ function renderDashboard(){
   html+=`</div>`;
   html+=`<div class="mc-ops">`;
   const opsTasks=[];
-  conflicts.forEach(l=>opsTasks.push({t:esc(l.g.name)+' — jadval konflikti',s:l._conf[0]||'',fn:`openLessonDrawer('${l.g.id}')`,cls:'bad'}));
+  conflicts.forEach(l=>opsTasks.push({t:esc(l.g.name)+' — jadval konflikti',s:l._conf[0]||'',fn:`openLessonWorkspace('${l.g.id}')`,cls:'bad'}));
   if(pendingList.length)opsTasks.push({t:pendingList.length+" ta ro'yxatdan o'tish",s:'Tasdiq kutmoqda',fn:"showView('approve')",cls:'warn'});
   html+=`<div class="mc-panel"><div class="mc-panel-h">Bugungi vazifalar ${opsTasks.length?`<span class="n">${opsTasks.length}</span>`:''}</div>`;
   html+=opsTasks.length?opsTasks.map(t=>`<div class="mc-item ${t.cls}" onclick="${t.fn}"><span class="mc-dot"></span><div class="mc-item-b"><div class="mc-item-t">${t.t}</div><div class="mc-item-s">${esc(t.s||'')}</div></div><span class="mc-go">→</span></div>`).join(''):`<div class="mc-empty">✓ Vazifa yo'q</div>`;
   html+=`</div>`;
   html+=`<div class="mc-panel"><div class="mc-panel-h">Davomat kutilmoqda ${pendAtt.length?`<span class="n">${pendAtt.length}</span>`:''}</div>`;
-  html+=pendAtt.length?pendAtt.map(l=>{const mk=_adMarked(l.g.id);return `<div class="mc-item warn" onclick="openLessonDrawer('${l.g.id}')"><span class="mc-dot"></span><div class="mc-item-b"><div class="mc-item-t">${esc(l.g.name)}</div><div class="mc-item-s">${mk.marked}/${mk.total} belgilangan · ${l.g.lesson_start||''}</div></div><span class="mc-go">→</span></div>`;}).join(''):`<div class="mc-empty">✓ Hammasi olingan</div>`;
+  html+=pendAtt.length?pendAtt.map(l=>{const mk=_adMarked(l.g.id);return `<div class="mc-item warn" onclick="openLessonWorkspace('${l.g.id}')"><span class="mc-dot"></span><div class="mc-item-b"><div class="mc-item-t">${esc(l.g.name)}</div><div class="mc-item-s">${mk.marked}/${mk.total} belgilangan · ${l.g.lesson_start||''}</div></div><span class="mc-go">→</span></div>`;}).join(''):`<div class="mc-empty">✓ Hammasi olingan</div>`;
   html+=`</div>`;
   html+=`<div class="mc-panel"><div class="mc-panel-h">Keyingi darslar ${upcoming.length?`<span class="n">${upcoming.length}</span>`:''}</div>`;
-  html+=upcoming.length?upcoming.slice(0,6).map(l=>{const g=l.g;const inMin=Math.max(0,l.sM-nm);return `<div class="mc-item" onclick="openLessonDrawer('${g.id}')"><div class="mc-time">${g.lesson_start||''}</div><div class="mc-item-b"><div class="mc-item-t">${esc(g.name)}</div><div class="mc-item-s">${esc(g.teacher_name||'')}${g.room?' · '+esc(g.room):''} · ${inMin} daq</div></div></div>`;}).join(''):`<div class="mc-empty">Bugun boshqa dars yo'q</div>`;
+  html+=upcoming.length?upcoming.slice(0,6).map(l=>{const g=l.g;const inMin=Math.max(0,l.sM-nm);return `<div class="mc-item" onclick="openLessonWorkspace('${g.id}')"><div class="mc-time">${g.lesson_start||''}</div><div class="mc-item-b"><div class="mc-item-t">${esc(g.name)}</div><div class="mc-item-s">${esc(g.teacher_name||'')}${g.room?' · '+esc(g.room):''} · ${inMin} daq</div></div></div>`;}).join(''):`<div class="mc-empty">Bugun boshqa dars yo'q</div>`;
   html+=`</div>`;
   html+=`<div class="mc-panel"><div class="mc-panel-h">Tezkor yaratish</div><div class="mc-qc">`+(isAdmin?`<button onclick="showView('students')">+ O'quvchi</button><button onclick="openAddGroup()">+ Guruh</button>`:'')+`<button onclick="showView('checklist')">✓ Davomat</button><button onclick="showView('payments')">+ To'lov</button><button onclick="showView('notifs')">✉ Xabar</button></div></div>`;
   html+=`</div></div>`;
