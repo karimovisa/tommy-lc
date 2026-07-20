@@ -1901,178 +1901,35 @@ function openHomeworkFor(gid){showView('homework');const sel=document.getElement
 async function loadDashIncome(){try{const month=new Date().toISOString().slice(0,7);const{data}=await sb.from('payments').select('amount').eq('month',month);window.__monthIncome=(data||[]).reduce((a,p)=>a+(+p.amount||0),0);}catch(e){window.__monthIncome=null;}}
 function toggleAnalytics(){const el=document.getElementById('ad-analytics'),c=document.getElementById('ad-an-caret');if(!el)return;const o=el.style.display!=='none';el.style.display=o?'none':'block';if(c)c.textContent=o?'▾':'▴';}
 /* ===== OPERATIONAL SCHEDULE GRID (room x time) + lesson drawer ===== */
-function _ogCss(){if(document.getElementById('og-css'))return;const s=document.createElement('style');s.id='og-css';s.textContent=`
-.ad-hero2{display:grid;grid-template-columns:1.25fr 1.25fr .8fr;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 1px 3px rgba(16,24,40,.06);overflow:hidden;margin-bottom:22px}
-.ad-h2{padding:16px 20px;display:flex;flex-direction:column;justify-content:center;gap:4px;border-right:1px solid var(--border);min-width:0;min-height:118px;max-height:170px}
-.ad-h2:last-child{border-right:none}
-.ad-h2.now{border-left:3px solid var(--brand)}
-.ad-h2-tag{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:6px}
-.ad-h2.now .ad-h2-tag{color:var(--brand)}
-.ad-h2-name{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
-.ad-h2-name.muted{color:var(--text-3);font-weight:700;font-size:17px}
-.ad-h2-meta{font-size:12.5px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ad-h2-time{font-size:12px;color:var(--text-3);font-family:var(--mono);margin-top:1px}
-.ad-h2.stat{background:var(--bg)}
-.ad-h2-stat-big{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--text);line-height:1;margin-top:2px}
-.ad-h2-stat-big small{font-size:15px;color:var(--text-3);font-weight:600}
-@media(max-width:720px){.ad-hero2{grid-template-columns:1fr 1fr}.ad-h2.stat{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px;border-top:1px solid var(--border);min-height:auto}.ad-h2.stat .ad-h2-stat-big{margin:0}}
-.og-wrap{margin-bottom:26px}
-.og-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}
-.og-head h3{font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--text);margin:0;display:flex;align-items:baseline;gap:9px}
-.og-head h3 .og-sub{font-size:12px;color:var(--text-3);font-weight:500;letter-spacing:0}
-.og-legend{display:flex;gap:14px;flex-wrap:wrap}
-.og-lg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);font-weight:500}
-.og-lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
-.og-lg.now i{background:var(--brand)}
-.og-lg.next i{background:var(--text-3);opacity:.55}
-.og-lg.done i{background:var(--border)}
-.og-lg.exam i{background:#7c5cff}
-.og-lg.repl i{background:#e08b3c}
-.og{border:1px solid var(--border);border-radius:16px;background:var(--surface);overflow-x:auto;position:relative;box-shadow:0 1px 3px rgba(16,24,40,.05)}
-.og-grid{min-width:820px}
-.og-row{display:flex;align-items:stretch;min-height:80px;border-bottom:1px solid var(--border)}
-.og-row:last-child{border-bottom:none}
-.og-headrow{min-height:42px;position:sticky;top:0;background:var(--surface);z-index:6}
-.og-room{width:154px;min-width:154px;position:sticky;left:0;background:var(--surface);z-index:9;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 14px;border-right:1px solid var(--border)}
-.og-headrow .og-room{z-index:12}
-.og-room-nm{font-size:13.5px;font-weight:650;color:var(--text);display:flex;align-items:center;gap:8px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.og-room-nm .dot{width:7px;height:7px;border-radius:50%;flex:none}
-.og-room-nm .dot.busy{background:var(--brand)}
-.og-room-nm .dot.free{background:var(--good)}
-.og-room-meta{font-size:11px;color:var(--text-3);font-weight:500;padding-left:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.og-track{position:relative;flex:1;min-width:640px}
-.og-gl{position:absolute;top:0;bottom:0;width:1px;background:var(--border);opacity:.45;pointer-events:none}
-.og-tick{position:absolute;top:14px;font-size:11px;color:var(--text-3);font-family:var(--mono);transform:translateX(-50%);font-weight:500}
-.og-now{position:absolute;top:0;bottom:0;width:2px;background:var(--brand);z-index:5;pointer-events:none}
-.og-now .og-nowlabel{position:absolute;top:0;left:1px;transform:translateX(-50%);background:var(--brand);color:#fff;font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 6px;border-radius:0 0 7px 7px;white-space:nowrap}
-.og-now::before{content:'';position:absolute;top:-1px;left:-4px;width:9px;height:9px;border-radius:50%;background:var(--brand)}
-.og-headrow .og-now::before{display:none}
-.og-lesson{position:absolute;top:8px;bottom:8px;border-radius:16px;padding:9px 12px;cursor:pointer;overflow:hidden;border:1px solid var(--border);border-left-width:3px;background:var(--surface);box-shadow:0 1px 2px rgba(16,24,40,.06);transition:box-shadow .15s,transform .15s;min-width:66px;display:flex;flex-direction:column;justify-content:center}
-.og-lesson:hover{box-shadow:0 6px 18px rgba(16,24,40,.14);transform:translateY(-1px);z-index:8}
-.og-lesson.now{border-left-color:var(--brand);background:var(--brand-light)}
-.og-lesson.next{border-left-color:var(--text-3)}
-.og-lesson.done{border-left-color:var(--border);opacity:.6}
-.og-lesson.exam{border-left-color:#7c5cff;background:color-mix(in srgb,#7c5cff 7%,var(--surface))}
-.og-lesson.repl{border-left-color:#e08b3c;background:color-mix(in srgb,#e08b3c 8%,var(--surface))}
-.og-lesson.cx{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 7%,var(--surface))}
-.og-lesson.conflict{box-shadow:0 0 0 2px var(--bad),0 1px 2px rgba(16,24,40,.06)}
-.og-l-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
-.og-l-sub{font-size:11px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.og-l-time{font-size:10.5px;color:var(--text-3);font-family:var(--mono);margin-top:2px;white-space:nowrap}
-.og-l-warn{position:absolute;top:6px;right:8px;font-size:11px;color:var(--bad);line-height:1}
-.og-empty{position:absolute;top:8px;bottom:8px;border-radius:14px;border:1px dashed transparent;display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
-.og-track:hover .og-empty{border-color:var(--border)}
-.og-empty:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light)}
-.og-backdrop{position:fixed;inset:0;background:rgba(16,24,40,.35);z-index:9500;opacity:0;pointer-events:none;transition:.2s}
-.og-backdrop.open{opacity:1;pointer-events:auto}
-.og-drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:var(--surface);z-index:9501;box-shadow:-8px 0 30px rgba(16,24,40,.15);transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
-.og-drawer.open{transform:translateX(0)}
-.og-dr-head{display:flex;align-items:flex-start;justify-content:space-between;padding:22px 22px 16px;border-bottom:1px solid var(--border)}
-.og-dr-title{font-size:20px;font-weight:800;color:var(--text)}
-.og-dr-sub{font-size:13px;color:var(--text-2);margin-top:3px}
-.og-dr-x{background:none;border:none;font-size:26px;cursor:pointer;color:var(--text-2);line-height:1}
-.og-dr-body{padding:18px 22px;overflow:auto}
-.og-dr-row{display:flex;justify-content:space-between;font-size:14px;padding:11px 0;border-bottom:1px solid var(--border)}
-.og-dr-row span{color:var(--text-2)}
-.og-dr-row b{color:var(--text)}
-.og-dr-actions{display:flex;flex-direction:column;gap:9px;margin-top:20px}
-.og-dr-actions .btn{width:100%}
-.og-att{margin-top:22px}
-.og-att-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.og-att-head .t{font-size:13px;font-weight:700;color:var(--text)}
-.og-att-head .c{font-size:12px;color:var(--text-2);font-weight:600;font-family:var(--mono)}
-.og-att-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
-.og-att-row:last-child{border-bottom:none}
-.og-att-name{display:flex;align-items:center;gap:9px;min-width:0}
-.og-att-name span{font-size:13.5px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.og-att-btns{display:flex;gap:6px;flex:none}
-.og-att-b{font-size:12px;font-weight:600;padding:6px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);cursor:pointer;transition:.12s}
-.og-att-b:hover{border-color:var(--text-3)}
-.og-att-b.keldi.on{background:var(--good-light);border-color:var(--good);color:var(--good)}
-.og-att-b.kelmadi.on{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border-color:var(--bad);color:var(--bad)}
-.og-att-empty{font-size:13px;color:var(--text-2);text-align:center;padding:16px 0}`;document.head.appendChild(s);}
-const OG_START_H=8,OG_END_H=21;/* ish vaqti oynasi — sozlanadigan */
-function _ogFmt(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
-function _ogStatusCls(l){const g=l.g||{};if(g.cancelled)return 'cx';const t=((g.lesson_type||g.type||'')+'').toLowerCase();if(t.indexOf('imtihon')>-1||t==='exam')return 'exam';if(t.indexOf('almash')>-1||t==='replacement'||t==='replace')return 'repl';return l.status==='now'?'now':(l.status==='done'?'done':'next');}
-function _ogConflicts(wt){wt.forEach(l=>{l._conf=[];});for(let i=0;i<wt.length;i++)for(let j=i+1;j<wt.length;j++){const a=wt[i],b=wt[j];if(!(a.sM<b.eM&&b.sM<a.eM))continue;const sameRoom=(a.g.room||'?')===(b.g.room||'?');const sameT=a.g.teacher_name&&a.g.teacher_name===b.g.teacher_name;if(sameRoom){a._conf.push('Xona bandligi: '+(b.g.name||''));b._conf.push('Xona bandligi: '+(a.g.name||''));}if(sameT){a._conf.push("O'qituvchi bandligi: "+(b.g.name||''));b._conf.push("O'qituvchi bandligi: "+(a.g.name||''));}}}
-function ogSchedule(room,min){if(level!=='admin')return;try{if(typeof openAddGroup==='function')openAddGroup();}catch(e){}try{showToast(room+" · "+_ogFmt(min)+" — yangi dars");}catch(e){}}
+function _ogCss(){if(document.getElementById('og-css'))return;const s=document.createElement('style');s.id='og-css';s.textContent=".og{border:1px solid var(--border);border-radius:16px;background:var(--surface);overflow-x:auto;padding:4px;margin-bottom:6px}.og-row{display:flex;align-items:stretch;min-height:66px;border-bottom:1px solid var(--border)}.og-row:last-child{border-bottom:none}.og-headrow{min-height:34px}.og-room{width:96px;min-width:96px;display:flex;align-items:center;font-size:13px;font-weight:600;color:var(--text-2);padding:0 12px}.og-track{position:relative;flex:1;min-width:560px}.og-tick{position:absolute;top:10px;font-size:11px;color:var(--text-3);font-family:var(--mono);transform:translateX(-50%)}.og-lesson{position:absolute;top:6px;bottom:6px;border-radius:10px;padding:8px 10px;cursor:pointer;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:.15s;min-width:56px}.og-lesson:hover{box-shadow:0 3px 10px rgba(16,24,40,.12);z-index:3}.og-lesson.now{background:var(--brand-light);border-color:var(--brand)}.og-lesson.done{opacity:.5}.og-l-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.og-l-sub{font-size:11px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.og-l-time{font-size:10px;color:var(--text-3);font-family:var(--mono);margin-top:2px}.og-now{position:absolute;top:0;bottom:0;width:2px;background:var(--brand);z-index:2;pointer-events:none}.og-now::before{content:'';position:absolute;top:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--brand)}.og-backdrop{position:fixed;inset:0;background:rgba(16,24,40,.35);z-index:9500;opacity:0;pointer-events:none;transition:.2s}.og-backdrop.open{opacity:1;pointer-events:auto}.og-drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:var(--surface);z-index:9501;box-shadow:-8px 0 30px rgba(16,24,40,.15);transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}.og-drawer.open{transform:translateX(0)}.og-dr-head{display:flex;align-items:flex-start;justify-content:space-between;padding:22px 22px 16px;border-bottom:1px solid var(--border)}.og-dr-title{font-size:20px;font-weight:800;color:var(--text)}.og-dr-sub{font-size:13px;color:var(--text-2);margin-top:3px}.og-dr-x{background:none;border:none;font-size:26px;cursor:pointer;color:var(--text-2);line-height:1}.og-dr-body{padding:18px 22px;overflow:auto}.og-dr-row{display:flex;justify-content:space-between;font-size:14px;padding:11px 0;border-bottom:1px solid var(--border)}.og-dr-row span{color:var(--text-2)}.og-dr-row b{color:var(--text)}.og-dr-actions{display:flex;flex-direction:column;gap:9px;margin-top:20px}.og-dr-actions .btn{width:100%}";document.head.appendChild(s);}
 function _ogGrid(lessons){
   _ogCss();
-  const gs=(level==='admin'?allGroups:myGroups);
   const wt=lessons.filter(l=>l.sM<9999&&l.eM!=null&&l.eM>l.sM);
-  _ogConflicts(wt);
-  let rsH=OG_START_H,reH=OG_END_H;
-  if(wt.length){rsH=Math.min(rsH,Math.floor(Math.min.apply(null,wt.map(l=>l.sM))/60));reH=Math.max(reH,Math.ceil(Math.max.apply(null,wt.map(l=>l.eM))/60));}
-  rsH=Math.max(0,rsH);reH=Math.min(24,reH);
+  if(!wt.length)return '';
+  const minS=Math.min.apply(null,wt.map(l=>l.sM)),maxE=Math.max.apply(null,wt.map(l=>l.eM));
+  const rsH=Math.max(0,Math.floor(minS/60)),reH=Math.min(24,Math.ceil(maxE/60));
   const rs=rsH*60,re=reH*60,span=Math.max(60,re-rs);
-  const nowMin=new Date().getHours()*60+new Date().getMinutes();
-  const showNow=nowMin>=rs&&nowMin<=re,nowLeft=(nowMin-rs)/span*100;
-  const isAdmin=level==='admin';
-  const roomSet=new Set();gs.forEach(g=>{if(g.room)roomSet.add(g.room);});wt.forEach(l=>{roomSet.add(l.g.room||'Belgilanmagan');});
-  let rooms=Array.from(roomSet);if(!rooms.length)rooms=['Belgilanmagan'];
-  rooms.sort((a,b)=>(''+a).localeCompare(''+b,undefined,{numeric:true}));
-  let ticks='',glines='';
-  for(let h=rsH;h<=reH;h++){const lp=(h*60-rs)/span*100;ticks+=`<div class="og-tick" style="left:${lp}%">${String(h).padStart(2,'0')}:00</div>`;glines+=`<div class="og-gl" style="left:${lp}%"></div>`;}
-  const nowLine=showNow?`<div class="og-now" style="left:${nowLeft}%"></div>`:'';
-  const nowHead=showNow?`<div class="og-now" style="left:${nowLeft}%"><span class="og-nowlabel">${_ogFmt(nowMin)}</span></div>`:'';
+  const nm=new Date().getHours()*60+new Date().getMinutes();
+  const showNow=nm>=rs&&nm<=re,nowLeft=((nm-rs)/span*100);
+  const rooms=Array.from(new Set(wt.map(l=>l.g.room||'Belgilanmagan'))).sort();
+  let head='';for(let h=rsH;h<=reH;h++){head+=`<div class="og-tick" style="left:${((h*60-rs)/span*100)}%">${String(h).padStart(2,'0')}:00</div>`;}
+  const nowSeg=showNow?`<div class="og-now" style="left:${nowLeft}%"></div>`:'';
   const rows=rooms.map(room=>{
-    const rl=wt.filter(l=>(l.g.room||'Belgilanmagan')===room).sort((a,b)=>a.sM-b.sM);
-    const cur=rl.find(l=>l.status==='now'),nxt=rl.find(l=>l.status==='next');
-    let dotCls,meta;
-    if(cur){dotCls='busy';meta=_ogFmt(cur.eM)+' gacha band';}
-    else if(nxt){dotCls='free';meta=_ogFmt(nxt.sM)+' da band';}
-    else{dotCls='free';meta="Bo'sh";}
-    const blocks=rl.map(l=>{const g=l.g;const left=(l.sM-rs)/span*100,w=(l.eM-l.sM)/span*100;const cls=_ogStatusCls(l);const conf=l._conf&&l._conf.length;const cnt=students.filter(s=>gidOf(s)===g.id&&!s.frozen).length;const title=conf?(' title="⚠ '+esc(l._conf.join('; '))+'"'):'';
-      return `<div class="og-lesson ${cls}${conf?' conflict':''}" style="left:${left}%;width:${w}%"${title} onclick="openLessonDrawer('${g.id}')">${conf?'<span class="og-l-warn">⚠</span>':''}<div class="og-l-name">${esc(g.name)}</div><div class="og-l-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}</div><div class="og-l-time">${g.lesson_start||''}–${g.lesson_end||''}${cnt?(' · '+cnt+" o'q."):''}</div></div>`;
+    const rl=wt.filter(l=>(l.g.room||'Belgilanmagan')===room);
+    const blocks=rl.map(l=>{const g=l.g;const left=((l.sM-rs)/span*100),w=((l.eM-l.sM)/span*100);const cls=l.status==='now'?'now':(l.status==='done'?'done':'next');const cnt=students.filter(s=>gidOf(s)===g.id&&!s.frozen).length;
+      return `<div class="og-lesson ${cls}" style="left:${left}%;width:${w}%" onclick="openLessonDrawer('${g.id}')"><div class="og-l-name">${esc(g.name)}</div><div class="og-l-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}</div><div class="og-l-time">${g.lesson_start||''}–${g.lesson_end||''}${cnt?(' · '+cnt):''}</div></div>`;
     }).join('');
-    let empties='';
-    if(isAdmin){let c=rs;const gaps=[];rl.forEach(l=>{if(l.sM>c)gaps.push([c,l.sM]);c=Math.max(c,l.eM);});if(c<re)gaps.push([c,re]);
-      empties=gaps.filter(g=>g[1]-g[0]>=20).map(g=>{const left=(g[0]-rs)/span*100,w=(g[1]-g[0])/span*100;return `<div class="og-empty" style="left:${left}%;width:${w}%" onclick="ogSchedule('${esc(room).replace(/'/g,"\\'")}',${g[0]})">+ Dars qo'yish</div>`;}).join('');
-    }
-    return `<div class="og-row"><div class="og-room"><div class="og-room-nm"><span class="dot ${dotCls}"></span>${esc(room)}</div><div class="og-room-meta">${meta}</div></div><div class="og-track">${glines}${empties}${nowLine}${blocks}</div></div>`;
+    return `<div class="og-row"><div class="og-room">${esc(room)}</div><div class="og-track">${nowSeg}${blocks}</div></div>`;
   }).join('');
-  const header=`<div class="og-row og-headrow"><div class="og-room"></div><div class="og-track">${ticks}${glines}${nowHead}</div></div>`;
-  return `<div class="og"><div class="og-grid">${header}${rows}</div></div>`;
-}
-function _ogDrawerHTML(g){
-  const gid=g.id;const date=todayStr();
-  const list=students.filter(s=>gidOf(s)===gid&&!s.frozen);
-  const absentN=list.filter(s=>{const e=allChecks[date]&&allChecks[date][s.id];return e&&e.absent;}).length;
-  const presentN=list.length-absentN;
-  const rows=list.length?list.map(s=>{const e=allChecks[date]&&allChecks[date][s.id];const ab=!!(e&&e.absent);
-    return `<div class="og-att-row"><div class="og-att-name"><div class="avatar-sm">${initials(s.name)}</div><span>${esc(s.name)}</span></div><div class="og-att-btns"><button class="og-att-b keldi ${ab?'':'on'}" onclick="ogAtt('${gid}','${s.id}',false)">Keldi</button><button class="og-att-b kelmadi ${ab?'on':''}" onclick="ogAtt('${gid}','${s.id}',true)">Kelmadi</button></div></div>`;
-  }).join(''):`<div class="og-att-empty">Bu guruhda o'quvchi yo'q</div>`;
-  return `<div class="og-dr-head"><div><div class="og-dr-title">${esc(g.name)}</div><div class="og-dr-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}</div></div><button class="og-dr-x" onclick="closeLessonDrawer()">×</button></div>`
-    +`<div class="og-dr-body"><div class="og-dr-row"><span>Vaqt</span><b>${g.lesson_start||'—'}${g.lesson_end?'–'+g.lesson_end:''}</b></div><div class="og-dr-row"><span>Xona</span><b>${esc(g.room||'—')}</b></div><div class="og-dr-row"><span>O'quvchi</span><b>${list.length}</b></div>`
-    +`<div class="og-att"><div class="og-att-head"><span class="t">Davomat</span><span class="c">${presentN}/${list.length} keldi</span></div>${rows}${list.length?`<button class="btn btn-primary" id="og-att-save" style="width:100%;margin-top:14px" onclick="ogSaveAttendance('${gid}')">Davomatni saqlash</button>`:''}</div>`
-    +`<div class="og-dr-actions"><button class="btn" onclick="closeLessonDrawer();openHomeworkFor('${gid}')">Uy ishi</button><button class="btn" onclick="closeLessonDrawer();openGroup('${gid}')">Guruhni ochish</button></div></div>`;
+  return `<div class="og"><div class="og-row og-headrow"><div class="og-room"></div><div class="og-track">${head}${nowSeg}</div></div>${rows}</div>`;
 }
 function openLessonDrawer(gid){
-  const g=(allGroups||[]).find(x=>x.id===gid)||(myGroups||[]).find(x=>x.id===gid);if(!g)return;_ogCss();
+  const g=(allGroups||[]).find(x=>x.id===gid);if(!g)return;_ogCss();
   let bd=document.getElementById('og-backdrop');if(!bd){bd=document.createElement('div');bd.id='og-backdrop';bd.className='og-backdrop';bd.onclick=closeLessonDrawer;document.body.appendChild(bd);}
   let dr=document.getElementById('og-drawer');if(!dr){dr=document.createElement('div');dr.id='og-drawer';dr.className='og-drawer';document.body.appendChild(dr);}
-  dr.innerHTML=_ogDrawerHTML(g);
+  const cnt=students.filter(s=>gidOf(s)===gid&&!s.frozen).length;const mk=_adMarked(gid);
+  dr.innerHTML=`<div class="og-dr-head"><div><div class="og-dr-title">${esc(g.name)}</div><div class="og-dr-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}</div></div><button class="og-dr-x" onclick="closeLessonDrawer()">×</button></div><div class="og-dr-body"><div class="og-dr-row"><span>Vaqt</span><b>${g.lesson_start||'—'}${g.lesson_end?'–'+g.lesson_end:''}</b></div><div class="og-dr-row"><span>Xona</span><b>${esc(g.room||'—')}</b></div><div class="og-dr-row"><span>O'quvchi</span><b>${cnt}</b></div><div class="og-dr-row"><span>Davomat</span><b>${mk.total?(mk.marked+'/'+mk.total):'—'}</b></div><div class="og-dr-actions"><button class="btn btn-primary" onclick="closeLessonDrawer();openAttendance('${gid}')">Davomat olish</button><button class="btn" onclick="closeLessonDrawer();openHomeworkFor('${gid}')">Uy ishi</button><button class="btn" onclick="closeLessonDrawer();openGroup('${gid}')">Guruhni ochish</button></div></div>`;
   bd.classList.add('open');requestAnimationFrame(()=>dr.classList.add('open'));
-}
-function ogAtt(gid,sid,absent){
-  const date=todayStr();
-  if(!allChecks[date])allChecks[date]={};
-  if(!allChecks[date][sid])allChecks[date][sid]={hw:0,words:0,extra:0};
-  allChecks[date][sid].absent=absent;
-  const g=(allGroups||[]).find(x=>x.id===gid)||(myGroups||[]).find(x=>x.id===gid);
-  const dr=document.getElementById('og-drawer');if(dr&&g)dr.innerHTML=_ogDrawerHTML(g);
-}
-async function ogSaveAttendance(gid){
-  const date=todayStr();const list=students.filter(s=>gidOf(s)===gid&&!s.frozen);
-  const btn=document.getElementById('og-att-save');if(btn){btn.disabled=true;btn.textContent='Saqlanmoqda...';}
-  list.forEach(s=>{if(!allChecks[date])allChecks[date]={};if(!allChecks[date][s.id])allChecks[date][s.id]={hw:0,words:0,extra:0};});
-  const ups=list.map(s=>{const e=allChecks[date][s.id]||{};return {student_id:s.id,date,words:(e.words==null?null:e.words),hw:(e.hw==null?null:e.hw),extra:(e.extra==null?null:e.extra),absent:!!e.absent};});
-  const{error}=await sb.from('daily_checks').upsert(ups,{onConflict:'student_id,date'});
-  if(error){if(btn){btn.disabled=false;btn.textContent='Davomatni saqlash';}showToast('Xato: '+error.message);return;}
-  try{await loadAllChecks();}catch(e){}
-  closeLessonDrawer();
-  try{renderDashboard();}catch(e){}
-  showToast('Davomat saqlandi');
 }
 function closeLessonDrawer(){const dr=document.getElementById('og-drawer');const bd=document.getElementById('og-backdrop');if(dr)dr.classList.remove('open');if(bd)bd.classList.remove('open');}
 function renderDashboard(){
@@ -2085,28 +1942,28 @@ function renderDashboard(){
   const day=allChecks[todayStr()]||{};let present=0,absent=0;Object.values(day).forEach(e=>{if(!e)return;if(e.absent)absent++;else if(e.words!=null||e.hw!=null||e.extra!=null)present++;});
   const attPct=(present+absent)?Math.round(present*100/(present+absent)):0;const income=window.__monthIncome;
   let html='';
-  const allRooms=Array.from(new Set(gs.map(g=>g.room).filter(Boolean)));
-  const busyRooms=new Set(lessons.filter(l=>l.status==='now').map(l=>l.g.room).filter(Boolean));
-  const freeCnt=Math.max(0,allRooms.length-busyRooms.size);
-  html+=`<div class="ad-hero2">`;
-  if(nowL){const g=nowL.g;const rem=nowL.eM!=null?Math.max(0,nowL.eM-nm):null;
-    html+=`<div class="ad-h2 now"><div class="ad-h2-tag"><span class="ad-live-dot"></span>Hozir</div><div class="ad-h2-name">${esc(g.name)}</div><div class="ad-h2-meta">${esc(g.teacher_name||'')}${g.room?' · '+esc(g.room):''}</div><div class="ad-h2-time">${g.lesson_start||''}${g.lesson_end?'–'+g.lesson_end:''}${rem!=null?' · '+rem+' daq qoldi':''}</div></div>`;
-  }else{html+=`<div class="ad-h2 now"><div class="ad-h2-tag">Hozir</div><div class="ad-h2-name muted">Dars yo'q</div><div class="ad-h2-meta">Ayni vaqtda bo'sh</div></div>`;}
-  if(nextL){const g=nextL.g;const inMin=Math.max(0,nextL.sM-nm);
-    html+=`<div class="ad-h2 next"><div class="ad-h2-tag">Keyingi</div><div class="ad-h2-name">${esc(g.name)}</div><div class="ad-h2-meta">${esc(g.teacher_name||'')}${g.room?' · '+esc(g.room):''}</div><div class="ad-h2-time">${g.lesson_start||''} · ${inMin} daqiqadan keyin</div></div>`;
-  }else{html+=`<div class="ad-h2 next"><div class="ad-h2-tag">Keyingi</div><div class="ad-h2-name muted">Yo'q</div><div class="ad-h2-meta">Bugun boshqa dars yo'q</div></div>`;}
-  html+=`<div class="ad-h2 stat"><div><div class="ad-h2-tag">Xonalar</div><div class="ad-h2-stat-big">${freeCnt}<small>/${allRooms.length||'—'}</small></div><div class="ad-h2-meta">bo'sh xona</div></div></div>`;
-  html+=`</div>`;
-  html+=`<div class="og-wrap"><div class="og-head"><h3>Operatsion jadval <span class="og-sub">Xona × Vaqt</span></h3><div class="og-legend"><span class="og-lg now"><i></i>Hozir</span><span class="og-lg next"><i></i>Keyingi</span><span class="og-lg done"><i></i>Tugagan</span><span class="og-lg exam"><i></i>Imtihon</span><span class="og-lg repl"><i></i>Almashtirish</span></div></div>`;
-  html+=(gs.length?_ogGrid(lessons):`<div class="ad-empty">Guruhlar hali qo'shilmagan</div>`);
+  html+=`<div class="ad-hero ${nowL?'live':''}">`;
+  if(nowL){const g=nowL.g;const rem=nowL.eM!=null?Math.max(0,nowL.eM-nm):null;const mk=_adMarked(g.id);
+    html+=`<div class="ad-hero-tag"><span class="ad-live-dot"></span>Hozir dars</div><div class="ad-hero-title">${esc(g.name)}</div>${g.subject?`<div class="ad-hero-subj">${esc(g.subject)}</div>`:''}<div class="ad-hero-meta">${esc(g.teacher_name||'')}${g.lesson_start?' · '+g.lesson_start+(g.lesson_end?'–'+g.lesson_end:''):''}</div>${rem!=null?`<div class="ad-hero-count">${rem} daqiqa qoldi</div>`:''}<div class="ad-hero-actions"><button class="btn btn-primary" onclick="openAttendance('${g.id}')">${(mk.total&&mk.marked>=mk.total)?'Davomat ✓':'Davomat olish'}</button><button class="btn" onclick="openGroup('${g.id}')">Guruh</button></div>`;
+  }else if(nextL){const g=nextL.g;const inMin=Math.max(0,nextL.sM-nm);
+    html+=`<div class="ad-hero-tag">Keyingi dars</div><div class="ad-hero-title">${esc(g.name)}</div>${g.subject?`<div class="ad-hero-subj">${esc(g.subject)}</div>`:''}<div class="ad-hero-meta">${esc(g.teacher_name||'')}${g.lesson_start?' · '+g.lesson_start+(g.lesson_end?'–'+g.lesson_end:''):''}</div><div class="ad-hero-count">${inMin} daqiqadan keyin</div><div class="ad-hero-actions"><button class="btn" onclick="openGroup('${g.id}')">Guruh</button></div>`;
+  }else{html+=`<div class="ad-hero-tag">Bugun</div><div class="ad-hero-title">Bugun boshqa dars yo'q</div><div class="ad-hero-meta">${lessons.length?lessons.length+" ta dars bo'lib o'tdi":'Bugun dars rejalashtirilmagan'}</div>`;}
   html+=`</div>`;
   const tasks=[];
   lessons.forEach(l=>{if(l.status==='now'||l.status==='done'){const mk=_adMarked(l.g.id);if(mk.total&&mk.marked<mk.total)tasks.push({t:esc(l.g.name)+" — davomat to'liq emas ("+mk.marked+"/"+mk.total+")",btn:'Davomat',fn:"openAttendance('"+l.g.id+"')",cls:'bad'});}});
   if(pendingList.length)tasks.push({t:pendingList.length+" ta ro'yxatdan o'tish tasdiq kutmoqda",btn:"Ko'rish",fn:"showView('approve')",cls:'warn'});
-  html+=`<div class="ad-sec-title">Tezkor amallar</div><div class="ad-qa">`+(isAdmin?`<button class="ad-qa-btn" onclick="showView('students')"><span class="ad-qa-ic">+</span>O'quvchi</button><button class="ad-qa-btn" onclick="openAddGroup()"><span class="ad-qa-ic">+</span>Guruh</button>`:'')+`<button class="ad-qa-btn" onclick="showView('checklist')"><span class="ad-qa-ic">✓</span>Davomat</button><button class="ad-qa-btn" onclick="showView('payments')"><span class="ad-qa-ic">+</span>To'lov</button><button class="ad-qa-btn" onclick="showView('notifs')"><span class="ad-qa-ic">✉</span>Xabar</button></div>`;
-  html+=`<div class="ad-sec-title" style="margin-top:20px">📊 Qisqa ko'rsatkich</div><div class="dash-cards">`+kpiCard(ICONS.users,students.length,"O'quvchi",'var(--brand)','var(--brand-light)')+kpiCard(ICONS.layers,gs.length,'Guruh','var(--good)','var(--good-light)')+kpiCard(ICONS.clock,attPct+'%',"Bugun davomat",'var(--warn)','var(--warn-light)',col(attPct))+kpiCard(ICONS.trend,(income==null?'—':_adMoney(income)),"Oylik daromad",'var(--good)','var(--good-light)')+`</div>`;
-  html+=`<div class="ad-sec-title" style="margin-top:20px">✅ Bugun kerak</div>`;
+  html+=`<div class="ad-sec-title">✅ Bugun kerak</div>`;
   html+=tasks.length?(`<div class="ad-tasks">`+tasks.map(t=>`<div class="ad-task"><span class="ad-task-dot ${t.cls}"></span><div class="ad-task-txt">${t.t}</div><button class="btn btn-sm" onclick="${t.fn}">${t.btn}</button></div>`).join('')+`</div>`):`<div class="ad-allgood">✓ Bugun hammasi joyida</div>`;
+  html+=`<div class="ad-sec-title">Tezkor amallar</div><div class="ad-qa">`+(isAdmin?`<button class="ad-qa-btn" onclick="showView('students')"><span class="ad-qa-ic">+</span>O'quvchi</button><button class="ad-qa-btn" onclick="openAddGroup()"><span class="ad-qa-ic">+</span>Guruh</button>`:'')+`<button class="ad-qa-btn" onclick="showView('checklist')"><span class="ad-qa-ic">✓</span>Davomat</button><button class="ad-qa-btn" onclick="showView('payments')"><span class="ad-qa-ic">+</span>To'lov</button><button class="ad-qa-btn" onclick="showView('notifs')"><span class="ad-qa-ic">✉</span>Xabar</button></div>`;
+  html+=`<div class="ad-sec-title" style="margin-top:20px">Bugungi jadval</div>`;
+  const _grid=lessons.length?_ogGrid(lessons):'';
+  if(_grid){html+=_grid;}
+  else if(lessons.length){
+    html+=`<div class="ad-sched">`+lessons.map(l=>{const g=l.g;const mk=_adMarked(g.id);const stCls=l.status==='now'?'now':(l.status==='done'?'done':'next');const stTxt=l.status==='now'?'Hozir':(l.status==='done'?'Tugadi':'Keyingi');const attTxt=mk.total?(mk.marked>=mk.total?'Davomat ✓':(mk.marked>0?'Davomat '+mk.marked+'/'+mk.total:"Davomat yo'q")):'';const time=g.lesson_start?(g.lesson_start+(g.lesson_end?'–'+g.lesson_end:'')):'—';
+      return `<div class="ad-lesson ${stCls}"><div class="ad-lesson-time">${time}<span class="ad-lesson-st ${stCls}">${stTxt}</span></div><div class="ad-lesson-main"><div class="ad-lesson-name">${esc(g.name)}</div><div class="ad-lesson-sub">${g.subject?esc(g.subject)+' · ':''}${esc(g.teacher_name||'')}${attTxt?' · '+attTxt:''}</div></div><div class="ad-lesson-actions"><button class="btn btn-sm" onclick="openAttendance('${g.id}')">Davomat</button><button class="btn btn-sm" onclick="openHomeworkFor('${g.id}')">Uy ishi</button><button class="btn btn-sm" onclick="openGroup('${g.id}')">Guruh</button></div></div>`;
+    }).join('')+`</div>`;
+  }else{html+=`<div class="ad-empty">Bugun dars rejalashtirilmagan</div>`;}
+  html+=`<div class="ad-sec-title" style="margin-top:20px">📊 Qisqa ko'rsatkich</div><div class="dash-cards">`+kpiCard(ICONS.users,students.length,"O'quvchi",'var(--brand)','var(--brand-light)')+kpiCard(ICONS.layers,gs.length,'Guruh','var(--good)','var(--good-light)')+kpiCard(ICONS.clock,attPct+'%',"Bugun davomat",'var(--warn)','var(--warn-light)',col(attPct))+kpiCard(ICONS.trend,(income==null?'—':_adMoney(income)),"Oylik daromad",'var(--good)','var(--good-light)')+`</div>`;
   html+=`<div class="ad-sec-title" style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleAnalytics()">📈 Analitika <span id="ad-an-caret" class="ad-caret">▾</span></div><div id="ad-analytics" style="display:none">`;
   const trend=[];Object.keys(allChecks).sort().forEach(d=>{const dd=allChecks[d];let sum=0,n=0;studs.forEach(x=>{const e=dd[x.s.id];if(dayHasData(e)){sum+=dayPct(e);n++}});if(n)trend.push(Math.round(sum/n))});
   if(trend.length>1){const tv=trend.slice(-14),diff=tv[tv.length-1]-tv[0];html+=`<div class="trend-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="card-title" style="margin:0">Sinf o'zlashtirish dinamikasi</div><div style="font-family:var(--mono);font-size:12px;color:${diff>=0?'var(--good)':'var(--bad)'}">${diff>=0?'▲ +':'▼ '}${Math.abs(diff)}%</div></div>${sparkline(tv,'100%',56)}</div>`;}
