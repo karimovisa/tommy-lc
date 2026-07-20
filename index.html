@@ -1782,6 +1782,7 @@ async function submitCreateCenter(){
 async function startApp(){
   showLoading(true);
   await loadAllGroups();
+  await loadCenterConfig();
   await Promise.all([loadStudents(),loadAllChecks(),loadAssignments(),loadPending(),loadHomework(),loadDashIncome()]);
   showLoading(false);
   showScreen('app-shell');
@@ -1799,6 +1800,11 @@ async function startApp(){
   checkPlatformAdmin();
 }
 
+async function loadCenterConfig(){
+  const cid=window.__centerId||'00000000-0000-0000-0000-000000000001';
+  try{const{data}=await sb.from('center_settings').select('grading_mode').eq('center_id',cid).maybeSingle();window.__gradingMode=(data&&data.grading_mode)||'language';}catch(e){window.__gradingMode='language';}
+}
+function isAttendanceMode(){return window.__gradingMode==='attendance';}
 async function loadAllGroups(){
   const{data}=await sb.from('groups').select('*').order('name');
   allGroups=data||[];
