@@ -5,7 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TOMMY LC</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ccircle%20cx='50'%20cy='50'%20r='50'%20fill='%23e8262c'/%3E%3Crect%20x='25'%20y='30'%20width='50'%20height='14'%20rx='3'%20fill='%23fff'/%3E%3Crect%20x='43'%20y='30'%20width='14'%20height='44'%20rx='3'%20fill='%23fff'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style id="mono-override">
+html:root{--bg:#F2F2EF;--surface:#FFFFFF;--surface-2:#FAFAF8;--border:#E7E6E2;--border-strong:#D6D5D0;--text:#14151A;--text-2:#565860;--text-3:#93949B;--brand:#1B1C22;--brand-dark:#000000;--brand-light:#ECECE8;--good:#157F4A;--good-light:#E6F2EA;--warn:#B26B00;--warn-light:#F6EEDC;--bad:#C0362C;--bad-light:#F7E7E4;--radius:10px;--radius-sm:8px;--mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace}
+html:root[data-theme="dark"]{--bg:#0E0F12;--surface:#17181C;--surface-2:#1F2025;--border:#2A2B31;--border-strong:#3A3B42;--text:#E9E9EC;--text-2:#A6AAB5;--text-3:#83858E;--brand:#E9E9EC;--brand-dark:#FFFFFF;--brand-light:#26272C}
+.sidebar{background:#17181C!important;border-right:1px solid #2A2B31!important}
+.sidebar .brand-name{color:#E9E9EC!important}
+.sidebar .brand-sub{color:#83858E!important}
+.nav-item{color:#83858E!important;border-radius:8px!important}
+.nav-item:hover{color:#E9E9EC!important;background:#1F2025!important}
+.nav-item.active{color:#FFFFFF!important;background:#1F2025!important;font-weight:600!important;box-shadow:inset 2px 0 0 #E9E9EC}
+.sidebar .me-name{color:#E9E9EC!important}
+.sidebar .me-mail,.sidebar .founder{color:#83858E!important}
+.sidebar .me-av{background:#26272C!important;color:#E9E9EC!important;border-radius:8px!important}
+.avatar-sm,.avatar-md,.avatar-lg,.am-av{background:#ECECE8!important;color:#565860!important;border-radius:8px!important}
+:root[data-theme="dark"] .avatar-sm,:root[data-theme="dark"] .avatar-md,:root[data-theme="dark"] .avatar-lg,:root[data-theme="dark"] .am-av{background:#26272C!important;color:#A6AAB5!important}
+.dash-card-ic{background:#ECECE8!important;color:#565860!important;border-radius:8px!important;box-shadow:none!important}
+.dash-card-ic svg{color:#565860!important}
+:root[data-theme="dark"] .dash-card-ic{background:#26272C!important;color:#A6AAB5!important}
+.tag,.pct-pill,.bl-bg,.st-bg,.pw-badge,.st-badge,.mc-panel-h .n,.sh-chip{border-radius:6px!important}
+.sh-live,.ad-live-dot{background:#157F4A!important}
+.sh-now .sh-eyebrow{color:#157F4A!important}
+.status-line,.sh-status{color:#157F4A!important}
+.og-now,.og-now::before,.og-now .og-nowlabel{background:#157F4A!important}
+.og-lesson.now{background:#E6F2EA!important;border-left-color:#157F4A!important}
+.page-title,.sd-vtitle,.pw-name,.stat-big,.sh-title{font-family:'Inter Tight','Inter',sans-serif!important;letter-spacing:-.02em}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -3862,7 +3887,7 @@ function toggleTheme(){
   applyTheme(cur);
   try{document.querySelectorAll('.ic-moon,.ic-sun').forEach(s=>{s.style.animation='none';void s.offsetWidth;s.style.animation='themeSpin .5s ease';});}catch(e){}
 }
-(function(){let t='dark';try{t=localStorage.getItem('tommy-theme')||'dark'}catch(e){}applyTheme(t)})();
+(function(){let t='light';try{t=localStorage.getItem('tommy-theme')||'light'}catch(e){}applyTheme(t)})();
 (function(){try{if(typeof applyLoginLang==='function')applyLoginLang();const lid=localStorage.getItem('tommy-last-id');if(lid){const el=document.getElementById('login-id');if(el)el.value=lid;const pw=document.getElementById('login-password');if(pw)setTimeout(()=>{try{pw.focus()}catch(e){}},60);}}catch(e){}})();
 
 init();
