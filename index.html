@@ -1789,8 +1789,7 @@ async function startApp(){
   refillAllGroupSelects();
   fillHwSelects();
   currentDate=todayStr();
-  document.getElementById('cl-date').value=currentDate;
-  document.getElementById('cl-date').onchange=function(){currentDate=this.value;renderChecklist()};
+  const _cld=document.getElementById('cl-date');if(_cld){_cld.value=currentDate;_cld.onchange=function(){currentDate=this.value;renderChecklist()};}
   updateBadges();
   showView('dashboard');
   checkPlatformAdmin();
