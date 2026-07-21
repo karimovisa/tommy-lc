@@ -1274,11 +1274,8 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div class="wrap" id="group-materials"></div>
     </div>
     <div id="view-checklist" class="view">
-      <div class="page-header"><div><div class="page-title">Kunlik belgilash</div><div class="page-sub">Har dars uchun to'ldiring</div></div><div class="header-actions"><select class="flt" id="cl-group" onchange="onClGroup()"></select><input type="date" id="cl-date"><div class="avg-badge">O'rtacha: <strong id="avg-label">—</strong></div></div></div>
-      <div class="wrap">
-        <table class="data" id="cl-table"><thead><tr><th>O'quvchi</th><th class="center cl-grade-col">Vocabulary</th><th class="center cl-grade-col" title="Workbook / Grammarbank">Workbook</th><th class="center cl-grade-col" title="speaking / writing">Qo'shimcha</th><th class="center">Kelmadi</th><th class="center">Natija</th></tr></thead><tbody id="cl-tbody"></tbody></table>
-        <div class="save-row"><button class="btn btn-primary" onclick="saveChecklist()" id="save-cl-btn">Saqlash</button><button class="btn btn-sm" onclick="markReliable()" title="O'tmishda doimiy bajaradigan o'quvchilarni avtomatik ✓ qiladi (tekshirib chiqasiz)">⚡ Doimiylarni belgilash</button><span class="saved-msg" id="saved-msg">✓ Saqlandi</span></div>
-      </div>
+      <div class="page-header"><div><div class="page-title">Davomat</div><div class="page-sub">Oylik davomat jadvali · ○ → ✓ keldi → ✕ kelmadi</div></div><div class="header-actions"><select class="flt" id="cl-group" onchange="onClGroup()"></select><button class="btn btn-sm" onclick="amNav(0)">Joriy</button><button class="btn btn-sm" onclick="amNav(-1)" aria-label="Oldingi oy">‹</button><span id="am-month" style="font-weight:700;min-width:120px;text-align:center;display:inline-block"></span><button class="btn btn-sm" onclick="amNav(1)" aria-label="Keyingi oy">›</button></div></div>
+      <div id="cl-content"></div>
     </div>
 
     <div id="view-homework" class="view">
@@ -2355,6 +2352,7 @@ function _renderDashboardOld(){
 }
 function showView(name){
   closeAdminSidebar();
+  try{const _am=document.getElementById('acct-menu');if(_am&&!_am.classList.contains('hidden'))_am.style.display=(name==='dashboard')?'':'none';}catch(e){}
   document.querySelectorAll('#app-shell .view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('#app-shell .nav-item').forEach(n=>n.classList.remove('active'));
   const v=document.getElementById('view-'+name);if(v)v.classList.add('active');
@@ -2376,6 +2374,36 @@ function showView(name){
 /* ---------- CHECKLIST ---------- */
 function clVisibleStudents(){const g=document.getElementById('cl-group').value;return students.filter(s=>g==='all'||gidOf(s)===g)}
 function onClGroup(){renderChecklist()}
+const _UZ_MON=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+function _amCss(){if(document.getElementById('am-css'))return;const s=document.createElement('style');s.id='am-css';s.textContent='.am-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}.am-grid{min-width:max-content}.am-row{display:flex;align-items:center;border-bottom:1px solid var(--border)}.am-row:last-child{border-bottom:none}.am-head{position:sticky;top:0;background:var(--surface);z-index:4}.am-cell{flex:none;display:flex;align-items:center;justify-content:center;height:52px}.am-nm{width:210px;justify-content:flex-start;gap:9px;padding:0 14px;position:sticky;left:0;background:var(--surface);z-index:2;font-size:13.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;border-right:1px solid var(--border)}.am-head .am-nm{z-index:5;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3)}.am-av{width:26px;height:26px;border-radius:50%;background:var(--brand-light);color:var(--brand);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}.am-h{width:46px;font-size:12px;font-weight:600;color:var(--text-3);font-family:var(--mono)}.am-h.today{color:var(--brand);font-weight:800}.am-c{width:46px;cursor:pointer}.am-c i{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-style:normal;color:var(--text-3);transition:.1s}.am-c.present i{background:var(--good);border-color:var(--good);color:#fff}.am-c.absent i{background:var(--bad);border-color:var(--bad);color:#fff}.am-c:hover i{border-color:var(--text-3)}.am-empty{padding:40px;text-align:center;color:var(--text-3)}';document.head.appendChild(s);}
+function amNav(delta){let m=window.__amMonth||new Date().toISOString().slice(0,7);if(delta===0){window.__amMonth=new Date().toISOString().slice(0,7);}else{const a=m.split('-');let y=+a[0],mo=+a[1]+delta;if(mo<1){mo=12;y--;}if(mo>12){mo=1;y++;}window.__amMonth=y+'-'+String(mo).padStart(2,'0');}renderChecklist();}
+function renderChecklist(){
+  _amCss();
+  const el=document.getElementById('cl-content');if(!el)return;
+  if(!window.__amMonth)window.__amMonth=new Date().toISOString().slice(0,7);
+  const a=window.__amMonth.split('-');const y=+a[0],mo=+a[1];
+  const ml=document.getElementById('am-month');if(ml)ml.textContent=(_UZ_MON[mo-1]||'')+' '+y;
+  const gsel=document.getElementById('cl-group');const g=gsel?gsel.value:'all';
+  if(!g||g==='all'){el.innerHTML='<div class="am-empty">Yuqoridan guruh tanlang</div>';return;}
+  const grp=allGroups.find(x=>x.id===g);
+  const list=students.filter(s=>gidOf(s)===g&&!s.frozen).sort((x,z)=>(x.name||'').localeCompare(z.name||''));
+  const days=grp?_lessonDaysArr(grp.lesson_days):[];
+  const dim=new Date(y,mo,0).getDate();const dates=[];for(let d=1;d<=dim;d++){if(days.indexOf(new Date(y,mo-1,d).getDay())>=0)dates.push(d);}
+  if(!dates.length){el.innerHTML='<div class="am-empty">Bu oyda dars kunlari yo\'q (guruh jadvalini tekshiring)</div>';return;}
+  const now=new Date();const curY=now.getFullYear(),curM=now.getMonth()+1,curD=now.getDate();
+  const head='<div class="am-cell am-nm">Ism</div>'+dates.map(d=>{const isT=(y===curY&&mo===curM&&d===curD);return `<div class="am-cell am-h${isT?' today':''}">${d}</div>`;}).join('');
+  const rows=list.length?list.map(s=>{const cells=dates.map(d=>{const ds=y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');const e=allChecks[ds]&&allChecks[ds][s.id];const st=!e?'none':(e.absent?'absent':'present');return `<div class="am-cell am-c ${st}" onclick="amCycle('${s.id}','${ds}',this)"><i>${st==='present'?'✓':(st==='absent'?'✕':'')}</i></div>`;}).join('');
+    return `<div class="am-row"><div class="am-cell am-nm"><span class="am-av">${initials(s.name)}</span>${esc(s.name)}</div>${cells}</div>`;}).join(''):'<div class="am-empty">Bu guruhda o\'quvchi yo\'q</div>';
+  el.innerHTML=`<div class="am-wrap"><div class="am-grid"><div class="am-row am-head">${head}</div>${rows}</div></div>`;
+}
+async function amCycle(sid,ds,elm){
+  const cur=elm.classList.contains('present')?'present':(elm.classList.contains('absent')?'absent':'none');
+  const next=cur==='none'?'present':(cur==='present'?'absent':'none');
+  if(next==='none'){if(allChecks[ds])delete allChecks[ds][sid];}
+  else{if(!allChecks[ds])allChecks[ds]={};const ex=allChecks[ds][sid]||{words:null,hw:null,extra:null};ex.absent=(next==='absent');allChecks[ds][sid]=ex;}
+  elm.className='am-cell am-c '+next;elm.innerHTML='<i>'+(next==='present'?'✓':(next==='absent'?'✕':''))+'</i>';
+  try{if(next==='none'){await sb.from('daily_checks').delete().eq('student_id',sid).eq('date',ds);}else{const ex=allChecks[ds][sid]||{};await sb.from('daily_checks').upsert({student_id:sid,date:ds,words:(ex.words==null?null:ex.words),hw:(ex.hw==null?null:ex.hw),extra:(ex.extra==null?null:ex.extra),absent:(next==='absent')},{onConflict:'student_id,date'});}}catch(e){try{showToast('Saqlashda xato');}catch(_){}}
+}
 /* Doimiy bajaradigan o'quvchi? (o'tmish tahlili: o'rtacha >=85%, kamida 3 kun) */
 function isReliable(sid){const st=studentStats(sid);return !!st&&st.count>=3&&st.overall>=85}
 /* Bitta o'quvchining barcha FAOL turlarini ✓ qilish */
@@ -2383,7 +2411,7 @@ function markAllDone(sid){const date=currentDate;const e=allChecks[date]&&allChe
 /* Faqat doimiy bajaradigan (ishonchli) o'quvchilarni bir bosishda belgilash */
 function markReliable(){const date=currentDate;let n=0;clVisibleStudents().forEach(s=>{const e=allChecks[date]&&allChecks[date][s.id];if(!e||e.absent||!isReliable(s.id))return;if(e.words!=null)e.words=1;if(e.hw!=null)e.hw=1;if(e.extra!=null)e.extra=1;n++;});renderChecklist();showToast(n?(n+" ta ishonchli o'quvchi belgilandi — tekshirib chiqing"):"Ishonchli o'quvchi topilmadi");}
 function _clAttCss(){if(document.getElementById('cl-att-css'))return;const s=document.createElement('style');s.id='cl-att-css';s.textContent='.cl-att .cl-grade-col{display:none}';document.head.appendChild(s);}
-function renderChecklist(){
+function _renderChecklistOld(){
   const date=currentDate,tbody=document.getElementById('cl-tbody');tbody.innerHTML='';
   const att=isAttendanceMode();const clt=document.getElementById('cl-table');if(clt)clt.classList.toggle('cl-att',att);_clAttCss();
   const list=clVisibleStudents();
