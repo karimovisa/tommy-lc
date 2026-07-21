@@ -1126,7 +1126,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
   <div class="ls-real tommy-logo" role="img" aria-label="TOMMY"></div>
   </div>
 </div>
-<script>(function(){var s=document.getElementById('logo-splash');if(!s)return;var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;setTimeout(function(){if(s&&s.parentNode){s.style.opacity='0';setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},360);}},rm?400:1150);})();</script>
+<script>(function(){var s=document.getElementById('logo-splash');if(s&&s.parentNode)s.parentNode.removeChild(s);})();</script>
 
 <div id="loading-screen"><div class="spinner"></div><span style="font-size:13px;color:var(--text-3);font-family:var(--mono)">Yuklanmoqda...</span></div>
 
@@ -1397,7 +1397,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 
 <div class="modal-overlay" id="modal-move"><div class="modal"><div class="modal-title">Boshqa guruhga ko'chirish</div><div id="move-info" style="font-size:13px;color:var(--text-2);margin-bottom:12px"></div><label class="modal-label">Yangi guruh</label><select id="move-group"></select><div style="font-size:12px;color:var(--text-3);margin:6px 0 10px;line-height:1.5">Ko'chirilgach joriy ko'rsatkich 0 dan boshlanadi. Eski guruhdagi natija profil arxivida saqlanadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor</button><button class="btn btn-primary btn-sm" onclick="confirmMove()">Ko'chirish</button></div></div></div>
 
-<div id="acct-menu" class="hidden"><button class="acct-btn" onclick="toggleAcct(event)" aria-label="Akkaunt">⋮</button><div class="acct-pop" id="acct-pop"><div class="acct-name" id="acct-name"></div><div class="acct-sub" id="acct-sub"></div><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="toggleTheme()" id="theme-btn">Tungi rejim</button><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="togglePwdChange()">Parolni o'zgartirish</button><div id="pwd-change" style="display:none;margin-bottom:8px"><input type="password" id="new-pwd" class="form-input" placeholder="Yangi parol" style="margin-bottom:6px" oninput="document.getElementById('pwd-msg').textContent=''"><div id="pwd-msg" style="font-size:11px;margin-bottom:6px;min-height:14px"></div><button class="btn btn-primary btn-sm btn-block" onclick="savePwd()">Saqlash</button></div><button class="btn btn-sm btn-block" onclick="doLogout()">Chiqish</button></div></div>
+<div id="acct-menu" class="hidden"><div style="display:flex;align-items:center;gap:6px"><button class="btn btn-sm" id="theme-btn" onclick="toggleTheme()">Tungi rejim</button><button class="acct-btn" onclick="toggleAcct(event)" aria-label="Akkaunt">⋮</button></div><div class="acct-pop" id="acct-pop"><div class="acct-name" id="acct-name"></div><div class="acct-sub" id="acct-sub"></div><button class="btn btn-sm btn-block" style="margin-bottom:6px" onclick="togglePwdChange()">Parolni o'zgartirish</button><div id="pwd-change" style="display:none;margin-bottom:8px"><input type="password" id="new-pwd" class="form-input" placeholder="Yangi parol" style="margin-bottom:6px" oninput="document.getElementById('pwd-msg').textContent=''"><div id="pwd-msg" style="font-size:11px;margin-bottom:6px;min-height:14px"></div><button class="btn btn-primary btn-sm btn-block" onclick="savePwd()">Saqlash</button></div><button class="btn btn-sm btn-block admin-only-btn" style="margin-bottom:6px" onclick="seedDemo()">🎬 Demo ma'lumot</button><button class="btn btn-sm btn-block admin-only-btn" style="margin-bottom:6px" onclick="clearDemo()">🧹 Demo tozalash</button><button class="btn btn-sm btn-block" onclick="doLogout()">Chiqish</button></div></div>
 
 <div class="modal-overlay" id="modal-parent"><div class="modal"><div class="modal-title">Ota-ona kirishi</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px" id="pa-child"></div><button class="btn btn-primary btn-block" onclick="createParentAcc()">Yangi ota-ona akkounti yaratish</button><div style="text-align:center;font-size:11px;color:var(--text-3);margin:12px 0 8px">— yoki mavjud ota-onaga bog'lash (aka-uka/opa-singil) —</div><label class="modal-label">Mavjud Parent ID</label><input type="text" id="pa-link-id" placeholder="TLC26002P"><button class="btn btn-block btn-sm" onclick="linkParentAcc()">Bu farzandni bog'lash</button><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Yopish</button></div></div></div>
 
@@ -3748,7 +3748,27 @@ function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.
 function toggleRowMenu(e,btn){e.stopPropagation();const pop=btn.nextElementSibling;const open=pop.classList.contains('open');document.querySelectorAll('.row-menu-pop.open').forEach(p=>p.classList.remove('open'));if(!open)pop.classList.add('open');}
 function toggleLbRest(){const el=document.getElementById('lb-rest'),b=document.getElementById('lb-toggle');if(!el)return;const open=el.style.display!=='none';el.style.display=open?'none':'block';if(b)b.textContent=open?('To\'liq reytingni ko\'rish ('+el.querySelectorAll('.lb-row').length+')'):'Yashirish';}
 document.addEventListener('click',e=>{if(!e.target.closest('.row-menu'))document.querySelectorAll('.row-menu-pop.open').forEach(p=>p.classList.remove('open'));});
-function toggleAcct(e){if(e)e.stopPropagation();document.getElementById('acct-pop').classList.toggle('open')}
+function toggleAcct(e){if(e)e.stopPropagation();document.getElementById('acct-pop').classList.toggle('open');document.querySelectorAll('.admin-only-btn').forEach(b=>b.style.display=(level==='admin')?'block':'none');}
+const _DEMO_NAMES=["Ali Karimov","Aziza Rahimova","Bekzod Toshmatov","Dilnoza Yusupova","Eldor Saidov","Feruza Qodirova","Gulnora Aliyeva","Hasan Nazarov","Iroda Karimova","Jasur Bekmurodov","Kamola Tursunova","Laziz Ergashev","Madina Yodgorova","Nodir Qosimov","Oysha Mirzayeva","Rustam Aliyev","Sabina Karimova","Temur Ganiev","Umida Salimova","Zafar Nazarov"];
+async function seedDemo(){
+  if(level!=='admin'){showToast('Faqat admin');return}
+  document.getElementById('acct-pop').classList.remove('open');
+  if(!await uiConfirm("Namuna guruh va o'quvchilar qo'shilsinmi? Keyin 'Demo tozalash' bilan o'chirasiz.",{title:"Demo ma'lumot",yes:"Qo'shish"}))return;
+  showToast('Qo\'shilmoqda...');
+  const gdefs=[{name:'Matematika A1',subject:'Matematika',teacher_name:'Azizbek Karimov',room:'Room 1',lesson_days:'odd',lesson_start:'09:00',lesson_end:'10:30',monthly_fee:500000},{name:'Ingliz tili B2',subject:'Ingliz tili',teacher_name:'Dilnoza Yusupova',room:'Room 2',lesson_days:'even',lesson_start:'11:00',lesson_end:'12:30',monthly_fee:600000},{name:'IT Academy',subject:'Dasturlash',teacher_name:'Sardor Aliyev',room:'IT Lab',lesson_days:'every',lesson_start:'14:00',lesson_end:'16:00',monthly_fee:800000},{name:'IELTS Intensive',subject:'IELTS',teacher_name:'Kamola Tursunova',room:'Room 3',lesson_days:'odd',lesson_start:'17:00',lesson_end:'18:30',monthly_fee:750000}];
+  const ids={g:[],s:[]};let ni=0;
+  for(const gd of gdefs){const{data,error}=await sb.from('groups').insert(gd).select('id,name').maybeSingle();if(error||!data)continue;ids.g.push(data.id);const cnt=4+Math.floor(Math.random()*3);for(let k=0;k<cnt&&ni<_DEMO_NAMES.length;k++){const nm=_DEMO_NAMES[ni++];const{data:sd}=await sb.from('students').insert({name:nm,phone:'+99890'+(1000000+Math.floor(Math.random()*8999999)),group_id:data.id,group_name:data.name}).select('id').maybeSingle();if(sd)ids.s.push(sd.id);}}
+  try{localStorage.setItem('__demoSeed',JSON.stringify(ids));}catch(e){}
+  showToast('Demo qo\'shildi ('+ids.s.length+" o'quvchi)");setTimeout(()=>location.reload(),800);
+}
+async function clearDemo(){
+  document.getElementById('acct-pop').classList.remove('open');
+  let ids={};try{ids=JSON.parse(localStorage.getItem('__demoSeed')||'{}');}catch(e){}
+  if(!(ids.g&&ids.g.length)&&!(ids.s&&ids.s.length)){showToast('Demo topilmadi');return}
+  if(!await uiConfirm("Demo ma'lumot o'chirilsinmi?",{title:'Demo tozalash',yes:"O'chirish",danger:true}))return;
+  try{if(ids.s&&ids.s.length)await sb.from('students').delete().in('id',ids.s);if(ids.g&&ids.g.length)await sb.from('groups').delete().in('id',ids.g);}catch(e){}
+  localStorage.removeItem('__demoSeed');showToast('Demo tozalandi');setTimeout(()=>location.reload(),700);
+}
 function togglePwdChange(){const el=document.getElementById('pwd-change');el.style.display=el.style.display==='none'?'block':'none';document.getElementById('pwd-msg').textContent='';if(el.style.display==='block')document.getElementById('new-pwd').focus()}
 async function savePwd(){
   const p=document.getElementById('new-pwd').value,msg=document.getElementById('pwd-msg');
