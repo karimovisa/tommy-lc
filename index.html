@@ -2511,19 +2511,31 @@ function studentStats(sid){
 }
 
 /* ---------- STUDENTS ---------- */
+function _stCss(){if(document.getElementById('st-css'))return;const s=document.createElement('style');s.id='st-css';s.textContent='.st-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.st-bar select{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:13px;font-family:var(--sans);cursor:pointer}.st-tbl{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}.st-head{display:flex;align-items:center;gap:14px;padding:9px 18px;border-bottom:1px solid var(--border);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3)}.st-r{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}.st-r:last-child{border-bottom:none}.st-r:hover{background:var(--bg)}.st-r.frozen{opacity:.55}.st-nm{flex:1.6;min-width:0}.st-nm b{font-size:14px;font-weight:600;color:var(--text);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.st-nm span{font-size:11.5px;color:var(--text-3);font-family:var(--mono)}.st-col{flex:1;min-width:0;font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.st-pct{width:50px;flex:none;font-size:13px;font-weight:700;font-family:var(--mono);text-align:right}.st-badge{width:80px;flex:none;text-align:center;font-size:11px;font-weight:600;padding:3px 0;border-radius:20px}.st-badge.ok{background:var(--good-light);color:var(--good)}.st-badge.off{background:var(--bg);color:var(--text-3)}.st-chev{color:var(--text-3);flex:none;font-size:18px;width:14px}@media(max-width:720px){.st-hideM{display:none}}';document.head.appendChild(s);}
 function renderStudents(){
+  _stCss();
   const g=document.getElementById('st-group').value;
   const sb_=document.getElementById('st-search');const q=(sb_?sb_.value:'').trim().toLowerCase();
-  let list=students.filter(s=>(g==='all'||gidOf(s)===g)&&(!q||(s.name||'').toLowerCase().includes(q)));
+  const tF=window.__stTeacher||'',sF=window.__stStatus||'';
+  const teach=s=>{const gg=allGroups.find(x=>x.id===gidOf(s));return gg?(gg.teacher_name||''):'';};
+  let list=students.filter(s=>{
+    if(g!=='all'&&gidOf(s)!==g)return false;
+    if(tF&&teach(s)!==tF)return false;
+    if(sF==='active'&&s.frozen)return false;if(sF==='frozen'&&!s.frozen)return false;
+    if(q){const hay=((s.name||'')+' '+(s.phone||'')+' '+(s.student_id||'')+' '+(s.parent_name||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
+    return true;
+  });
   document.getElementById('students-sub').textContent=list.length+' nafar';
-  list=list.slice().sort((a,b)=>{const fa=a.frozen?1:0,fb=b.frozen?1:0;if(fa!==fb)return fa-fb;return studentStats(b.id).overall-studentStats(a.id).overall});
-  const grid=document.getElementById('students-grid');grid.innerHTML='';
-  if(!list.length){grid.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><p>${q?'Topilmadi':"O'quvchi yo'q"}</p></div>`;return}
-  const isAdmin=level==='admin';
-  list.forEach(s=>{const st=studentStats(s.id);const c=document.createElement('div');c.className='student-card'+(s.frozen?' frozen':'');c.onclick=()=>openProfile(s.id);
-    const actions=isAdmin?`<div class="sc-actions" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openMoveStudent('${s.id}')">Ko'chirish</button><button class="btn btn-sm" onclick="toggleFreeze('${s.id}',${s.frozen?0:1})">${s.frozen?'Faollashtirish':'Muzlatish'}</button><button class="btn btn-sm" onclick="resetStudentPassword('${s.id}')">Parol tiklash</button><button class="btn btn-sm" onclick="openParentAccess('${s.id}','${esc(s.name)}')">Ota-ona</button><button class="btn btn-sm" style="color:var(--bad)" onclick="deleteStudent('${s.id}')">O'chirish</button></div>`:'';
-    c.innerHTML=`<div class="sc-top"><div class="avatar-md">${initials(s.name)}</div><div style="flex:1;min-width:0"><div class="sc-name">${esc(s.name)}${s.frozen?' <span class="tag">muzlatilgan</span>':''}</div><div class="sc-phone">${esc(gidToName[gidOf(s)]||'')}${s.phone?' · '+esc(s.phone):''}</div></div><div class="ring-wrap">${ring(st.overall,54,6)}</div></div><div class="sc-stats"><div class="sc-stat"><div class="sc-stat-val">${st.words}%</div><div class="sc-stat-label">Vocab</div></div><div class="sc-stat"><div class="sc-stat-val">${st.hw}%</div><div class="sc-stat-label">Workbook</div></div><div class="sc-stat"><div class="sc-stat-val">${st.count}</div><div class="sc-stat-label">Dars</div></div></div>${actions}`;
-    grid.appendChild(c)});
+  list=list.slice().sort((a,b)=>{const fa=a.frozen?1:0,fb=b.frozen?1:0;if(fa!==fb)return fa-fb;return (a.name||'').localeCompare(b.name||'');});
+  const grid=document.getElementById('students-grid');
+  const teachers=_distinct(allGroups.map(x=>x.teacher_name));
+  const bar=`<div class="st-bar"><select onchange="window.__stTeacher=this.value;renderStudents()"><option value="">Barcha ustozlar</option>${teachers.map(t=>`<option value="${esc(t)}"${tF===t?' selected':''}>${esc(t)}</option>`).join('')}</select><select onchange="window.__stStatus=this.value;renderStudents()"><option value="">Barcha holat</option><option value="active"${sF==='active'?' selected':''}>Faol</option><option value="frozen"${sF==='frozen'?' selected':''}>Muzlatilgan</option></select></div>`;
+  if(!list.length){grid.innerHTML=bar+`<div class="empty"><div class="empty-icon">👤</div><p>${q?'Topilmadi':"O'quvchi yo'q"}</p></div>`;return;}
+  const rows=list.map(s=>{const st=studentStats(s.id);const c=st.overall>=75?'var(--good)':st.overall>=50?'var(--warn)':'var(--bad)';const gg=gidToName[gidOf(s)]||'—';const tn=teach(s)||'—';
+    return `<div class="st-r${s.frozen?' frozen':''}" onclick="openProfile('${s.id}')"><div class="avatar-sm">${initials(s.name)}</div><div class="st-nm"><b>${esc(s.name)}</b><span>${s.student_id?esc(s.student_id):'—'}</span></div><div class="st-col st-hideM">${esc(gg)}</div><div class="st-col st-hideM">${esc(tn)}</div><div class="st-pct" style="color:${c}">${st.count?st.overall+'%':'—'}</div><div class="st-badge ${s.frozen?'off':'ok'}">${s.frozen?'Muzlatilgan':'Faol'}</div><div class="st-chev">›</div></div>`;
+  }).join('');
+  const head=`<div class="st-head"><div style="width:30px"></div><div class="st-nm">O'quvchi / ID</div><div class="st-col st-hideM">Guruh</div><div class="st-col st-hideM">Ustoz</div><div class="st-pct">%</div><div style="width:80px;text-align:center">Holat</div><div style="width:14px"></div></div>`;
+  grid.innerHTML=bar+`<div class="st-tbl">${head}${rows}</div>`;
 }
 function openAddStudent(gid){refillAllGroupSelects();const sel=document.getElementById('new-student-group');const g=(typeof gid==='string'&&gid)?gid:document.getElementById('st-group').value;if(g&&g!=='all')sel.value=g;document.getElementById('modal-student').classList.add('open')}
 async function addStudent(){
