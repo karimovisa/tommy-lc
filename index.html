@@ -3777,25 +3777,52 @@ function toggleLbRest(){const el=document.getElementById('lb-rest'),b=document.g
 document.addEventListener('click',e=>{if(!e.target.closest('.row-menu'))document.querySelectorAll('.row-menu-pop.open').forEach(p=>p.classList.remove('open'));});
 function toggleAcct(e){if(e)e.stopPropagation();document.getElementById('acct-pop').classList.toggle('open');document.querySelectorAll('.admin-only-btn').forEach(b=>b.style.display=(level==='admin')?'block':'none');}
 function toggleAcctSettings(){const el=document.getElementById('acct-settings');if(!el)return;const show=el.style.display==='none';el.style.display=show?'block':'none';document.querySelectorAll('.admin-only-btn').forEach(b=>b.style.display=(level==='admin')?'block':'none');}
-const _DEMO_NAMES=["Ali Karimov","Aziza Rahimova","Bekzod Toshmatov","Dilnoza Yusupova","Eldor Saidov","Feruza Qodirova","Gulnora Aliyeva","Hasan Nazarov","Iroda Karimova","Jasur Bekmurodov","Kamola Tursunova","Laziz Ergashev","Madina Yodgorova","Nodir Qosimov","Oysha Mirzayeva","Rustam Aliyev","Sabina Karimova","Temur Ganiev","Umida Salimova","Zafar Nazarov"];
+function _rd(n){let s='';for(let i=0;i<n;i++)s+=Math.floor(Math.random()*10);return s;}
+function _lastLessonDates(days,count){const out=[];const d=new Date();let g=0;while(out.length<count&&g<500){if(days.indexOf(d.getDay())>=0)out.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));d.setDate(d.getDate()-1);g++;}return out.reverse();}
+async function _chunkIns(table,rows){for(let i=0;i<rows.length;i+=400){const{error}=await sb.from(table).insert(rows.slice(i,i+400));if(error)console.warn(table,error.message);}}
 async function seedDemo(){
   if(level!=='admin'){showToast('Faqat admin');return}
   document.getElementById('acct-pop').classList.remove('open');
-  if(!await uiConfirm("Namuna guruh va o'quvchilar qo'shilsinmi? Keyin 'Demo tozalash' bilan o'chirasiz.",{title:"Demo ma'lumot",yes:"Qo'shish"}))return;
-  showToast('Qo\'shilmoqda...');
-  const gdefs=[{name:'Matematika A1',subject:'Matematika',teacher_name:'Azizbek Karimov',room:'Room 1',lesson_days:'odd',lesson_start:'09:00',lesson_end:'10:30',monthly_fee:500000},{name:'Ingliz tili B2',subject:'Ingliz tili',teacher_name:'Dilnoza Yusupova',room:'Room 2',lesson_days:'even',lesson_start:'11:00',lesson_end:'12:30',monthly_fee:600000},{name:'IT Academy',subject:'Dasturlash',teacher_name:'Sardor Aliyev',room:'IT Lab',lesson_days:'every',lesson_start:'14:00',lesson_end:'16:00',monthly_fee:800000},{name:'IELTS Intensive',subject:'IELTS',teacher_name:'Kamola Tursunova',room:'Room 3',lesson_days:'odd',lesson_start:'17:00',lesson_end:'18:30',monthly_fee:750000}];
-  const ids={g:[],s:[]};let ni=0;
-  for(const gd of gdefs){const{data,error}=await sb.from('groups').insert(gd).select('id,name').maybeSingle();if(error||!data)continue;ids.g.push(data.id);const cnt=4+Math.floor(Math.random()*3);for(let k=0;k<cnt&&ni<_DEMO_NAMES.length;k++){const nm=_DEMO_NAMES[ni++];const{data:sd}=await sb.from('students').insert({name:nm,phone:'+99890'+(1000000+Math.floor(Math.random()*8999999)),group_id:data.id,group_name:data.name}).select('id').maybeSingle();if(sd)ids.s.push(sd.id);}}
+  if(!await uiConfirm("To'liq demo (6 ustoz, 10 guruh, 100 o'quvchi, to'lov + davomat tarixi) qo'shilsinmi? Keyin 'Demo tozalash' bilan o'chirasiz.",{title:"Demo ma'lumot",yes:"Qo'shish"}))return;
+  showToast('Yaratilmoqda... (biroz kuting)');
+  const T=[{name:'Sardor Aliyev',email:'sardor@sirius.uz'},{name:'Dilnoza Yusupova',email:'dilnoza@sirius.uz'},{name:'Azizbek Karimov',email:'azizbek@sirius.uz'},{name:'Kamola Tursunova',email:'kamola@sirius.uz'},{name:'Rustam Ibragimov',email:'rustam@sirius.uz'},{name:'Jasur Bekmurodov',email:'jasur@sirius.uz'}];
+  const G=[{name:'English Beginner A1',subject:'English',t:0,room:'Room 1',days:'odd',s:'09:00',e:'10:30',fee:350000,n:12},{name:'English Elementary A2',subject:'English',t:1,room:'Room 1',days:'even',s:'09:00',e:'10:30',fee:400000,n:10},{name:'English Pre-Intermediate B1',subject:'English',t:3,room:'Room 2',days:'odd',s:'11:00',e:'12:30',fee:450000,n:12},{name:'English Intermediate B2',subject:'English',t:3,room:'Room 2',days:'even',s:'11:00',e:'12:30',fee:500000,n:10},{name:'IELTS Foundation',subject:'IELTS',t:2,room:'Room 3',days:'odd',s:'14:00',e:'16:00',fee:700000,n:9},{name:'IELTS 6.5+',subject:'IELTS',t:2,room:'Room 3',days:'even',s:'14:00',e:'16:00',fee:900000,n:8},{name:'General English Teens',subject:'English',t:0,room:'Room 4',days:'odd',s:'16:00',e:'17:30',fee:400000,n:11},{name:'Kids English',subject:'English',t:1,room:'Room 4',days:'6,0',s:'10:00',e:'11:30',fee:350000,n:12},{name:'Russian A1',subject:'Russian',t:4,room:'Room 5',days:'even',s:'17:00',e:'18:30',fee:450000,n:9},{name:'IT Foundation',subject:'IT',t:5,room:'IT Lab',days:'even',s:'14:00',e:'16:00',fee:600000,n:7}];
+  const FN=['Ali','Aziz','Bekzod','Diyor','Eldor','Farrux','Husan','Islom','Jasur','Kamol','Laziz','Otabek','Rustam','Sardor','Temur','Umar','Zafar','Aziza','Dilnoza','Feruza','Gulnora','Iroda','Kamola','Madina','Nigora','Oysha','Sabina','Umida','Zarina','Malika','Nilufar','Shahzoda','Barno','Muhammad','Yusuf','Ibrohim'];
+  const LN=['Karimov','Rahimov','Yusupov','Aliyev','Saidov','Qodirov','Nazarov','Bekmurodov','Tursunov','Ergashev','Ibragimov','Mirzayev','Ganiev','Salimov','Toshmatov','Qosimov','Yodgorov','Xolmatov','Sultonov','Umarov'];
+  const FEM=new Set(['Aziza','Dilnoza','Feruza','Gulnora','Iroda','Kamola','Madina','Nigora','Oysha','Sabina','Umida','Zarina','Malika','Nilufar','Shahzoda','Barno']);
+  const names=[];let ai=0,bi=0;while(names.length<100&&ai<2000){const fn=FN[ai%FN.length];let ln=LN[bi%LN.length];if(FEM.has(fn))ln+='a';const nm=fn+' '+ln;if(names.indexOf(nm)<0)names.push(nm);ai++;if(ai%FN.length===0)bi++;}
+  const ids={g:[],s:[]};
+  const grpRows=G.map(g=>({name:g.name,subject:g.subject,teacher_name:T[g.t].name,teacher_email:T[g.t].email,room:g.room,lesson_days:g.days,lesson_start:g.s,lesson_end:g.e,monthly_fee:g.fee}));
+  const gres=await sb.from('groups').insert(grpRows).select('id,name');
+  if(gres.error){showToast('Xato: '+gres.error.message);return}
+  const gmap={};(gres.data||[]).forEach(r=>{gmap[r.name]=r.id;ids.g.push(r.id);});
+  const studentRows=[];let ni=0;
+  G.forEach(g=>{const gid=gmap[g.name];for(let k=0;k<g.n&&ni<names.length;k++){studentRows.push({name:names[ni++],phone:'+99890'+_rd(7),parent_phone:'+99891'+_rd(7),group_id:gid,group_name:g.name});}});
+  let sres=await sb.from('students').insert(studentRows).select('id,group_id');
+  if(sres.error){studentRows.forEach(r=>delete r.parent_phone);sres=await sb.from('students').insert(studentRows).select('id,group_id');}
+  if(sres.error){showToast('Xato: '+sres.error.message);return}
+  const sList=sres.data||[];ids.s=sList.map(r=>r.id);
+  const byG={},feeByGid={};G.forEach(g=>feeByGid[gmap[g.name]]=g.fee);sList.forEach(r=>{(byG[r.group_id]=byG[r.group_id]||[]).push(r.id);});
+  const checkRows=[];const score=()=>Math.random()<0.72?1:(Math.random()<0.6?0.5:0);
+  G.forEach(g=>{const gid=gmap[g.name];const dts=_lastLessonDates(_lessonDaysArr(g.days),10);(byG[gid]||[]).forEach(sid=>{dts.forEach(ds=>{if(Math.random()<0.1)checkRows.push({student_id:sid,date:ds,absent:true,words:null,hw:null,extra:null});else checkRows.push({student_id:sid,date:ds,absent:false,words:score(),hw:score(),extra:score()});});});});
+  await _chunkIns('daily_checks',checkRows);
+  const now=new Date();const mS=k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+  const payRows=[];sList.forEach(r=>{const fee=feeByGid[r.group_id]||400000;[0,1,2].forEach(idx=>{const roll=Math.random();let amt=null;if(idx===0){amt=roll<0.7?fee:(roll<0.85?150000:null);}else{amt=roll<0.9?fee:150000;}if(amt!=null)payRows.push({student_id:r.id,group_id:r.group_id,month:mS(idx),amount:amt,paid_at:new Date().toISOString(),recorded_by:currentUser.id,recorded_by_name:'Administrator'});});});
+  await _chunkIns('payments',payRows);
+  const CM=['Excellent progress.','Needs more vocabulary practice.','Homework missing.','Speaking improving.','Parent contacted.','Preparing for unit test.'];
+  const noteRows=[];for(let i=0;i<32&&ids.s.length;i++){noteRows.push({student_id:ids.s[Math.floor(Math.random()*ids.s.length)],body:CM[i%CM.length],created_by:currentUser.id,created_by_name:'Administrator'});}
+  try{await sb.from('teacher_comments').insert(noteRows);}catch(e){}
   try{localStorage.setItem('__demoSeed',JSON.stringify(ids));}catch(e){}
-  showToast('Demo qo\'shildi ('+ids.s.length+" o'quvchi)");setTimeout(()=>location.reload(),800);
+  showToast('Demo tayyor: '+ids.g.length+' guruh, '+ids.s.length+" o'quvchi");setTimeout(()=>location.reload(),1000);
 }
 async function clearDemo(){
   document.getElementById('acct-pop').classList.remove('open');
   let ids={};try{ids=JSON.parse(localStorage.getItem('__demoSeed')||'{}');}catch(e){}
   if(!(ids.g&&ids.g.length)&&!(ids.s&&ids.s.length)){showToast('Demo topilmadi');return}
-  if(!await uiConfirm("Demo ma'lumot o'chirilsinmi?",{title:'Demo tozalash',yes:"O'chirish",danger:true}))return;
-  try{if(ids.s&&ids.s.length)await sb.from('students').delete().in('id',ids.s);if(ids.g&&ids.g.length)await sb.from('groups').delete().in('id',ids.g);}catch(e){}
-  localStorage.removeItem('__demoSeed');showToast('Demo tozalandi');setTimeout(()=>location.reload(),700);
+  if(!await uiConfirm("Barcha demo ma'lumot o'chirilsinmi?",{title:'Demo tozalash',yes:"O'chirish",danger:true}))return;
+  showToast('Tozalanmoqda...');
+  try{const s=ids.s||[];for(let i=0;i<s.length;i+=200){const c=s.slice(i,i+200);await sb.from('daily_checks').delete().in('student_id',c);await sb.from('payments').delete().in('student_id',c);await sb.from('teacher_comments').delete().in('student_id',c);await sb.from('students').delete().in('id',c);}if(ids.g&&ids.g.length)await sb.from('groups').delete().in('id',ids.g);}catch(e){showToast('Xato: '+(e&&e.message||''));}
+  localStorage.removeItem('__demoSeed');showToast('Demo tozalandi');setTimeout(()=>location.reload(),800);
 }
 function togglePwdChange(){const el=document.getElementById('pwd-change');el.style.display=el.style.display==='none'?'block':'none';document.getElementById('pwd-msg').textContent='';if(el.style.display==='block')document.getElementById('new-pwd').focus()}
 async function savePwd(){
