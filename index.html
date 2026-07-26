@@ -2339,6 +2339,56 @@ function _sdfCss(){if(document.getElementById('sdf-css'))return;const s=document
 .sdf .next b{font-size:13.5px;color:var(--ink)}.sdf .next small{font-size:12px;color:var(--ink3);display:block}
 @media(max-width:1200px){.sdf .sgrid{grid-template-columns:1fr}.sdf .kpis{grid-template-columns:repeat(2,1fr)}}
 @media(prefers-reduced-motion:reduce){.sdf .live-dot::after{animation:none}}`;document.head.appendChild(s);}
+function _sdf2Css(){if(document.getElementById('sdf2-css'))return;const s=document.createElement('style');s.id='sdf2-css';s.textContent=`
+.sdf .legend{display:flex;gap:13px;flex-wrap:wrap}
+.sdf .lg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2);font-weight:600}
+.sdf .lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.sdf .lg .now{background:var(--c5)}.sdf .lg .miss{background:var(--warn2)}.sdf .lg .done{background:var(--c3)}.sdf .lg .wait{background:var(--c2)}.sdf .lg .conf{background:var(--bad2)}
+.sdf .tl-wrap{padding:8px 18px 18px;overflow-x:auto}
+.sdf .tl{min-width:800px;position:relative}
+.sdf .tl-head{display:grid;grid-template-columns:112px 1fr;align-items:end;margin-bottom:6px}
+.sdf .tl-hours{display:grid;grid-template-columns:repeat(13,1fr)}
+.sdf .tl-hours span{font-family:var(--mono);font-size:11px;color:var(--ink3);transform:translateX(-50%)}
+.sdf .tl-row{display:grid;grid-template-columns:112px 1fr;align-items:center;min-height:54px;border-top:1px solid var(--c2)}
+.sdf .room-name{font-weight:700;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.sdf .room-name .rd{width:8px;height:8px;border-radius:50%;background:var(--c3)}.sdf .room-name .rd.busy{background:var(--c5)}
+.sdf .room-state{font-size:11px;color:var(--ink3);margin-top:1px;padding-left:16px}
+.sdf .track{position:relative;height:54px}
+.sdf .track-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(13,1fr)}
+.sdf .track-grid i{border-left:1px solid var(--c2)}.sdf .track-grid i:first-child{border-left:none}
+.sdf .lessons{position:absolute;inset:0;display:grid;grid-template-columns:repeat(26,1fr);align-items:center}
+.sdf .les{grid-row:1;margin:5px 3px;padding:6px 10px;border-radius:9px;min-width:0;border:1px solid var(--c2);background:var(--c1);cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.sdf .les:hover{box-shadow:0 8px 26px rgba(57,88,134,.16);transform:translateY(-1px);z-index:5}
+.sdf .les b{font-size:12px;font-weight:700;color:var(--c6);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sdf .les small{font-size:10.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sdf .les .t{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:1px}
+.sdf .les::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c3)}
+.sdf .les.now{background:#E4ECF9;border-color:var(--c4)}.sdf .les.now::before{background:var(--c5)}
+.sdf .les.done{opacity:.68}.sdf .les.done::before{background:var(--c3)}
+.sdf .les.wait::before{background:var(--c4)}
+.sdf .les.conf{background:var(--bad-soft);border-color:#E7BFBD}.sdf .les.conf::before{background:var(--bad2)}.sdf .les.conf b{color:var(--bad-ink)}
+.sdf .les .warn-ic{position:absolute;top:5px;right:6px;color:var(--bad2);width:13px;height:13px}
+.sdf .nowline{position:absolute;top:-2px;bottom:0;width:2px;background:var(--c5);z-index:6;pointer-events:none}
+.sdf .nowline::before{content:"";position:absolute;top:0;left:-4px;width:10px;height:10px;border-radius:50%;background:var(--c5);box-shadow:0 0 0 4px rgba(99,142,203,.22)}
+.sdf .nowline .lbl{position:absolute;top:-23px;left:50%;transform:translateX(-50%);background:var(--c5);color:#fff;font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:6px}`;document.head.appendChild(s);}
+function _sdfTl(gs,lessons){
+  _sdf2Css();
+  const wt=lessons.filter(l=>l.sM<9999&&l.eM!=null&&l.eM>l.sM);_ogConflicts(wt);
+  let rooms=Array.from(new Set(gs.map(g=>g.room).filter(Boolean)));wt.forEach(l=>{const r=l.g.room||'—';if(rooms.indexOf(r)<0)rooms.push(r);});if(!rooms.length)rooms=['—'];
+  rooms.sort((a,b)=>(''+a).localeCompare(''+b,undefined,{numeric:true}));
+  const now=new Date();const nm=now.getHours()*60+now.getMinutes();
+  let hrs='';for(let h=8;h<=20;h++)hrs+=`<span>${String(h).padStart(2,'0')}</span>`;
+  const grid='<div class="track-grid">'+Array.from({length:13},()=>'<i></i>').join('')+'</div>';
+  const col=m=>Math.max(1,Math.min(27,Math.round((m-480)/30)+1));
+  const rows=rooms.map(room=>{
+    const rl=wt.filter(l=>(l.g.room||'—')===room).sort((a,b)=>a.sM-b.sM);
+    const cur=rl.find(l=>l.status==='now');const state=cur?(_ogFmt(cur.eM)+' gacha band'):"Bo'sh";
+    const les=rl.map(l=>{const g=l.g;const cls=l.status==='now'?'now':(l.status==='done'?'done':'wait');const conf=(l._conf&&l._conf.length)?' conf':'';return `<div class="les ${cls}${conf}" style="grid-column:${col(l.sM)}/${col(l.eM)}" onclick="openLessonWorkspace('${g.id}')">${conf?'<svg class="warn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>':''}<b>${esc(g.name)}</b><small>${esc(g.teacher_name||'')}</small><div class="t">${g.lesson_start||''}–${g.lesson_end||''}</div></div>`;}).join('');
+    return `<div class="tl-row"><div><div class="room-name"><span class="rd ${cur?'busy':''}"></span>${esc(room)}</div><div class="room-state">${state}</div></div><div class="track">${grid}<div class="lessons">${les}</div></div></div>`;
+  }).join('');
+  const showNow=nm>=480&&nm<=1200;const nowline=showNow?`<div class="nowline" style="left:calc(112px + (100% - 112px) * ${((nm-480)/720).toFixed(4)})"><span class="lbl">${_ogFmt(nm)}</span></div>`:'';
+  return `<div class="tl-wrap"><div class="tl"><div class="tl-head"><div></div><div class="tl-hours">${hrs}</div></div>${rows}${nowline}</div></div>`;
+}
 function renderDashboard(){
   const el=document.getElementById('dashboard-content');_adInjectCss();_shCss();_sdfCss();
   const isAdmin=level==='admin';const gs=(isAdmin?allGroups:myGroups);
@@ -2373,9 +2423,9 @@ function renderDashboard(){
   const pendAtt=lessons.filter(l=>{if(l.status!=='now'&&l.status!=='done')return false;const mk=_adMarked(l.g.id);return mk.total&&mk.marked<mk.total;});
   const upcoming=lessons.filter(l=>l.status==='next');
   html+=`<div class="sgrid"><div class="scol">`;
-  html+=`<section class="scard"><div class="scard-head"><div class="scard-title">Operatsion jadval <span style="color:var(--ink3);font-weight:600;font-size:12.5px;font-family:'Inter',sans-serif">Xona × Vaqt</span></div><div class="og-legend"><span class="og-lg now"><i></i>Hozir</span><span class="og-lg attmiss"><i></i>Davomat yo'q</span><span class="og-lg done"><i></i>Tugagan</span><span class="og-lg next"><i></i>Kutilmoqda</span><span class="og-lg cx"><i></i>Konflikt</span></div></div><div style="padding:6px 12px 14px">`;
-  html+=(gs.length?_ogGrid(lessons):`<div class="empty">Guruhlar hali qo'shilmagan</div>`);
-  html+=`</div></section></div>`;
+  html+=`<section class="scard"><div class="scard-head"><div class="scard-title">Operatsion jadval <span style="color:var(--ink3);font-weight:600;font-size:12.5px;font-family:'Inter',sans-serif">Xona × Vaqt</span></div><div class="legend"><span class="lg"><i class="now"></i>Hozir</span><span class="lg"><i class="miss"></i>Davomat yo'q</span><span class="lg"><i class="done"></i>Tugagan</span><span class="lg"><i class="wait"></i>Kutilmoqda</span><span class="lg"><i class="conf"></i>Konflikt</span></div></div>`;
+  html+=(gs.length?_sdfTl(gs,lessons):`<div class="empty">Guruhlar hali qo'shilmagan</div>`);
+  html+=`</section></div>`;
   html+=`<aside class="rail">`;
   const opsTasks=[];
   conflicts.forEach(l=>opsTasks.push({t:esc(l.g.name)+' — jadval konflikti',s:l._conf[0]||'',fn:`openLessonWorkspace('${l.g.id}')`,cls:'conf'}));
