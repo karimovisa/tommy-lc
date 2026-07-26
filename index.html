@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TOMMY LC</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ccircle%20cx='50'%20cy='50'%20r='50'%20fill='%23e8262c'/%3E%3Crect%20x='25'%20y='30'%20width='50'%20height='14'%20rx='3'%20fill='%23fff'/%3E%3Crect%20x='43'%20y='30'%20width='14'%20height='44'%20rx='3'%20fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%23395886'/%3E%3Ctext%20x='50'%20y='71'%20font-size='62'%20font-family='Arial,sans-serif'%20font-weight='700'%20fill='%23fff'%20text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style id="mono-override">
 html:root{--bg:#F0F3FA;--surface:#FFFFFF;--surface-2:#F6F8FC;--border:#D5DEEF;--border-strong:#B1C9EF;--text:#2C3E5C;--text-2:#5E7CA8;--text-3:#8AA0C2;--brand:#638ECB;--brand-dark:#395886;--brand-light:#E4ECF9;--good:#157F4A;--good-light:#E6F2EA;--warn:#B4801F;--warn-light:#F7EEDA;--bad:#C24A45;--bad-light:#F7E7E6;--radius:14px;--radius-sm:10px;--mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace}
@@ -2387,7 +2387,7 @@ function _renderDashboardOld(){
 }
 function showView(name){
   closeAdminSidebar();
-  try{const _am=document.getElementById('acct-menu');if(_am&&!_am.classList.contains('hidden'))_am.style.display=(name==='dashboard')?'':'none';}catch(e){}
+  try{const _am=document.getElementById('acct-menu');if(_am&&!_am.classList.contains('hidden'))_am.style.display=(name==='dashboard')?'none':'';}catch(e){}
   document.querySelectorAll('#app-shell .view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('#app-shell .nav-item').forEach(n=>n.classList.remove('active'));
   const v=document.getElementById('view-'+name);if(v)v.classList.add('active');
