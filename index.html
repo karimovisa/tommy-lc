@@ -37,6 +37,28 @@ html:root[data-theme="dark"]{--bg:#0E1420;--surface:#151C2B;--surface-2:#1B2436;
 .page-title,.sd-vtitle,.pw-name,.stat-big,.sh-title{font-family:'Inter Tight','Inter',sans-serif!important;letter-spacing:-.02em}
 .btn:focus-visible,.nav-item:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none!important;box-shadow:0 0 0 3px rgba(99,142,203,.28)!important}
 </style>
+<style id="shell-align">
+/* Sidebar brand + nav sizing to match Sirius mockup */
+.sidebar .brand-name{font-family:'Inter Tight','Inter',sans-serif!important;font-size:17px!important;font-weight:800!important;letter-spacing:-.2px!important}
+.sidebar .brand-sub{font-size:10px!important;letter-spacing:1.7px!important}
+#nav{padding:8px 12px!important}
+#nav .nav-item{padding:11px 12px!important;font-size:14.5px!important;font-weight:600!important;gap:12px!important;margin-bottom:2px}
+#nav .nav-ic svg{width:19px!important;height:19px!important}
+/* Dashboard header right-side tools (search + bell + primary) */
+.dh-tools{display:flex;align-items:center;gap:10px}
+.dh-search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0 14px;height:42px;width:240px;color:var(--text-3)}
+.dh-search:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(99,142,203,.18)}
+.dh-search svg{width:18px;height:18px;flex:none}
+.dh-search input{border:none;outline:none;font-family:inherit;font-size:14px;color:var(--text);width:100%;background:none}
+.dh-iconbtn{width:42px;height:42px;border-radius:10px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;color:var(--brand);cursor:pointer;position:relative;transition:.15s}
+.dh-iconbtn:hover{border-color:var(--brand);box-shadow:var(--shadow-sm)}
+.dh-iconbtn svg{width:19px;height:19px}
+.dh-iconbtn .dot{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--bad);border:2px solid var(--surface)}
+.dh-tools .btn-primary{height:42px;padding:0 18px;border-radius:10px}
+.dh-tools .btn-primary svg{width:17px;height:17px}
+@media(max-width:900px){.dh-search{width:170px}}
+@media(max-width:640px){.dh-search{width:140px}.dh-tools .btn-primary span{display:none}}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
@@ -106,10 +128,10 @@ img,svg,canvas{max-width:100%}
 
 /* ---------- SHELL ---------- */
 .shell{display:flex;min-height:100vh}
-.sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;overflow-y:auto}
-.main{flex:1;margin-left:230px;overflow-x:hidden}
-.brand{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.brand .logo-sm{width:34px;height:34px;flex-shrink:0}
+.sidebar{width:252px;background:var(--surface);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;overflow-y:auto}
+.main{flex:1;margin-left:252px;overflow-x:hidden}
+.brand{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.brand .logo-sm{width:42px;height:42px;border-radius:12px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.22)}
 .brand-name{font-size:15px;font-weight:700;letter-spacing:.04em}
 .brand-sub{font-size:9px;color:var(--text-3);margin-top:1px;font-family:var(--mono);letter-spacing:.18em}
 .nav{padding:12px 0;flex:1}
@@ -1296,7 +1318,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
   </aside>
   <div class="main">
     <div id="view-dashboard" class="view active">
-      <div class="page-header"><div><div class="page-title">Bosh sahifa</div><div class="page-sub">Umumiy ko'rinish</div></div></div>
+      <div class="page-header"><div><div class="page-title">Bosh sahifa</div><div class="page-sub">Umumiy ko'rinish</div></div><div class="header-actions dh-tools"><div class="dh-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="O'quvchi, guruh, ustoz..." onkeydown="if(event.key==='Enter'){showView('students');var s=document.getElementById('st-search');if(s){s.value=this.value;try{renderStudents()}catch(e){}}}"></div><button class="dh-iconbtn" title="Bildirishnomalar" onclick="showView('notifs')"><span class="dot"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8.5a6 6 0 1 0-12 0c0 6-2.5 7.5-2.5 7.5h17S18 14.5 18 8.5Z"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg></button><button class="btn btn-primary" onclick="showView('checklist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Tezkor davomat</span></button></div></div>
       <div class="wrap" id="dashboard-content"></div>
     </div>
     <div id="view-group" class="view">
