@@ -12,3 +12,9 @@ Thumbs.db
 # ISA LC OS backup sirlari (parol) — hech qachon commit qilinmasin
 backups/.dbconn.txt
 backups/.svckey.txt
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
