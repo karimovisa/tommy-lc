@@ -1411,6 +1411,10 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div class="page-header"><div><div class="page-title">To'lovlar</div><div class="page-sub">Oylik to'lovlarni qayd qilish</div></div><div class="header-actions"><select class="flt" id="pay-group" onchange="renderPayments()"></select><input type="month" id="pay-month" onchange="renderPayments()"><button class="btn btn-sm" onclick="remindDebtors()">📨 Qarzdorlarga eslatma</button></div></div>
       <div class="wrap" id="payments-admin"></div>
     </div>
+    <div id="view-salary" class="view">
+      <div class="page-header"><div><div class="page-title">Maosh</div><div class="page-sub">O'qituvchilar oyligini avtomatik hisoblash</div></div><div class="header-actions"><input type="month" id="sal-month" onchange="renderSalary()"></div></div>
+      <div class="wrap" id="salary-content"></div>
+    </div>
   </div>
 </div>
 
@@ -1789,6 +1793,7 @@ function buildNav(){
   if(pendingList.length)items.push(['approve',"Ro'yxat so'rovlari",I.clock]);
   if(!isAdmin)items.push(['assignments','Testlar',I.book]);
   items.push(['payments',"To'lovlar",I.card]);
+  if(isAdmin)items.push(['salary','Maosh',I.card]);
   items.push(['chat','Xabarlar',CHAT_ICON]);
   items.push(['notifs','Bildirishnomalar',I.bell]);
   const nav=document.getElementById('nav');
@@ -2508,14 +2513,14 @@ function renderDashboard(){
   const _roomBars=Array.from({length:Math.min(Math.max(_totRooms,1),10)},(v,i)=>`<i class="${i<_busyCnt?'on':''}"></i>`).join('');
   const _dayBars=Array.from({length:6},(v,i)=>`<i class="${i<Math.min(doneToday,6)?'on':''}"></i>`).join('');
   try{_stPayLoad();}catch(e){}
-  const paidSet=window.__paidSet||new Set();let debtN=0,debtSum=0;studs.forEach(x=>{const fee=groupFee(gidOf(x.s));if(fee>0&&!paidSet.has(x.s.id)){debtN++;debtSum+=fee;}});
+  const paidSet=window.__paidSet||new Set();let debtN=0,debtSum=0,feeN=0;studs.forEach(x=>{const fee=groupFee(gidOf(x.s));if(fee>0){feeN++;if(!paidSet.has(x.s.id)){debtN++;debtSum+=fee;}}});const paidN=feeN-debtN;const collPct=feeN?Math.round(paidN*100/feeN):0;
   const _money=n=>String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
   const _lessN=lessons.length,_lp=_lessN?Math.round(doneToday/_lessN*100):0;
   const nowList=lessons.filter(l=>l.status==='now');
   html+=`<div class="sdf">`;
   const _svgw='style="width:16px;height:16px"',_ksvg='fill="none" stroke="currentColor" stroke-width="1.9" style="width:17px;height:17px;color:var(--c4)"';
   html+=`<div class="qbar"><button class="qa" onclick="showView('students')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><path d="M12 5v14M5 12h14"/></svg></span>O'quvchi qo'shish</button><button class="qa" onclick="showView('payments')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></span>To'lov qabul qilish</button><button class="qa" onclick="openAddGroup()"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>Dars rejalashtirish</button><button class="qa" onclick="showView('checklist')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Hisobot</button></div>`;
-  html+=`<section class="kpis"><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span class="kpi-label">Bugungi darslar</span></div><div class="kpi-val">${doneToday} <small>/ ${_lessN} o'tkazildi</small></div><div class="kpibar"><i style="width:${_lp}%"></i></div></div><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg><span class="kpi-label">O'rtacha davomat</span></div><div class="kpi-val">${attPct}<small>%</small></div><div class="kpi-note">bugungi darslar bo'yicha</div></div><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><path d="M12 3v18M8 7h6a2.5 2.5 0 0 1 0 5H9a2.5 2.5 0 0 0 0 5h6"/></svg><span class="kpi-label">Oylik to'lov</span></div><div class="kpi-val">${income==null?'—':(income/1e6).toFixed(1)} <small>mln so'm</small></div><div class="kpi-note">shu oyda yig'ilgan</div></div><div class="kpi alert"><div class="kpi-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="width:17px;height:17px;color:var(--bad2)"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg><span class="kpi-label">Qarzdorlar</span></div><div class="kpi-val">${debtN} <small>/ ${studs.length}</small></div><div class="kpi-note"><b class="warn">${_money(debtSum)} so'm</b> yig'ilmagan</div></div></section>`;
+  html+=`<section class="kpis"><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span class="kpi-label">Bugungi darslar</span></div><div class="kpi-val">${doneToday} <small>/ ${_lessN} o'tkazildi</small></div><div class="kpibar"><i style="width:${_lp}%"></i></div></div><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg><span class="kpi-label">O'rtacha davomat</span></div><div class="kpi-val">${attPct}<small>%</small></div><div class="kpi-note">${(present+absent)?`<b class="up">${present}</b> keldi · <b class="warn">${absent}</b> kelmadi`:'bugun hali belgilanmagan'}</div></div><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="kpi-label">Faol o'quvchilar</span></div><div class="kpi-val">${studs.length}</div><div class="kpi-note">${gs.length} guruhda</div></div><div class="kpi alert" onclick="showView('payments')" style="cursor:pointer"><div class="kpi-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="width:17px;height:17px;color:var(--bad2)"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg><span class="kpi-label">Qarzdorlar</span></div><div class="kpi-val">${debtN} <small>qarzdor</small></div><div class="kpi-note">${feeN?`${paidN}/${feeN} to'ladi · <b class="${collPct>=70?'up':'warn'}">${collPct}%</b>`:"to'lov ma'lumoti yo'q"}</div></div></section>`;
   html+=`<section class="scard" style="margin-bottom:20px"><div class="live-head"><span class="live-dot"></span><span class="live-eye">Hozir dars ketmoqda${nowList.length?' · '+nowList.length+' ta':''}</span></div><div class="live-list">`;
   if(nowList.length){html+=nowList.map(l=>{const g=l.g;const mk=_adMarked(g.id);const rem=l.eM!=null?Math.max(0,l.eM-nm):null;const dur=(l.eM-l.sM)||90;const prog=Math.min(100,Math.max(0,Math.round((nm-l.sM)/dur*100)));const taken=mk.total&&mk.marked>=mk.total;return `<div class="live-item"><div class="lv-badge">${esc((g.name||'?').slice(0,2)).toUpperCase()}</div><div class="lv-body"><div class="lv-name">${esc(g.name)}</div><div class="lv-meta mono">${esc(g.teacher_name||'')} · ${esc(g.room||'—')} · ${g.lesson_start||''}–${g.lesson_end||''}</div><div style="height:4px;border-radius:3px;background:var(--c2);margin-top:8px;overflow:hidden"><i style="display:block;height:100%;width:${prog}%;background:var(--c5)"></i></div></div><div class="lv-right"><div class="lv-rem">${taken?'Davomat <b>olindi</b>':(rem!=null?'Tugashiga <b>'+rem+' daq</b>':'')}</div><button class="lv-btn" onclick="openLessonWorkspace('${g.id}')">${taken?"Ko'rish":"Davomat"}</button></div></div>`;}).join('');}else{html+=`<div class="empty">Ayni vaqtda faol dars yo'q</div>`;}
   html+=`</div></section>`;
@@ -2558,6 +2563,52 @@ function renderDashboard(){
   if(!window.__mcTimer)window.__mcTimer=setInterval(_mcTick,30000);
   if(!window.__shTimer)window.__shTimer=setInterval(_shClock,1000);
   if(window.__monthIncome===undefined){loadDashIncome().then(()=>{try{renderDashboard()}catch(e){}});}
+}
+/* ============ MAOSH (o'qituvchi oyligi) ============ */
+function _salCss(){if(document.getElementById('sal-css'))return;const s=document.createElement('style');s.id='sal-css';s.textContent=`
+.sal-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+.sal-rate{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--text-2)}
+.sal-rate input{width:66px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;font-family:var(--mono);text-align:center;background:var(--bg);color:var(--text)}
+.sal-sum{margin-left:auto;background:var(--brand-light);color:var(--brand-dark);border-radius:12px;padding:10px 16px;font-weight:700;font-size:13px}
+.sal-sum b{font-family:var(--mono);font-size:18px}
+.sal-tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.sal-tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);text-align:left;padding:12px 14px;background:var(--surface-2);font-weight:700}
+.sal-tbl td{padding:13px 14px;border-top:1px solid var(--border);font-size:14px}
+.sal-tbl td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+.sal-tbl tr:hover td{background:var(--bg)}
+.sal-tname{font-weight:600;color:var(--text)}
+.sal-tsub{font-size:12px;color:var(--text-3)}
+.sal-pay{font-weight:800;color:var(--good)}
+`;document.head.appendChild(s);}
+function _salRate(){let r=parseFloat(localStorage.getItem('__salaryRate_'+curCenter()));if(!(r>=0))r=20;return r;}
+function _salSetRate(v){let r=parseFloat(v);if(!(r>=0))r=20;if(r>100)r=100;localStorage.setItem('__salaryRate_'+curCenter(),String(r));renderSalary();}
+async function renderSalary(){
+  _salCss();
+  const el=document.getElementById('salary-content');if(!el)return;
+  if(level!=='admin'){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3)">Faqat admin</div>';return;}
+  const mEl=document.getElementById('sal-month');const month=(mEl&&mEl.value)||new Date().toISOString().slice(0,7);if(mEl&&!mEl.value)mEl.value=month;
+  const rate=_salRate();
+  el.innerHTML='<div style="padding:30px;color:var(--text-3)">Hisoblanmoqda…</div>';
+  let pays=[];try{const{data}=await sb.from('payments').select('group_id,amount').eq('month',month);pays=data||[];}catch(e){}
+  const byGid={};pays.forEach(p=>{byGid[p.group_id]=(byGid[p.group_id]||0)+(+p.amount||0);});
+  const byT={};
+  allGroups.forEach(g=>{
+    const key=((g.teacher_email||g.teacher_name||'—')+'').toLowerCase();
+    const t=byT[key]||(byT[key]={name:g.teacher_name||g.teacher_email||'—',email:g.teacher_email||'',groups:0,students:0,collected:0});
+    t.groups++;
+    t.students+=students.filter(s=>gidOf(s)===g.id&&!s.frozen).length;
+    t.collected+=(byGid[g.id]||0);
+  });
+  const rows=Object.values(byT).filter(t=>t.name&&t.name!=='—').sort((a,b)=>b.collected-a.collected);
+  const _m=n=>String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+  const totalSalary=rows.reduce((a,t)=>a+t.collected*rate/100,0);
+  let html='';
+  html+=`<div class="sal-top"><div class="sal-rate">Maosh foizi <input type="number" min="0" max="100" step="0.5" id="sal-rate-inp" value="${rate}" onchange="_salSetRate(this.value)"> %</div><div class="sal-sum">Jami maosh: <b>${_m(totalSalary)}</b> so'm</div></div>`;
+  if(!rows.length){html+='<div style="padding:40px;text-align:center;color:var(--text-3)">Guruh yoki o\'qituvchi topilmadi</div>';el.innerHTML=html;return;}
+  html+=`<table class="sal-tbl"><thead><tr><th>O'qituvchi</th><th style="text-align:center">Guruh</th><th style="text-align:center">O'quvchi</th><th style="text-align:right">Yig'ilgan (${month})</th><th style="text-align:right">Maosh (${rate}%)</th></tr></thead><tbody>`;
+  html+=rows.map(t=>`<tr><td><div class="sal-tname">${esc(t.name)}</div>${t.email?`<div class="sal-tsub">${esc(t.email)}</div>`:''}</td><td class="num" style="text-align:center">${t.groups}</td><td class="num" style="text-align:center">${t.students}</td><td class="num">${_m(t.collected)}</td><td class="num sal-pay">${_m(t.collected*rate/100)}</td></tr>`).join('');
+  html+=`</tbody></table><div style="font-size:12px;color:var(--text-3);margin-top:10px">Maosh = har o'qituvchi o'quvchilaridan shu oy <b>to'langan</b> pulning ${rate}%i. Foizni yuqoridan o'zgartiring (shu brauzerda saqlanadi).</div>`;
+  el.innerHTML=html;
 }
 function _renderDashboardOld(){
   const el=document.getElementById('dashboard-content');
@@ -2614,6 +2665,7 @@ function showView(name){
   if(name==='notifs')renderNotifsAdmin();
   if(name==='chat')renderChatAdmin();
   if(name==='payments')renderPayments();
+  if(name==='salary')renderSalary();
   if(name==='homework')renderHomework();
   if(name==='dashboard')renderDashboard();
   if(name==='group'&&curGroup)renderGroupDetail(curGroup);
