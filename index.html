@@ -2519,7 +2519,7 @@ function renderDashboard(){
   const nowList=lessons.filter(l=>l.status==='now');
   html+=`<div class="sdf">`;
   const _svgw='style="width:16px;height:16px"',_ksvg='fill="none" stroke="currentColor" stroke-width="1.9" style="width:17px;height:17px;color:var(--c4)"';
-  html+=`<div class="qbar"><button class="qa" onclick="showView('students')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><path d="M12 5v14M5 12h14"/></svg></span>O'quvchi qo'shish</button><button class="qa" onclick="showView('payments')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></span>To'lov qabul qilish</button><button class="qa" onclick="openAddGroup()"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>Dars rejalashtirish</button><button class="qa" onclick="showView('checklist')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Hisobot</button></div>`;
+  html+=`<div class="qbar"><button class="qa" onclick="openAddStudent()"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><path d="M12 5v14M5 12h14"/></svg></span>O'quvchi qo'shish</button><button class="qa" onclick="openQuickPay()"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></span>To'lov qabul qilish</button><button class="qa" onclick="openAddGroup()"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>Dars rejalashtirish</button><button class="qa" onclick="showView('checklist')"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${_svgw}><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Hisobot</button></div>`;
   html+=`<section class="kpis"><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span class="kpi-label">Bugungi darslar</span></div><div class="kpi-val">${doneToday} <small>/ ${_lessN} o'tkazildi</small></div><div class="kpibar"><i style="width:${_lp}%"></i></div></div><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg><span class="kpi-label">O'rtacha davomat</span></div><div class="kpi-val">${attPct}<small>%</small></div><div class="kpi-note">${(present+absent)?`<b class="up">${present}</b> keldi · <b class="warn">${absent}</b> kelmadi`:'bugun hali belgilanmagan'}</div></div><div class="kpi"><div class="kpi-top"><svg viewBox="0 0 24 24" ${_ksvg}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="kpi-label">Faol o'quvchilar</span></div><div class="kpi-val">${studs.length}</div><div class="kpi-note">${gs.length} guruhda</div></div><div class="kpi alert" onclick="showView('payments')" style="cursor:pointer"><div class="kpi-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="width:17px;height:17px;color:var(--bad2)"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg><span class="kpi-label">Qarzdorlar</span></div><div class="kpi-val">${debtN} <small>qarzdor</small></div><div class="kpi-note">${feeN?`${paidN}/${feeN} to'ladi · <b class="${collPct>=70?'up':'warn'}">${collPct}%</b>`:"to'lov ma'lumoti yo'q"}</div></div></section>`;
   html+=`<section class="scard" style="margin-bottom:20px"><div class="live-head"><span class="live-dot"></span><span class="live-eye">Hozir dars ketmoqda${nowList.length?' · '+nowList.length+' ta':''}</span></div><div class="live-list">`;
   if(nowList.length){html+=nowList.map(l=>{const g=l.g;const mk=_adMarked(g.id);const rem=l.eM!=null?Math.max(0,l.eM-nm):null;const dur=(l.eM-l.sM)||90;const prog=Math.min(100,Math.max(0,Math.round((nm-l.sM)/dur*100)));const taken=mk.total&&mk.marked>=mk.total;return `<div class="live-item"><div class="lv-badge">${esc((g.name||'?').slice(0,2)).toUpperCase()}</div><div class="lv-body"><div class="lv-name">${esc(g.name)}</div><div class="lv-meta mono">${esc(g.teacher_name||'')} · ${esc(g.room||'—')} · ${g.lesson_start||''}–${g.lesson_end||''}</div><div style="height:4px;border-radius:3px;background:var(--c2);margin-top:8px;overflow:hidden"><i style="display:block;height:100%;width:${prog}%;background:var(--c5)"></i></div></div><div class="lv-right"><div class="lv-rem">${taken?'Davomat <b>olindi</b>':(rem!=null?'Tugashiga <b>'+rem+' daq</b>':'')}</div><button class="lv-btn" onclick="openLessonWorkspace('${g.id}')">${taken?"Ko'rish":"Davomat"}</button></div></div>`;}).join('');}else{html+=`<div class="empty">Ayni vaqtda faol dars yo'q</div>`;}
@@ -4007,6 +4007,53 @@ async function renderPayments(){
     return `<div class="bl-r"><div class="bl-nm"><b>${esc(s.name)}</b><span>${esc(gidToName[gidOf(s)]||'')}</span></div><div class="bl-fee">${fee?money(fee):'—'}</div><div class="bl-in"><input class="grade-input" type="number" min="0" step="10000" value="${amt||''}" placeholder="0" onchange="savePayment('${s.id}','${gidOf(s)}',this.value)"></div><div class="bl-bal" style="color:${bal>0?'var(--warn)':'var(--text-3)'}">${bal>0?money(bal):'0'}</div><div class="bl-st">${stxt}</div><div class="bl-act"><button class="btn btn-sm" onclick="savePayment('${s.id}','${gidOf(s)}',${fee})" title="To'liq to'landi">To'liq</button></div></div>`;
   }).join('');
   el.innerHTML=html+`<div class="bl-tbl">${head}${rows}</div>`;
+}
+/* ---------- TEZKOR TO'LOV (dashboarddan to'g'ridan-to'g'ri) ---------- */
+function _qpCss(){if(document.getElementById('qp-css'))return;const s=document.createElement('style');s.id='qp-css';s.textContent=`
+#qp-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(15,18,24,.5);align-items:center;justify-content:center;padding:20px}
+.qp-box{background:var(--surface);color:var(--text);width:100%;max-width:440px;border-radius:18px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.qp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.qp-title{font-size:18px;font-weight:800}
+.qp-x{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-3);line-height:1}
+.qp-l{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin:10px 0 4px}
+.qp-inp{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:var(--bg);color:var(--text);box-sizing:border-box}
+.qp-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qp-hint{font-size:12px;color:var(--text-3);margin-top:8px;min-height:16px}
+.qp-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+`;document.head.appendChild(s);}
+function openQuickPay(){
+  if(level!=='admin'){showToast('Faqat admin');return;}
+  _qpCss();
+  const sl=students.filter(s=>!s.frozen);
+  if(!sl.length){showToast("O'quvchi yo'q — avval o'quvchi qo'shing");return;}
+  let ov=document.getElementById('qp-overlay');
+  if(!ov){ov=document.createElement('div');ov.id='qp-overlay';ov.onclick=function(e){if(e.target===ov)closeQuickPay();};document.body.appendChild(ov);}
+  const month=new Date().toISOString().slice(0,7);
+  const opts=sl.map(s=>`<option value="${s.id}" data-gid="${gidOf(s)||''}" data-fee="${groupFee(gidOf(s))||0}">${esc(s.name)}${gidToName[gidOf(s)]?' — '+esc(gidToName[gidOf(s)]):''}</option>`).join('');
+  ov.innerHTML=`<div class="qp-box"><div class="qp-head"><div class="qp-title">To'lov qabul qilish</div><button class="qp-x" onclick="closeQuickPay()">×</button></div>
+    <label class="qp-l">O'quvchi</label><select id="qp-student" class="qp-inp" onchange="_qpFee()">${opts}</select>
+    <div class="qp-row"><div><label class="qp-l">Oy</label><input type="month" id="qp-month" class="qp-inp" value="${month}"></div><div><label class="qp-l">Summa (so'm)</label><input type="number" id="qp-amount" class="qp-inp" min="0" step="10000" placeholder="0"></div></div>
+    <div class="qp-hint" id="qp-hint"></div>
+    <div class="qp-actions"><button class="btn btn-sm" onclick="_qpFull()">To'liq to'lov</button><button class="btn btn-primary btn-sm" onclick="_quickPaySave()">Saqlash</button></div></div>`;
+  ov.style.display='flex';_qpFee();
+  setTimeout(()=>{const a=document.getElementById('qp-amount');if(a)a.focus();},60);
+}
+function closeQuickPay(){const ov=document.getElementById('qp-overlay');if(ov)ov.style.display='none';}
+function _qpSelFee(){const sel=document.getElementById('qp-student');const o=sel&&sel.options[sel.selectedIndex];return o?(+o.dataset.fee||0):0;}
+function _qpFee(){const fee=_qpSelFee();const h=document.getElementById('qp-hint');if(h)h.textContent=fee?('Oylik narx: '+String(fee).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+" so'm"):'Bu guruhda narx belgilanmagan';}
+function _qpFull(){const fee=_qpSelFee();const a=document.getElementById('qp-amount');if(a)a.value=fee||'';}
+async function _quickPaySave(){
+  const sel=document.getElementById('qp-student');const o=sel&&sel.options[sel.selectedIndex];if(!o){showToast("O'quvchi tanlang");return;}
+  const sid=o.value,gid=o.dataset.gid||null;
+  const month=(document.getElementById('qp-month').value)||new Date().toISOString().slice(0,7);
+  const amount=parseInt(document.getElementById('qp-amount').value)||0;
+  const name=(level==='admin')?'Administrator':((myGroups[0]&&myGroups[0].teacher_name)||currentUser.email);
+  const{error}=await sb.from('payments').upsert({student_id:sid,group_id:gid,month,amount,paid_at:amount>0?new Date().toISOString():null,recorded_by:currentUser.id,recorded_by_name:name},{onConflict:'student_id,month'});
+  if(error){showToast('Xato: '+error.message);return;}
+  showToast("To'lov saqlandi");closeQuickPay();
+  window.__paidSet=null;window.__monthIncome=undefined;
+  try{if(document.getElementById('view-payments').classList.contains('active'))renderPayments();}catch(e){}
+  try{if(document.getElementById('view-dashboard').classList.contains('active'))renderDashboard();}catch(e){}
 }
 async function savePayment(sid,gid,val){
   const month=curPayMonth();const amount=parseInt(val)||0;
