@@ -1848,7 +1848,7 @@ async function renderPlatformConsole(){
   try{studs=(await sb.from('students').select('center_id')).data||[];}catch(e){}
   const bById={};brands.forEach(b=>bById[b.center_id]=b);window.__pcBrands=bById;
   const sById={};subs.forEach(s=>sById[s.center_id]=s);
-  const dByC={};domains.forEach(d=>{(dByC[d.center_id]=dByC[d.center_id]||[]).push(d);});
+  const dByC={};domains.forEach(d=>{(dByC[d.center_id]=dByC[d.center_id]||[]).push(d);});window.__pcDomains=dByC;
   const cntByC={};studs.forEach(s=>{cntByC[s.center_id]=(cntByC[s.center_id]||0)+1;});
   const cards=centers.map(c=>{const b=bById[c.id]||{};const s=sById[c.id]||{};const ds=(dByC[c.id]||[]).map(d=>d.domain).join(', ')||'—';const col=b.brand_color||'#888';
     const logoCell=b.logo_url?`<img src="${esc(b.logo_url)}" alt="" style="width:34px;height:34px;border-radius:9px;object-fit:cover;flex:none">`:`<div class="pc-dot" style="background:${col};display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px">${esc((b.display_name||c.name||'?').trim().charAt(0).toUpperCase())}</div>`;
@@ -1894,7 +1894,7 @@ function openEditBranding(cid){
   slot.innerHTML=`<div class="pc-form"><div style="font-weight:700;margin-bottom:6px">Brendni tahrirlash</div>
     <div class="pc-frow"><div><label>Ko'rinadigan nom</label><input id="eb-name" value="${esc(b.display_name||'')}"></div><div><label>Brend rang</label><input id="eb-color" type="color" value="${esc(b.brand_color||'#2B5288')}" style="height:40px;padding:3px"></div></div>
     <div class="pc-frow"><div><label>Logo (kvadrat PNG)${b.logo_url?' — mavjud':''}</label><input id="eb-logo" type="file" accept="image/*"></div><div><label>Favicon (ixtiyoriy)</label><input id="eb-favicon" type="file" accept="image/*"></div></div>
-    <div class="pc-frow"><div><label>Telegram bot (@siz)</label><input id="eb-tgbot" value="${esc(b.telegram_bot_username||'')}" placeholder="oxford_lc_bot"></div><div></div></div>
+    <div class="pc-frow"><div><label>Telegram bot (@siz)</label><input id="eb-tgbot" value="${esc(b.telegram_bot_username||'')}" placeholder="oxford_lc_bot"></div><div><label>Domen (Vercel)</label><input id="eb-domain" value="${esc((window.__pcDomains&&window.__pcDomains[cid]&&window.__pcDomains[cid][0]&&window.__pcDomains[cid][0].domain)||'')}" placeholder="imperial-lc.vercel.app"></div></div>
     <div class="pc-err" id="eb-err"></div>
     <div style="display:flex;gap:10px;margin-top:8px"><button class="pc-btn" onclick="saveEditBranding('${cid}')">Saqlash</button><button class="pc-btn ghost" onclick="document.getElementById('pc-form-slot').innerHTML=''">Bekor</button></div></div>`;
 }
@@ -1910,6 +1910,8 @@ async function saveEditBranding(cid){
     const fu=await _pcUpload(cid,'favicon','eb-favicon');if(fu)patch.favicon_url=fu;
     const{error}=await sb.from('center_branding').update(patch).eq('center_id',cid);
     if(error){if(err)err.textContent='Xato: '+error.message;return;}
+    const dom=(g('eb-domain')||'').trim().toLowerCase();
+    if(dom){try{await sb.from('center_domains').delete().eq('center_id',cid);await sb.from('center_domains').insert({center_id:cid,domain:dom,verified:true});}catch(e){}}
     await renderPlatformConsole();
     if(typeof showToast==='function')showToast('Brend saqlandi');
   }catch(e){if(err)err.textContent='Xato: '+(e.message||e);}
