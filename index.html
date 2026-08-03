@@ -1415,6 +1415,10 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
       <div class="page-header"><div><div class="page-title">Maosh</div><div class="page-sub">O'qituvchilar oyligini avtomatik hisoblash</div></div><div class="header-actions"><input type="month" id="sal-month" onchange="renderSalary()"></div></div>
       <div class="wrap" id="salary-content"></div>
     </div>
+    <div id="view-teachers" class="view">
+      <div class="page-header"><div><div class="page-title">O'qituvchilar</div><div class="page-sub">Maosh tarixi va o'quvchilar soni</div></div><div class="header-actions"><button class="btn btn-sm" onclick="openAddGroup()" title="O'qituvchi yangi guruh yaratishda qo'shiladi">+ Guruh / O'qituvchi</button></div></div>
+      <div class="wrap" id="teachers-content"></div>
+    </div>
   </div>
 </div>
 
@@ -1790,10 +1794,12 @@ function buildNav(){
   const items=[['dashboard','Bosh sahifa',I.home]];
   if(!isAdmin)items.push(['checklist','Kunlik belgilash',I.cal],['homework',"Uy ishi",I.clip]);
   items.push(['students',"O'quvchilar",I.users]);
+  if(isAdmin)items.push(['checklist','Davomat',I.cal]);
   if(pendingList.length)items.push(['approve',"Ro'yxat so'rovlari",I.clock]);
   if(!isAdmin)items.push(['assignments','Testlar',I.book]);
   items.push(['payments',"To'lovlar",I.card]);
   if(isAdmin)items.push(['salary','Maosh',I.card]);
+  if(isAdmin)items.push(['teachers',"O'qituvchilar",I.users]);
   items.push(['chat','Xabarlar',CHAT_ICON]);
   items.push(['notifs','Bildirishnomalar',I.bell]);
   const nav=document.getElementById('nav');
@@ -2613,6 +2619,62 @@ async function renderSalary(){
   html+=`</tbody></table><div style="font-size:12px;color:var(--text-3);margin-top:10px">Maosh = har o'qituvchi o'quvchilaridan shu oy <b>to'langan</b> pulning foizi. Har o'qituvchi foizini jadvalda alohida qo'ying; bo'sh/0 qoldirsangiz <b>standart foiz</b> ishlaydi. (Shu brauzerda saqlanadi.)</div>`;
   el.innerHTML=html;
 }
+/* ============ O'QITUVCHILAR (admin, read-only profil) ============ */
+function _tvCss(){if(document.getElementById('tv-css'))return;const s=document.createElement('style');s.id='tv-css';s.textContent=`
+.tv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.tv-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;cursor:pointer;transition:.14s;box-shadow:var(--shadow-sm)}
+.tv-card:hover{border-color:var(--brand);transform:translateY(-2px)}
+.tv-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tv-av{width:44px;height:44px;flex:none;border-radius:50%;background:var(--brand-light);color:var(--brand-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--mono);font-size:15px}
+.tv-nm{font-weight:700;font-size:15px;color:var(--text)}
+.tv-em{font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.tv-stats{display:flex;gap:16px;flex-wrap:wrap}
+.tv-stats>div{display:flex;flex-direction:column}
+.tv-k{font-family:var(--mono);font-weight:800;font-size:17px;color:var(--text);letter-spacing:-.02em}
+.tv-k.tv-good{color:var(--good)}
+.tv-l{font-size:11px;color:var(--text-3);margin-top:1px}
+#tv-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(15,18,24,.5);align-items:center;justify-content:center;padding:20px}
+.tv-box{background:var(--surface);color:var(--text);width:100%;max-width:460px;border-radius:18px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.tv-bh{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px}
+.tv-bn{font-weight:800;font-size:18px}
+.tv-be{font-size:12.5px;color:var(--text-3);margin-top:3px}
+.tv-x{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-3);line-height:1}
+.tv-hhead,.tv-hrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:9px 4px}
+.tv-hhead{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);border-bottom:1px solid var(--border)}
+.tv-hrow{border-bottom:1px solid var(--border);font-size:13.5px}
+.tv-hrow:last-child{border-bottom:none}
+.tv-hrow .mono,.tv-hhead span:not(:first-child){text-align:right}
+.tv-hrow span:nth-child(2),.tv-hrow span:nth-child(3){text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tv-good{color:var(--good);font-weight:700}
+.tv-note{font-size:11.5px;color:var(--text-3);margin-top:12px;line-height:1.5}
+`;document.head.appendChild(s);}
+async function renderTeachers(){
+  _tvCss();
+  const el=document.getElementById('teachers-content');if(!el)return;
+  if(level!=='admin'){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3)">Faqat admin</div>';return;}
+  el.innerHTML='<div style="padding:30px;color:var(--text-3)">Hisoblanmoqda…</div>';
+  const months=[];const now=new Date();for(let i=0;i<6;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));}
+  let pays=[];try{const{data}=await sb.from('payments').select('group_id,amount,month').in('month',months);pays=data||[];}catch(e){}
+  const gidT={};allGroups.forEach(g=>{gidT[g.id]=((g.teacher_email||g.teacher_name||'—')+'').toLowerCase();});
+  const byT={};
+  allGroups.forEach(g=>{const key=gidT[g.id];const t=byT[key]||(byT[key]={key:key,name:g.teacher_name||g.teacher_email||'—',email:g.teacher_email||'',groups:0,students:0,monthly:{}});t.groups++;t.students+=students.filter(s=>gidOf(s)===g.id&&!s.frozen).length;});
+  pays.forEach(p=>{const key=gidT[p.group_id];if(!key||!byT[key])return;byT[key].monthly[p.month]=(byT[key].monthly[p.month]||0)+(+p.amount||0);});
+  window.__tvData={byT:byT,months:months};
+  const rows=Object.values(byT).filter(t=>t.name&&t.name!=='—').sort((a,b)=>b.students-a.students);
+  const _m=n=>String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+  if(!rows.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3)">O\'qituvchi topilmadi. Guruh yaratishda o\'qituvchi qo\'shiladi.</div>';return;}
+  el.innerHTML='<div class="tv-grid">'+rows.map(t=>{const rate=_salTeacherRate(t.key);const cur=(t.monthly[months[0]]||0)*rate/100;const kk=(t.key||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");return `<div class="tv-card" onclick="openTeacherDetail('${kk}')"><div class="tv-top"><div class="tv-av">${initials(t.name)}</div><div style="min-width:0"><div class="tv-nm">${esc(t.name)}</div><div class="tv-em">${esc(t.email||'—')}</div></div></div><div class="tv-stats"><div><span class="tv-k">${t.groups}</span><span class="tv-l">guruh</span></div><div><span class="tv-k">${t.students}</span><span class="tv-l">o'quvchi</span></div><div><span class="tv-k tv-good">${_m(cur)}</span><span class="tv-l">shu oy maosh (${rate}%)</span></div></div></div>`;}).join('')+'</div>';
+}
+function openTeacherDetail(key){
+  const d=window.__tvData;if(!d||!d.byT[key])return;const t=d.byT[key];const months=d.months;const rate=_salTeacherRate(key);
+  const _m=n=>String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+  const _MON=['Yan','Fev','Mar','Apr','May','Iyun','Iyul','Avg','Sen','Okt','Noy','Dek'];
+  const fmtM=m=>{const a=(m||'').split('-');return a[1]?(_MON[+a[1]-1]+' '+a[0]):m;};
+  const hist=months.map(m=>{const c=t.monthly[m]||0;return `<div class="tv-hrow"><span>${fmtM(m)}</span><span>${_m(c)}</span><span class="tv-good">${_m(c*rate/100)}</span></div>`;}).join('');
+  let ov=document.getElementById('tv-overlay');if(!ov){ov=document.createElement('div');ov.id='tv-overlay';ov.onclick=function(e){if(e.target===ov)ov.style.display='none';};document.body.appendChild(ov);}
+  ov.innerHTML=`<div class="tv-box"><div class="tv-bh"><div><div class="tv-bn">${esc(t.name)}</div><div class="tv-be">${esc(t.email||'—')} · ${t.groups} guruh · ${t.students} o'quvchi</div></div><button class="tv-x" onclick="document.getElementById('tv-overlay').style.display='none'">×</button></div><div class="tv-hhead"><span>Oy</span><span>Yig'ilgan</span><span>Maosh (${rate}%)</span></div>${hist}<div class="tv-note">Maosh = o'qituvchi o'quvchilaridan yig'ilgan pulning foizi. Foizni "Maosh" bo'limida o'zgartirasiz. Login/parol bilan o'qituvchi kabineti — keyingi bosqichda.</div></div>`;
+  ov.style.display='flex';
+}
 function _renderDashboardOld(){
   const el=document.getElementById('dashboard-content');
   const gs=(level==='admin'?allGroups:myGroups);
@@ -2669,6 +2731,7 @@ function showView(name){
   if(name==='chat')renderChatAdmin();
   if(name==='payments')renderPayments();
   if(name==='salary')renderSalary();
+  if(name==='teachers')renderTeachers();
   if(name==='homework')renderHomework();
   if(name==='dashboard')renderDashboard();
   if(name==='group'&&curGroup)renderGroupDetail(curGroup);
