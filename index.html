@@ -1475,7 +1475,7 @@ table.data tbody tr:hover,.grade-table tbody tr:hover{background:var(--surface-2
 </div>
 
 <!-- ============ MODALS ============ -->
-<div class="modal-overlay" id="modal-student"><div class="modal"><div class="modal-title">Yangi o'quvchi qo'shish</div><label class="modal-label">Ism familiya</label><input type="text" id="new-name" placeholder="Islom Karimov"><label class="modal-label">Telefon raqam</label><input type="text" id="new-phone" placeholder="+998901234567"><label class="modal-label">Guruh</label><select id="new-student-group"></select><label class="modal-label">Kurs</label><input type="text" id="new-course" placeholder="IELTS Intermediate"><label class="modal-label">Boshlanish sanasi</label><input type="date" id="new-start-date"><div style="font-size:11px;color:var(--text-3);margin:-2px 0 10px;line-height:1.5">Saqlagach tizim avtomatik <b>Student ID</b> va <b>vaqtinchalik parol</b> yaratadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="add-student-btn" onclick="addStudent()">Qo'shish</button></div></div></div>
+<div class="modal-overlay" id="modal-student"><div class="modal"><div class="modal-title">Yangi o'quvchi qo'shish</div><label class="modal-label">Ism familiya</label><input type="text" id="new-name" placeholder="Ism familiya"><label class="modal-label">Telefon raqam</label><input type="text" id="new-phone" placeholder="Telefon raqam"><label class="modal-label">Guruh</label><select id="new-student-group"></select><label class="modal-label">Boshlanish sanasi</label><input type="date" id="new-start-date"><div style="font-size:11px;color:var(--text-3);margin:-2px 0 10px;line-height:1.5">Saqlagach tizim avtomatik <b>Student ID</b> va <b>vaqtinchalik parol</b> yaratadi.</div><div class="modal-footer"><button class="btn btn-sm" onclick="closeModals()">Bekor qilish</button><button class="btn btn-primary btn-sm" id="add-student-btn" onclick="addStudent()">Qo'shish</button></div></div></div>
 
 <div class="modal-overlay" id="modal-creds"><div class="modal"><div class="modal-title">✅ O'quvchi yaratildi</div><div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Quyidagilarni <b id="cred-name"></b>ga bering. U birinchi kirganda parolni o'zgartiradi.</div><div class="cred-row"><span class="cred-k">Student ID</span><span class="cred-v" id="cred-id"></span></div><div class="cred-row"><span class="cred-k">Vaqtinchalik parol</span><span class="cred-v" id="cred-pw"></span></div><div class="modal-footer"><button class="btn btn-primary btn-sm" onclick="copyCreds()">Nusxalash</button><button class="btn btn-sm" onclick="closeModals()">Yopish</button></div></div></div>
 
@@ -1812,7 +1812,7 @@ function fillGroupSelect(el,withAll,allLabel){
   el.innerHTML=html||'<option value="">Guruh yo\'q</option>';
 }
 function refillAllGroupSelects(){
-  [['cl-group',true],['st-group',true],['rep-group',true],['hw-group',true],['test-group',true],['pay-group',true],['new-student-group',false],['hw-new-group',false]].forEach(([id,wa])=>{const el=document.getElementById(id);if(el)fillGroupSelect(el,wa)});
+  [['cl-group',false],['st-group',true],['rep-group',true],['hw-group',true],['test-group',true],['pay-group',true],['new-student-group',false],['hw-new-group',false]].forEach(([id,wa])=>{const el=document.getElementById(id);if(el)fillGroupSelect(el,wa)});
   try{const pm=document.getElementById('pay-month');if(pm&&!pm.value)pm.value=new Date().toISOString().slice(0,7);}catch(e){}
 }
 
@@ -2750,7 +2750,7 @@ function renderChecklist(){
   const a=window.__amMonth.split('-');const y=+a[0],mo=+a[1];
   const ml=document.getElementById('am-month');if(ml)ml.textContent=(_UZ_MON[mo-1]||'')+' '+y;
   const gsel=document.getElementById('cl-group');const g=gsel?gsel.value:'all';
-  if(!g||g==='all'){el.innerHTML='<div class="am-empty">Yuqoridan guruh tanlang</div>';return;}
+  if(!g||g==='all'){const gs=(level==='admin'?allGroups:myGroups);if(!gs.length){el.innerHTML='<div class="am-empty">Guruh yo\'q</div>';return;}g=gs[0].id;const _cs=document.getElementById('cl-group');if(_cs)_cs.value=g;}
   const grp=allGroups.find(x=>x.id===g);
   const list=students.filter(s=>gidOf(s)===g&&!s.frozen).sort((x,z)=>(x.name||'').localeCompare(z.name||''));
   const days=grp?_lessonDaysArr(grp.lesson_days):[];
@@ -2962,7 +2962,7 @@ async function addStudent(){
   const name=document.getElementById('new-name').value.trim();
   const phone=document.getElementById('new-phone').value.trim();
   const gid=document.getElementById('new-student-group').value;
-  const course=document.getElementById('new-course').value.trim();
+  const course=((allGroups.find(x=>x.id===gid)||{}).subject)||gidToName[gid]||'';
   const startDate=document.getElementById('new-start-date').value;
   if(!name){showToast('Ism kiriting');return}
   if(!gid){showToast('Guruh tanlang');return}
@@ -4125,7 +4125,7 @@ function openQuickPay(){
   const month=new Date().toISOString().slice(0,7);
   ov.innerHTML=`<div class="qp-box"><div class="qp-head"><div class="qp-title">To'lov qabul qilish</div><button class="qp-x" onclick="closeQuickPay()">×</button></div>
     <label class="qp-l">O'quvchini qidiring (ism / familiya)</label>
-    <input id="qp-search" class="qp-inp" placeholder="Masalan: Abror" autocomplete="off" oninput="_qpSearch()">
+    <input id="qp-search" class="qp-inp" placeholder="Ism yoki familiya bo'yicha qidiring" autocomplete="off" oninput="_qpSearch()">
     <div id="qp-results" class="qp-results"></div>
     <div id="qp-pick" style="display:none">
       <div class="qp-sel" id="qp-sel"></div>
