@@ -4315,6 +4315,7 @@ async function seedDemo(){
   if(sres.error){studentRows.forEach(r=>delete r.parent_phone);sres=await sb.from('students').insert(studentRows).select('id,group_id');}
   if(sres.error){showToast('Xato: '+sres.error.message);return}
   const sList=sres.data||[];ids.s=sList.map(r=>r.id);
+  try{const frz=sList.slice(0,6).map(r=>r.id);if(frz.length)await sb.from('students').update({frozen:true}).in('id',frz);}catch(e){}
   const byG={},feeByGid={};G.forEach(g=>feeByGid[gmap[g.name]]=g.fee);sList.forEach(r=>{(byG[r.group_id]=byG[r.group_id]||[]).push(r.id);});
   const checkRows=[];const score=()=>Math.random()<0.72?1:(Math.random()<0.6?0.5:0);
   G.forEach(g=>{const gid=gmap[g.name];const dts=_lastLessonDates(_lessonDaysArr(g.days),10);(byG[gid]||[]).forEach(sid=>{dts.forEach(ds=>{if(Math.random()<0.1)checkRows.push({student_id:sid,date:ds,absent:true,words:null,hw:null,extra:null});else checkRows.push({student_id:sid,date:ds,absent:false,words:score(),hw:score(),extra:score()});});});});
